@@ -1,203 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rastreador Chambatina</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
+    .card{max-width:900px;margin:0 auto 20px auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    h1,h2{margin-top:0}
+    input,textarea,button{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #ccc;box-sizing:border-box;font-size:16px}
+    textarea{min-height:220px;font-family:monospace}
+    button{background:#111;color:#fff;border:none;font-weight:700}
+    .estado{display:inline-block;padding:8px 12px;border-radius:999px;background:#ffe8d3;color:#a14d00;font-weight:700;margin-bottom:12px}
+    .ok{font-size:32px;font-weight:900;color:#17803d}
+    .res{margin-top:15px;padding:15px;background:#fff8f1;border-left:5px solid #ff7a00;border-radius:10px}
+    .err{background:#fff1f1;border-left-color:#c62828}
+    .small{font-size:13px;color:#666}
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Rastreador Chambatina</h1>
+    <p>Busca por CPK. Ejemplo: 0260199</p>
+    <input id="buscar" placeholder="Escribe el CPK">
+    <button onclick="buscarPaquete()">Buscar</button>
+    <div id="resultado"></div>
+  </div>
+
+  <div class="card">
+    <h2>Actualizar datos</h2>
+    <p class="small">Formato exacto: una línea por paquete, separada por |</p>
+    <p class="small">CPK|ESTADO|FECHA|NOMBRE|DESCRIPCION|DIRECCION|TELEFONO</p>
+    <textarea id="datos"></textarea>
+    <button onclick="guardarDatos()">Guardar datos en este navegador</button>
+    <div id="info" class="small"></div>
+  </div>
+
 <script>
-  var DATOS_BASE = `
-CHAMBATINA MIAMI	GEO MIA		CPK-0260440	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	YURISLEIDI TAPIA ALVAREZ		92110940512	CALLE 16 # 112 E Rpto. PIEDRECITA e/ 13 y 15, CESPEDES, CAMAGUEY	56244435	YISEL LOPEZ ALVAREZ			2.99	0	1	26	3.375	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	45.4	2.37	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259432	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11116	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	67	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259412	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16	11116	2026-03-23	LAZARO FRANCISCO SALAZAR HERRERA		83031302428	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	MIGUEL SANTIN			0	0	1	78	2.37	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259342	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11116	2026-03-23	VIOLEDYS BAEZ GONZALEZ		82070600034	AVENIDA 37 # 3604 e/ 36 y 38, CANDELARIA, ARTEMISA	54215648	AMANDA GONZALEZ			2.99	0	1	38	3.375	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259297	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11115	2026-03-23	YUDIER OVALLE MUÑOZ		85111801702	CALLE 12 # #11A Rpto. Ceferino FernandeZ e/ A y B, PINAR DEL RIO, PINAR DEL RIO	59871761	MARTA MUÑOZ			0	0	1	35	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259296	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11115	2026-03-23	YUDIER OVALLE MUÑOZ		85111801702	CALLE 12 # #11A Rpto. Ceferino FernandeZ e/ A y B, PINAR DEL RIO, PINAR DEL RIO	59871761	MARIA DEL CARMEN MUÑOZ LOPEZ			0	0	1	50	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259295	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	SECADORA	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	125	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259294	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	SOPORTE PARA TV	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	11	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259293	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MESA DE NOCHE	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	20	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259290	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MESA DE NOCHE	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	22	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259289	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MESA DE NOCHE	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	22	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259287	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	CABECERA PARA CAMA	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	47	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259286	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	CAMA	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	87	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259097	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16	11119	2026-03-22	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	ANGEL LUIS			0	0	1	43	2.37	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259094	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	MARIA DEL CARMEN REGINFO GONZALEZ		57081107579	CALLE EDIFICO 11, ESCALERA B, APTO 6, MICRO 2 Rpto. ABEL SANTAMARIA, SANTIAGO DE CUBA, SANTIAGO DE CUBA	54073645	VALENTIN REGINFO			0	0	1	45	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259093	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	CARIDAD IZQUIERDO			0	0	1	38	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259092	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	40	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259091	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	43	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259090	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	36	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259088	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	YUNIA RODRIGUEZ PANEQUE		77010619436	CALLE 7 DE DICIEMBRE # S/N Rpto. LOCALIDAD BUENAVENTURA, CALIXTO GARCIA, HOLGUIN	56351538	YELENNI RODRIGUEZ			0	0	1	39	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259086	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 12	11119	2026-03-22	EUGENIO FELIPE SANTANA BENITEZ		50090604608	CALLE 8 # 1706 Rpto. POBLADO PILOTO e/ 17 y 19, CONSOLACION DEL SUR, PINAR DEL RIO	55455130	OLGA SANTANA			0	0	1	32	1	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259085	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11119	2026-03-22	MARIBEL HERNANDEZ CONTINO		79081801193	CALLE CARRETERA CENTRAL KILOMETRO 166 Rpto. BARRIO LA CORONELA, SAN CRISTOBAL, ARTEMISA	63665444	MADELAINE BRIDON			0	0	1	52	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259080	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16	11119	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	43	2.37	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259079	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16	11119	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	66	2.37	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259075	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	COLCHON	11119	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	37.5	2.37	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259029	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11119	2026-03-22	LISANDRA MARTIN CUE		86020811453	CALLE 5TA # 1 Rpto. OÑA e/ CARRETERA ANTONIO FINALET y A, SAGUA LA GRANDE, VILLA CLARA	58502798	LILI CUE			2.99	0	1	61	3.375	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0258946	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	COLCHON	11119	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	37.5	2.37	0	0	0		
+var DATOS_BASE = `
+0260199|EN AGENCIA|2026-03-25|ROBERTO PACHECO RAMIREZ|BATERIA 51 V 100 AH|SANTIAGO DE CUBA|5353194571
+0260197|EN AGENCIA|2026-03-25|ROBERTO PACHECO RAMIREZ|INVERSOR 10 MIL WATTS|SANTIAGO DE CUBA|5353194571
+0260020|EN AGENCIA|2026-03-24|NANCY ROJAS REGUERA|MISCELANEAS|LA HABANA VIEJA|53608954
+0259575|EN ALMACEN|2026-03-23|FELICIA CARVAJAL MARTIN|MISCELANEAS|VILLA CLARA|53282278
+0259555|EN AGENCIA|2026-03-23|OSMANY CASTELLON RAMIREZ|BICICLETA ELECTRICA|CIENFUEGOS|53421145
 `;
 
-  function limpiarCPK(valor) {
-    return String(valor || "")
-      .toUpperCase()
-      .replace(/CPK-/g, "")
-      .replace(/CPK/g, "")
-      .replace(/\D/g, "");
+function limpiarCPK(v){
+  return String(v || "").replace(/\D/g,"");
+}
+
+function normalizarEstado(e){
+  e = String(e || "").toUpperCase().trim();
+  if (e.includes("ENTREGADO")) return "ENTREGADO";
+  if (e.includes("DISTRIB")) return "DISTRIBUCIÓN";
+  if (e.includes("DESPACH")) return "DESPACHO";
+  if (e.includes("DESAGRUP")) return "DESAGRUPE";
+  if (e.includes("CLASIFIC")) return "CLASIFICADO";
+  if (e.includes("AGENCIA")) return "EN AGENCIA";
+  if (e.includes("ALMACEN") || e.includes("ALMACÉN")) return "EN ALMACÉN";
+  if (e.includes("ARRIBO")) return "ARRIBO";
+  if (e.includes("CANAL ROJO")) return "CANAL ROJO";
+  return "EN PROCESO";
+}
+
+function explicacion(estado){
+  switch(estado){
+    case "ENTREGADO": return "Su paquete ya fue entregado.";
+    case "EN AGENCIA": return "Su paquete ya está en agencia y entra en coordinación de entrega local.";
+    case "EN ALMACÉN": return "Su paquete está resguardado en almacén, pendiente del siguiente movimiento.";
+    case "CLASIFICADO": return "Su envío ya fue organizado por ruta o provincia.";
+    case "DESAGRUPE": return "Su paquete está siendo separado de la carga consolidada.";
+    case "DESPACHO": return "Su envío está en fase de despacho.";
+    case "DISTRIBUCIÓN": return "Su paquete está en distribución local.";
+    case "ARRIBO": return "Su paquete registra arribo a una nueva etapa.";
+    case "CANAL ROJO": return "Su envío está bajo revisión adicional.";
+    default: return "Su paquete continúa en proceso logístico.";
+  }
+}
+
+function parsear(texto){
+  var base = {};
+  var lineas = String(texto || "").split(/\r?\n/);
+
+  for (var i=0; i<lineas.length; i++){
+    var l = lineas[i].trim();
+    if (!l) continue;
+
+    var p = l.split("|");
+    if (p.length < 2) continue;
+
+    var cpk = limpiarCPK(p[0]);
+    if (!cpk) continue;
+
+    base[cpk] = {
+      cpk: cpk,
+      estado: normalizarEstado(p[1] || ""),
+      fecha: (p[2] || "").trim(),
+      nombre: (p[3] || "").trim(),
+      descripcion: (p[4] || "").trim(),
+      direccion: (p[5] || "").trim(),
+      telefono: (p[6] || "").trim()
+    };
   }
 
-  function normalizarEstado(estado) {
-    var e = String(estado || "").toUpperCase().trim();
-    if (e.indexOf("ENTREGADO") >= 0) return "ENTREGADO";
-    if (e.indexOf("DISTRIB") >= 0) return "DISTRIBUCIÓN";
-    if (e.indexOf("DESPACH") >= 0) return "DESPACHO";
-    if (e.indexOf("DESAGRUP") >= 0) return "DESAGRUPE";
-    if (e.indexOf("CLASIFIC") >= 0) return "CLASIFICADO";
-    if (e.indexOf("AGENCIA") >= 0) return "EN AGENCIA";
-    if (e.indexOf("ALMACEN") >= 0 || e.indexOf("ALMACÉN") >= 0) return "EN ALMACÉN";
-    if (e.indexOf("ARRIBO") >= 0) return "ARRIBO";
-    if (e.indexOf("CANAL ROJO") >= 0) return "CANAL ROJO";
-    return e || "EN PROCESO";
+  return base;
+}
+
+function obtenerBase(){
+  var guardado = localStorage.getItem("chambatina_db_simple");
+  if (guardado){
+    try { return JSON.parse(guardado); } catch(e){}
+  }
+  return parsear(DATOS_BASE);
+}
+
+function guardarDatos(){
+  var texto = document.getElementById("datos").value;
+  var base = parsear(texto);
+  localStorage.setItem("chambatina_db_simple", JSON.stringify(base));
+  document.getElementById("info").innerHTML = "Registros guardados: " + Object.keys(base).length;
+}
+
+function buscarPaquete(){
+  var codigo = limpiarCPK(document.getElementById("buscar").value);
+  var base = obtenerBase();
+  var r = document.getElementById("resultado");
+
+  if (!codigo){
+    r.innerHTML = '<div class="res err">Escribe un CPK válido.</div>';
+    return;
   }
 
-  function explicacionEstado(estado) {
-    switch (estado) {
-      case "ENTREGADO": return "Su paquete ya fue entregado. Gracias por confiar en Chambatina.";
-      case "EN AGENCIA": return "Su paquete ya está en agencia y entra en coordinación de entrega local.";
-      case "EN ALMACÉN": return "Su paquete se encuentra resguardado en almacén, pendiente del siguiente movimiento logístico.";
-      case "CLASIFICADO": return "Su envío ya fue identificado y organizado por ruta o provincia para continuar avanzando.";
-      case "DESAGRUPE": return "Su paquete está siendo separado del contenedor o carga consolidada para continuar su ruta.";
-      case "DESPACHO": return "Su envío está en fase de despacho y sigue avanzando en la operación logística.";
-      case "DISTRIBUCIÓN": return "Su paquete se encuentra en distribución local hacia su zona final.";
-      case "ARRIBO": return "Su paquete registra arribo a una nueva etapa del proceso logístico.";
-      case "CANAL ROJO": return "Su envío está bajo revisión adicional. Puede tardar un poco más, pero sigue en proceso.";
-      default: return "Su paquete continúa en proceso logístico.";
-    }
+  if (!base[codigo]){
+    r.innerHTML = '<div class="res err">No encontramos ese CPK.</div>';
+    return;
   }
 
-  function parsearTexto(texto) {
-    var base = {};
-    var limpio = String(texto || "").replace(/\r/g, "");
+  var x = base[codigo];
 
-    var bloques = limpio.split(/(?=CPK-\d+)/g);
-
-    for (var i = 0; i < bloques.length; i++) {
-      var bloque = bloques[i].trim();
-      if (!bloque) continue;
-
-      var cpkMatch = bloque.match(/CPK-(\d+)/i);
-      if (!cpkMatch) continue;
-      var cpk = limpiarCPK(cpkMatch[1]);
-
-      var fechaMatch = bloque.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-      var fecha = fechaMatch ? fechaMatch[1] : "";
-
-      var estadoMatch = bloque.match(/\b(ENTREGADO|EN AGENCIA|EN ALMACEN|EN ALMACÉN|CLASIFICADO|DESAGRUPE|DESPACHO|DISTRIBUCION|DISTRIBUCIÓN|ARRIBO|CANAL ROJO)\b/i);
-      var estado = estadoMatch ? normalizarEstado(estadoMatch[1]) : "EN PROCESO";
-
-      var descripcion = "";
-      var descMatch = bloque.match(/ENVIO\s+([^\t\n]+?)\s+\d{0,6}\s+20\d{2}-\d{2}-\d{2}/i);
-      if (descMatch) descripcion = descMatch[1].trim();
-
-      var nombre = "";
-      if (fecha) {
-        var nombreMatch = bloque.match(new RegExp(fecha + "\\s+([^\\t\\n]+?)\\s+\\d{8,12}", "i"));
-        if (nombreMatch) nombre = nombreMatch[1].trim();
-      }
-
-      var telefono = "";
-      var telMatches = bloque.match(/\b\d{7,12}\b/g);
-      if (telMatches && telMatches.length) {
-        telefono = telMatches[telMatches.length - 1];
-      }
-
-      var direccion = "";
-      if (fecha) {
-        var dirMatch = bloque.match(new RegExp(fecha + "\\s+[^\\t\\n]+\\s+\\d{8,12}\\s+([^\\t\\n]+?)\\s+\\d{7,12}", "i"));
-        if (dirMatch) direccion = dirMatch[1].trim();
-      }
-
-      base[cpk] = {
-        cpk: cpk,
-        estado: estado,
-        fecha: fecha,
-        nombre: nombre,
-        descripcion: descripcion,
-        direccion: direccion,
-        telefono: telefono
-      };
-    }
-
-    return base;
+  if (x.estado === "ENTREGADO"){
+    r.innerHTML =
+      '<div class="res"><div class="ok">ENTREGADO</div>' +
+      '<p><strong>CPK:</strong> ' + x.cpk + '</p>' +
+      '<p><strong>Cliente:</strong> ' + (x.nombre || "No disponible") + '</p>' +
+      '<p><strong>Fecha:</strong> ' + (x.fecha || "No disponible") + '</p></div>';
+    return;
   }
 
-  function obtenerBase() {
-    var guardado = localStorage.getItem("chambatina_db");
-    if (guardado) {
-      try {
-        return JSON.parse(guardado);
-      } catch (e) {}
-    }
-    return parsearTexto(DATOS_BASE);
-  }
+  r.innerHTML =
+    '<div class="res">' +
+    '<div class="estado">' + x.estado + '</div>' +
+    '<p><strong>CPK:</strong> ' + x.cpk + '</p>' +
+    '<p><strong>Cliente:</strong> ' + (x.nombre || "No disponible") + '</p>' +
+    '<p><strong>Descripción:</strong> ' + (x.descripcion || "No disponible") + '</p>' +
+    '<p><strong>Fecha:</strong> ' + (x.fecha || "No disponible") + '</p>' +
+    '<p><strong>Dirección:</strong> ' + (x.direccion || "No disponible") + '</p>' +
+    '<p><strong>Teléfono:</strong> ' + (x.telefono || "No disponible") + '</p>' +
+    '<p><strong>Explicación:</strong> ' + explicacion(x.estado) + '</p>' +
+    '</div>';
+}
 
-  function procesarDatos() {
-    var texto = document.getElementById("textoDatos").value;
-    if (!texto.trim()) {
-      document.getElementById("infoCarga").innerHTML = "No has pegado ninguna información.";
-      return;
-    }
-
-    var base = parsearTexto(texto);
-    localStorage.setItem("chambatina_db", JSON.stringify(base));
-    document.getElementById("infoCarga").innerHTML =
-      "Registros cargados: " + Object.keys(base).length +
-      "<br>Prueba con uno de estos: " + Object.keys(base).slice(0, 8).join(", ");
-  }
-
-  function buscarPaquete() {
-    var valor = document.getElementById("codigoBuscar").value;
-    var codigo = limpiarCPK(valor);
-    var resultado = document.getElementById("resultado");
-    var base = obtenerBase();
-
-    if (!codigo) {
-      resultado.innerHTML = '<div class="result error">Debe escribir un número válido.</div>';
-      return;
-    }
-
-    if (!base[codigo]) {
-      resultado.innerHTML =
-        '<div class="result error">No encontramos ese CPK.<br><br>Prueba con uno que sí esté cargado, por ejemplo: ' +
-        Object.keys(base).slice(0, 8).join(", ") +
-        '</div>';
-      return;
-    }
-
-    var item = base[codigo];
-
-    if (item.estado === "ENTREGADO") {
-      resultado.innerHTML =
-        '<div class="result success">' +
-        '<div class="big">ENTREGADO</div>' +
-        '<p><strong>CPK:</strong> ' + item.cpk + '</p>' +
-        '<p><strong>Cliente:</strong> ' + (item.nombre || "No disponible") + '</p>' +
-        '<p><strong>Fecha:</strong> ' + (item.fecha || "No disponible") + '</p>' +
-        '</div>';
-      return;
-    }
-
-    resultado.innerHTML =
-      '<div class="result">' +
-      '<div class="status">' + item.estado + '</div>' +
-      '<p><strong>CPK:</strong> ' + item.cpk + '</p>' +
-      '<p><strong>Cliente:</strong> ' + (item.nombre || "No disponible") + '</p>' +
-      '<p><strong>Descripción:</strong> ' + (item.descripcion || "No disponible") + '</p>' +
-      '<p><strong>Fecha:</strong> ' + (item.fecha || "No disponible") + '</p>' +
-      '<p><strong>Dirección:</strong> ' + (item.direccion || "No disponible") + '</p>' +
-      '<p><strong>Teléfono:</strong> ' + (item.telefono || "No disponible") + '</p>' +
-      '<p><strong>Explicación:</strong> ' + explicacionEstado(item.estado) + '</p>' +
-      '</div>';
-  }
-
-  window.onload = function() {
-    document.getElementById("textoDatos").value = DATOS_BASE.trim();
-    var base = obtenerBase();
-    document.getElementById("infoCarga").innerHTML =
-      "Registros listos: " + Object.keys(base).length +
-      "<br>Ejemplos cargados: " + Object.keys(base).slice(0, 8).join(", ");
-  };
+window.onload = function(){
+  document.getElementById("datos").value = DATOS_BASE.trim();
+  document.getElementById("info").innerHTML = "Registros listos: " + Object.keys(obtenerBase()).length;
+};
 </script>
+</body>
+</html>
