@@ -3,568 +3,371 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rastreador Chambatina</title>
+  <title>Rastreo Chambatina</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #fff8f0, #ffe8d1);
-      color: #111;
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:#f5f5f5;
+      color:#222;
     }
-    .wrap {
-      max-width: 1100px;
-      margin: 30px auto;
-      padding: 16px;
+    .wrap{
+      max-width:800px;
+      margin:50px auto;
+      background:#fff;
+      border-radius:18px;
+      box-shadow:0 10px 28px rgba(0,0,0,.08);
+      padding:28px;
     }
-    .card {
-      background: #fff;
-      border: 2px solid #ff7a00;
-      border-radius: 22px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    h1{
+      text-align:center;
+      margin:0 0 10px;
+      color:#111;
     }
-    h1 {
-      text-align: center;
-      margin: 0 0 10px;
-      font-size: 34px;
+    .sub{
+      text-align:center;
+      color:#666;
+      margin-bottom:24px;
     }
-    .sub {
-      text-align: center;
-      color: #444;
-      margin-bottom: 24px;
-      font-size: 17px;
+    .search-box{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
     }
-    .search-box {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 22px;
+    input{
+      flex:1;
+      min-width:240px;
+      padding:14px 16px;
+      font-size:16px;
+      border:1px solid #ccc;
+      border-radius:12px;
+      outline:none;
     }
-    .search-box input {
-      flex: 1;
-      min-width: 240px;
-      max-width: 380px;
-      padding: 15px 16px;
-      border: 2px solid #111;
-      border-radius: 14px;
-      font-size: 18px;
-      background: #111;
-      color: #fff;
-      outline: none;
+    button{
+      padding:14px 22px;
+      font-size:16px;
+      font-weight:bold;
+      border:none;
+      border-radius:12px;
+      background:#f57c00;
+      color:#fff;
+      cursor:pointer;
     }
-    .search-box input::placeholder { color: #cfcfcf; }
-    .search-box button {
-      padding: 15px 24px;
-      border: none;
-      border-radius: 14px;
-      background: #ff7a00;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
+    button:hover{
+      background:#e46f00;
     }
-    .search-box button:hover { opacity: .92; }
-
-    .resultado {
-      margin-top: 12px;
+    #resultado{
+      margin-top:24px;
     }
-
-    .error, .vacio {
-      background: #fff;
-      border-left: 6px solid #d32f2f;
-      border-radius: 14px;
-      padding: 18px;
-      color: #222;
+    .card{
+      padding:22px;
+      border-radius:16px;
+      background:#fafafa;
+      border:1px solid #e6e6e6;
     }
-    .vacio {
-      border-left-color: #ff7a00;
+    .alert{
+      padding:18px;
+      border-radius:14px;
+      text-align:center;
     }
-
-    .panel {
-      background: #fff;
-      border-radius: 20px;
-      border: 2px solid #ddd;
-      padding: 22px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.07);
+    .warn{
+      background:#fff3e0;
+      border:1px solid #ffd8a8;
+      color:#8a4b00;
     }
-    .panel h2 {
-      margin: 0 0 14px;
-      font-size: 28px;
+    .error{
+      background:#fff4f4;
+      border:1px solid #f3c2c2;
+      color:#8b0000;
     }
-
-    .estado-pill {
-      display: inline-block;
-      padding: 10px 16px;
-      border-radius: 999px;
-      color: #fff;
-      font-weight: bold;
-      font-size: 14px;
+    .delivered{
+      background:#f1fff3;
+      border:1px solid #b8e6bf;
+      text-align:center;
     }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+    .estado{
+      font-size:30px;
+      font-weight:800;
+      margin:8px 0 14px;
+    }
+    .estado.entregado{
+      font-size:38px;
+    }
+    .detalle{
+      margin-bottom:8px;
+      line-height:1.5;
+    }
+    .explicacion{
+      margin-top:14px;
+      padding:14px;
+      border-radius:12px;
+      background:#fff8e8;
+      color:#6a4b00;
+      line-height:1.6;
     }
 
-    .campo {
-      background: #fff8f0;
-      border-radius: 14px;
-      padding: 14px;
-      border: 1px solid #ffd2a8;
-    }
-    .campo strong {
-      display: block;
-      margin-bottom: 6px;
-      color: #111;
-    }
-    .campo span {
-      color: #333;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-
-    .explicacion {
-      margin-top: 18px;
-      background: #fff6eb;
-      border-left: 6px solid #ff7a00;
-      border-radius: 14px;
-      padding: 16px;
-    }
-    .explicacion h3 {
-      margin: 0 0 8px;
-      font-size: 20px;
-    }
-
-    .ok {
-      text-align: center;
-      border: 2px solid #1f8b3a;
-      background: #fff;
-      border-radius: 22px;
-      padding: 28px 20px;
-    }
-    .ok .grande {
-      font-size: 46px;
-      font-weight: 900;
-      color: #1f8b3a;
-      margin: 12px 0;
-    }
-
-    .meta {
-      margin-top: 18px;
-      font-size: 14px;
-      color: #666;
-      text-align: center;
-    }
-
-    .small-note {
-      margin-top: 12px;
-      color: #666;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    details {
-      margin-top: 18px;
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 12px 14px;
-      border: 1px solid #ececec;
-    }
-    details summary {
-      cursor: pointer;
-      font-weight: bold;
-      color: #333;
-    }
-    .historial-item {
-      padding: 10px 0;
-      border-bottom: 1px solid #ececec;
-      font-size: 15px;
-      color: #333;
-    }
-    .historial-item:last-child {
-      border-bottom: none;
-    }
-
-    @media (max-width: 760px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-      h1 {
-        font-size: 28px;
-      }
-      .panel h2 {
-        font-size: 24px;
-      }
-      .ok .grande {
-        font-size: 38px;
-      }
+    /* Zona privada para ti. No la ve el cliente. */
+    #zonaPrivada{
+      display:none !important;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>Rastreador de Paquetería Chambatina</h1>
-      <div class="sub">Escriba su número CPK con o sin letras. Ejemplo: 0259557 o CPK-0259557</div>
+    <h1>Rastrea tu paquete</h1>
+    <div class="sub">Consulta el estado actual de tu envío con tu número de rastreo.</div>
 
-      <div class="search-box">
-        <input id="cpkInput" type="text" placeholder="Ejemplo: 0259557" />
-        <button onclick="buscarPaquete()">Consultar</button>
-      </div>
-
-      <div id="resultado" class="resultado"></div>
-
-      <div class="meta">
-        Base cargada: <span id="totalRegistros">0</span> registros procesados ·
-        <span id="totalCPK">0</span> CPK únicos
-      </div>
-
-      <div class="small-note">
-        Para actualizar la base solo reemplaza el contenido dentro de <strong>RAW_DATA</strong> y vuelve a hacer commit.
-      </div>
+    <div class="search-box">
+      <input id="cpkInput" type="text" placeholder="Ej: 0259443" />
+      <button onclick="buscarCPK()">Buscar</button>
     </div>
+
+    <div id="resultado"></div>
   </div>
 
+  <!--
+    ZONA PRIVADA
+    Aquí pegas tus datos sin organizar.
+    Puedes pegar líneas completas como salen de tu tabla.
+    No se muestra al cliente.
+  -->
+  <textarea id="zonaPrivada">
+CHAMBATINA MIAMI	GEO MIA		CPK-0259557	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	VENTILADOR DE TECHO	11113	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	5.6	0.072	0	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0259555	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BICICLETA ELECTRICA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	106.4	3.375	0	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0259547	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	JOSE MANUEL HERNANDEZ CABEZAS		00082162286	CALLE J # 453 ALTO Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	GEO CABEZAS			0	0	1	7	0.072	0	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0259443	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	7.32	0.579	0	0	0
+  </textarea>
+
   <script>
-    /*
-      =========================================================
-      ACTUALIZACIÓN FÁCIL:
-      SOLO PEGA TU BLOQUE COMPLETO DENTRO DE RAW_DATA.
-      SI UN CPK SE REPITE, EL SISTEMA CONSERVA LA ÚLTIMA LÍNEA
-      COMO ESTADO ACTUAL Y GUARDA EL HISTORIAL INTERNO.
-      =========================================================
-    */
-    const RAW_DATA = String.raw`
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259557	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	VENTILADOR DE TECHO	11113	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	5.6	0.072	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259555	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BICICLETA ELECTRICA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	106.4	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259547	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	JOSE MANUEL HERNANDEZ CABEZAS		00082162286	CALLE J # 453 ALTO Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	GEO CABEZAS			0	0	1	7	0.072	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259540	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MESA PLASTICA	11113	2026-03-23	ACELA ARROYO ARENCIBIA		33120603838	CALLE AGRAMONTE # 11 e/ AVE MARIANA GRANJALES y COMANDANTE PINARES, PINAR DEL RIO, PINAR DEL RIO	52671478	MEIVYS PAEZ			2.99	0	1	6	0.579	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259539	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11113	2026-03-23	ACELA ARROYO ARENCIBIA		33120603838	CALLE AGRAMONTE # 11 e/ AVE MARIANA GRANJALES y COMANDANTE PINARES, PINAR DEL RIO, PINAR DEL RIO	52671478	MEIVYS PAEZ			2.99	0	1	4	0.579	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259533	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11113	2026-03-23	MARIA TERESA ROJAS GONZALEZ		70112204811	CALLE VIRTUDES # 15 e/ VELEZ CAVIEDES Y OSMANI ARENADO, PINAR DEL RIO, PINAR DEL RIO	55916464	PEDRO DIAZ PAEZ			2.99	0	1	29.2	0.579	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259532	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11113	2026-03-23	MARIA TERESA ROJAS GONZALEZ		70112204811	CALLE VIRTUDES # 15 e/ VELEZ CAVIEDES Y OSMANI ARENADO, PINAR DEL RIO, PINAR DEL RIO	55916464	PEDRO DIAZ PAEZ			0	0	1	50	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259529	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PISCINA	11114	2026-03-23	AMANDA LESVIA DIAZ YERO		01121178274	CALLE 21 # 10 Rpto. ALCIDES PINO e/ 28 y 30, HOLGUIN, HOLGUIN	55675812	JOSE LUIS CRUZ			0	0	1	54.5	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259443	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	7.32	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260199	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BATERIA 51 V 100 AH	11159	2026-03-25	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO			0	0	1	102.7	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260197	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	INVERSOR 10 MIL WATTS	11159	2026-03-25	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO			0	0	1	52.9	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260020	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA			2.99	0	1	16.9	2.37	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260019	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA			2.99	0	1	16.3	0.579	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260018	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA			2.99	0	1	6.34	0.072	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260017	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	CARETA DE SOLDAR	11159	2026-03-24	ROY YOESON SLOVACEVICHES MARTINEZ		81121900803	CALLE SEGUNDA CALLE # 89, MINAS DE MATAHAMBRE, PINAR DEL RIO	58340971	ALEX MARTINEZ			0	0	1	2.45	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260016	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PLANTA DE SOLDAR	11159	2026-03-24	ROY YOESON SLOVACEVICHES MARTINEZ		81121900803	CALLE SEGUNDA CALLE # 89, MINAS DE MATAHAMBRE, PINAR DEL RIO	58340971	ALEX MARTINEZ			0	0	1	14.64	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260015	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	SOMBRILLA PARA TERRAZA	11159	2026-03-24	ROY YOESON SLOVACEVICHES MARTINEZ		81121900803	CALLE SEGUNDA CALLE # 89, MINAS DE MATAHAMBRE, PINAR DEL RIO	58340971	ALEX MARTINEZ			0	0	1	50.5	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260014	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11159	2026-03-24	JOSE ANTONIO GARCIA MONTALVO		78122301667	CALLE CAPITAN REYES # 43 e/ 26 DE JULIO y CESPEDES, SAN CRISTOBAL, ARTEMISA	53064026	SANDY GARCIA			2.99	0	1	14.6	1.588	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260013	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	GUILLOTINA PARA PAPEL	11159	2026-03-24	JOSE ANTONIO GARCIA MONTALVO		78122301667	CALLE CAPITAN REYES # 43 e/ 26 DE JULIO y CESPEDES, SAN CRISTOBAL, ARTEMISA	53064026	SANDY GARCIA			0	0	1	17.92	0.579	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260012	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	SILLA DE ESCRITORIO	11159	2026-03-24	JOSE ANTONIO GARCIA MONTALVO		78122301667	CALLE CAPITAN REYES # 43 e/ 26 DE JULIO y CESPEDES, SAN CRISTOBAL, ARTEMISA	53064026	SANDY GARCIA			0	0	1	33.16	3.375	0	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	45.4	2.37	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0259575	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11113	2026-03-23	FELICIA CARVAJAL MARTIN		73082101550	CALLE DELICIAS # S/N Rpto. CASERIO GUARACABULLA e/ CAMILO CIENFUEGOS y MARTI, PLACETAS, VILLA CLARA	53282278	MAIKEL HERNANDEZ LLANEZA			2.99	0	1	4	0.003	0.5	0	0		
-		
-
-    let baseDatos = {};
-    let totalLineasProcesadas = 0;
-
-    function limpiarTexto(valor) {
-      return (valor || "").toString().replace(/\s+/g, " ").trim();
+    function normalizarCPK(valor){
+      return String(valor || "")
+        .normalize("NFKC")
+        .toUpperCase()
+        .replace(/\u00A0/g, " ")
+        .replace(/\s+/g, "")
+        .replace(/CPK[-:]?/g, "")
+        .replace(/[^0-9]/g, "");
     }
 
-    function obtenerSoloDigitosCPK(valor) {
-      if (!valor) return "";
-      const limpio = valor.toString().toUpperCase().replace(/[^0-9]/g, "");
-      return limpio;
+    function escaparHTML(texto){
+      return String(texto || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
-    function normalizarEstado(estado) {
-      const e = limpiarTexto(estado).toUpperCase();
-      if (!e) return "EN PROCESO";
-      return e;
+    function colorEstado(estado){
+      const e = String(estado || "").toUpperCase();
+      if (e.includes("ENTREGADO")) return "#1b5e20";
+      if (e.includes("DISTRIB")) return "#1565c0";
+      if (e.includes("DESPACHO")) return "#6a1b9a";
+      if (e.includes("DESAGRUPE")) return "#ef6c00";
+      if (e.includes("CLASIFIC")) return "#00838f";
+      if (e.includes("ALMACEN")) return "#5d4037";
+      if (e.includes("AGENCIA")) return "#ad1457";
+      if (e.includes("ARRIBO")) return "#2e7d32";
+      if (e.includes("CANAL ROJO")) return "#c62828";
+      return "#333";
     }
 
-    function safeAt(arr, index) {
-      return index >= 0 && index < arr.length ? limpiarTexto(arr[index]) : "";
-    }
+    function explicacionAutomatica(estado){
+      const e = String(estado || "").toUpperCase();
 
-    function parsearRawData(rawText) {
-      const lineas = rawText
-        .split(/\r?\n/)
-        .map(l => l.replace(/\u00A0/g, ""))
-        .filter(l => l.trim().length > 0);
-
-      const mapa = {};
-      let procesadas = 0;
-
-      for (let numeroLinea = 0; numeroLinea < lineas.length; numeroLinea++) {
-        const linea = lineas[numeroLinea];
-
-        const columnas = linea.split("\t");
-        const idxCpk = columnas.findIndex(c => /CPK-\d+/i.test(c));
-
-        if (idxCpk === -1) continue;
-
-        const cpkRaw = safeAt(columnas, idxCpk);
-        const cpkDigits = obtenerSoloDigitosCPK(cpkRaw);
-
-        if (!cpkDigits) continue;
-
-        const estado = normalizarEstado(safeAt(columnas, idxCpk + 1));
-        const tipo = safeAt(columnas, idxCpk + 5);
-        const descripcion = safeAt(columnas, idxCpk + 6);
-        const factura = safeAt(columnas, idxCpk + 7);
-        const fecha = safeAt(columnas, idxCpk + 8);
-        const cliente = safeAt(columnas, idxCpk + 9);
-        const ci = safeAt(columnas, idxCpk + 11);
-        const direccion = safeAt(columnas, idxCpk + 12);
-        const telefono = safeAt(columnas, idxCpk + 13);
-        const remitente = safeAt(columnas, idxCpk + 14);
-        const peso = safeAt(columnas, idxCpk + 20);
-
-        const registro = {
-          cpk: cpkDigits,
-          cpkCompleto: cpkRaw || ("CPK-" + cpkDigits),
-          estado,
-          tipo,
-          descripcion,
-          factura,
-          fecha,
-          cliente,
-          ci,
-          direccion,
-          telefono,
-          remitente,
-          peso,
-          numeroLinea
-        };
-
-        if (!mapa[cpkDigits]) {
-          mapa[cpkDigits] = {
-            actual: registro,
-            historial: [registro]
-          };
-        } else {
-          mapa[cpkDigits].historial.push(registro);
-
-          const actual = mapa[cpkDigits].actual;
-          const fechaActual = convertirFecha(actual.fecha);
-          const fechaNueva = convertirFecha(registro.fecha);
-
-          // Regla:
-          // 1) si la fecha nueva es más reciente, reemplaza
-          // 2) si la fecha es igual o no comparable, gana la última línea pegada
-          if (fechaNueva > fechaActual || fechaNueva === fechaActual || !fechaActual) {
-            mapa[cpkDigits].actual = registro;
-          }
-        }
-
-        procesadas++;
+      if (e.includes("ENTREGADO")) {
+        return "Tu paquete ya fue entregado correctamente.";
+      }
+      if (e.includes("EN AGENCIA")) {
+        return "Tu envío ya fue registrado en agencia y sigue su recorrido logístico normal.";
+      }
+      if (e.includes("EN ALMACEN")) {
+        return "Tu paquete figura en almacén. Ya fue identificado y permanece dentro del proceso de organización y salida.";
+      }
+      if (e.includes("CLASIFICADO")) {
+        return "Tu envío ya fue clasificado por destino y se prepara para avanzar dentro de la logística correspondiente.";
+      }
+      if (e.includes("DESAGRUPE")) {
+        return "Tu paquete se encuentra en proceso de extracción y separación dentro de la carga consolidada.";
+      }
+      if (e.includes("DESPACHO")) {
+        return "Tu envío se encuentra en fase de despacho y continúa avanzando dentro del proceso logístico.";
+      }
+      if (e.includes("DISTRIB")) {
+        return "Tu paquete está en distribución. Esta etapa indica que se acerca a su destino final.";
+      }
+      if (e.includes("ARRIBO")) {
+        return "Tu envío ya registra arribo y continúa su revisión y avance dentro del flujo logístico.";
+      }
+      if (e.includes("CANAL ROJO")) {
+        return "Tu paquete fue marcado para una revisión adicional. Esto puede demorar un poco más, pero sigue dentro del proceso.";
       }
 
-      totalLineasProcesadas = procesadas;
+      return "Tu envío se encuentra registrado y avanzando dentro del proceso logístico.";
+    }
+
+    function extraerRegistroDeLinea(linea){
+      const texto = String(linea || "").trim();
+      if (!texto) return null;
+
+      const cpkMatch = texto.match(/CPK[-\s:]*0*\d+/i);
+      if (!cpkMatch) return null;
+
+      const cpkOriginal = cpkMatch[0].replace(/\s+/g, "").replace(/:/g, "-");
+      const cpkNormalizado = normalizarCPK(cpkOriginal);
+
+      const estadosPosibles = [
+        "ENTREGADO",
+        "EN DISTRIBUCION",
+        "EN DISTRIBUCIÓN",
+        "DISTRIBUCION",
+        "DISTRIBUCIÓN",
+        "DESPACHO",
+        "DESAGRUPE",
+        "CLASIFICADO",
+        "EN ALMACEN",
+        "EN ALMACÉN",
+        "EN AGENCIA",
+        "ARRIBO",
+        "CANAL ROJO"
+      ];
+
+      let estado = "";
+      for (const e of estadosPosibles) {
+        const regex = new RegExp(e, "i");
+        if (regex.test(texto)) {
+          estado = texto.match(regex)[0].toUpperCase()
+            .replace("ALMACÉN", "ALMACEN")
+            .replace("DISTRIBUCIÓN", "DISTRIBUCION");
+          break;
+        }
+      }
+
+      const fechaMatch = texto.match(/\b\d{4}-\d{2}-\d{2}\b/);
+      const fecha = fechaMatch ? fechaMatch[0] : "";
+
+      let descripcion = "";
+      let nombre = "";
+
+      const partes = texto.split(/\t+/).map(x => x.trim()).filter(Boolean);
+
+      const idxCPK = partes.findIndex(p => /CPK[-\s:]*0*\d+/i.test(p));
+      const idxEstado = partes.findIndex(p =>
+        /ENTREGADO|EN DISTRIBUCION|EN DISTRIBUCIÓN|DISTRIBUCION|DISTRIBUCIÓN|DESPACHO|DESAGRUPE|CLASIFICADO|EN ALMACEN|EN ALMACÉN|EN AGENCIA|ARRIBO|CANAL ROJO/i.test(p)
+      );
+      const idxFecha = partes.findIndex(p => /^\d{4}-\d{2}-\d{2}$/.test(p));
+
+      if (idxEstado >= 0) {
+        for (let i = idxEstado + 1; i < partes.length; i++) {
+          const p = partes[i];
+          if (/^\d{4}-\d{2}-\d{2}$/.test(p)) break;
+          if (/^Sí$|^No$/i.test(p)) continue;
+          if (/^ENVIO$/i.test(p)) continue;
+          if (/^ENVIOS FACTURADOS/i.test(p)) continue;
+          if (/^\d+(\.\d+)?$/.test(p)) continue;
+          if (/^\d{5,}$/.test(p)) continue;
+          if (p.length > 2 && !/CPK/i.test(p)) {
+            descripcion = p;
+            break;
+          }
+        }
+      }
+
+      if (idxFecha >= 0) {
+        for (let i = idxFecha + 1; i < partes.length; i++) {
+          const p = partes[i];
+          if (/^[A-ZÁÉÍÓÚÑ ]{6,}$/i.test(p) && !/\d/.test(p)) {
+            nombre = p;
+            break;
+          }
+        }
+      }
+
+      return {
+        cpkOriginal,
+        cpkNormalizado,
+        estado: estado || "EN PROCESO",
+        fecha,
+        nombre,
+        descripcion,
+        explicacion: explicacionAutomatica(estado || "EN PROCESO")
+      };
+    }
+
+    function cargarPaquetesDesdeTexto(){
+      const bruto = document.getElementById("zonaPrivada").value || "";
+      const lineas = bruto.split(/\r?\n/);
+      const mapa = new Map();
+
+      for (const linea of lineas) {
+        const reg = extraerRegistroDeLinea(linea);
+        if (reg && reg.cpkNormalizado) {
+          mapa.set(reg.cpkNormalizado, reg);
+        }
+      }
+
       return mapa;
     }
 
-    function convertirFecha(fecha) {
-      if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return 0;
-      return new Date(fecha + "T00:00:00").getTime();
-    }
-
-    function formatearFecha(fechaTexto) {
-      if (!fechaTexto) return "Sin fecha";
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) return fechaTexto;
-      const f = new Date(fechaTexto + "T00:00:00");
-      return f.toLocaleDateString("es-US", {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit"
-      });
-    }
-
-    function calcularDiasDesde(fechaTexto) {
-      if (!fechaTexto || !/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) return 0;
-      const inicio = new Date(fechaTexto + "T00:00:00");
-      const hoy = new Date();
-      const diff = hoy - inicio;
-      return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-    }
-
-    function colorPorEstado(estado) {
-      const e = (estado || "").toUpperCase();
-      switch (e) {
-        case "ENTREGADO": return "#1f8b3a";
-        case "EN AGENCIA": return "#6d4c41";
-        case "EN ALMACEN": return "#1565c0";
-        case "CLASIFICADO": return "#1565c0";
-        case "DESAGRUPE": return "#8e24aa";
-        case "DESPACHO": return "#ef6c00";
-        case "DISTRIBUCIÓN":
-        case "DISTRIBUCION": return "#00897b";
-        case "ARRIBO": return "#3949ab";
-        case "CANAL ROJO": return "#c62828";
-        default: return "#424242";
-      }
-    }
-
-    function mensajePorEstado(estado, fecha) {
-      const e = (estado || "").toUpperCase();
-      const dias = calcularDiasDesde(fecha);
-
-      let progreso = "";
-      if (dias <= 3) {
-        progreso = "El proceso va iniciando y su envío sigue una ruta logística normal.";
-      } else if (dias <= 6) {
-        progreso = "La carga continúa moviéndose de forma ordenada dentro del sistema.";
-      } else if (dias <= 9) {
-        progreso = "El paquete sigue avanzando y acercándose a una etapa más próxima a entrega.";
-      } else if (dias <= 15) {
-        progreso = "Su envío ya está en una fase más madura del proceso logístico.";
-      } else {
-        progreso = "Algunas rutas pueden tardar un poco más, pero el paquete continúa en operación.";
-      }
-
-      switch (e) {
-        case "EN ALMACEN":
-          return "Su paquete se encuentra en almacén. Esto indica que ya fue recibido y está dentro del flujo de organización y salida correspondiente. " + progreso;
-
-        case "EN AGENCIA":
-          return "Su paquete ya aparece en agencia. Eso normalmente significa que está en una etapa bastante cercana a coordinación final o entrega local. " + progreso;
-
-        case "CLASIFICADO":
-          return "Su paquete fue clasificado por ruta, provincia o almacén. Esto ayuda a que continúe hacia el siguiente movimiento operativo. " + progreso;
-
-        case "DESAGRUPE":
-          return "Su envío está siendo separado del lote general o contenedor para continuar con su manejo individual. " + progreso;
-
-        case "DESPACHO":
-          return "Su paquete está en despacho, es decir, pasando una fase de salida operativa para seguir su recorrido. " + progreso;
-
-        case "DISTRIBUCIÓN":
-        case "DISTRIBUCION":
-          return "Su paquete ya entró en distribución y se acerca más a su destino final. " + progreso;
-
-        case "ARRIBO":
-          return "La carga ya arribó y continúa con el proceso interno de organización y movimiento. " + progreso;
-
-        case "CANAL ROJO":
-          return "Su envío está en revisión adicional. Esto no significa pérdida; indica un control más detallado dentro del proceso. " + progreso;
-
-        case "ENTREGADO":
-          return "Su paquete fue entregado correctamente.";
-
-        default:
-          return "Su paquete sigue en proceso logístico. " + progreso;
-      }
-    }
-
-    function crearHistorialHTML(historial) {
-      if (!historial || historial.length <= 1) return "";
-
-      const ordenado = [...historial].sort((a, b) => {
-        const fa = convertirFecha(a.fecha);
-        const fb = convertirFecha(b.fecha);
-        return fb - fa || b.numeroLinea - a.numeroLinea;
-      });
-
-      return `
-        <details>
-          <summary>Ver historial de registros repetidos (${historial.length})</summary>
-          ${ordenado.map(item => `
-            <div class="historial-item">
-              <strong>${item.cpkCompleto}</strong> · ${item.estado} · ${formatearFecha(item.fecha)}<br>
-              ${item.descripcion ? item.descripcion + "<br>" : ""}
-              ${item.cliente ? "Cliente: " + item.cliente + "<br>" : ""}
-              ${item.direccion ? "Dirección: " + item.direccion : ""}
-            </div>
-          `).join("")}
-        </details>
-      `;
-    }
-
-    function buscarPaquete() {
-      const input = document.getElementById("cpkInput").value.trim();
-      const cpk = obtenerSoloDigitosCPK(input);
+    function buscarCPK(){
+      const input = document.getElementById("cpkInput").value;
+      const codigoBuscado = normalizarCPK(input);
       const resultado = document.getElementById("resultado");
 
-      if (!cpk) {
+      if (!codigoBuscado) {
         resultado.innerHTML = `
-          <div class="vacio">
-            Por favor, escriba su número CPK.
+          <div class="alert warn">
+            Por favor, escribe un número de rastreo válido.
           </div>
         `;
         return;
       }
 
-      const item = baseDatos[cpk];
+      const paquetes = cargarPaquetesDesdeTexto();
+      const paquete = paquetes.get(codigoBuscado);
 
-      if (!item) {
+      if (!paquete) {
         resultado.innerHTML = `
-          <div class="error">
-            <strong>Número no encontrado.</strong><br>
-            No encontramos información para el CPK <strong>${cpk}</strong>. Revise el número e intente otra vez.
+          <div class="alert error">
+            <div style="font-size:22px;font-weight:bold;margin-bottom:8px;">No encontrado</div>
+            <div>No encontramos información para ese número. Revísalo e inténtalo de nuevo.</div>
           </div>
         `;
         return;
       }
 
-      const paquete = item.actual;
-      const color = colorPorEstado(paquete.estado);
-      const explicacion = mensajePorEstado(paquete.estado, paquete.fecha);
-      const historialHTML = crearHistorialHTML(item.historial);
+      const estado = escaparHTML(paquete.estado);
+      const nombre = escaparHTML(paquete.nombre || "Cliente registrado");
+      const descripcion = escaparHTML(paquete.descripcion || "Envío registrado");
+      const fecha = escaparHTML(paquete.fecha || "Sin fecha visible");
+      const explicacion = escaparHTML(paquete.explicacion || "Tu envío se encuentra registrado.");
+      const color = colorEstado(paquete.estado);
 
-      if ((paquete.estado || "").toUpperCase() === "ENTREGADO") {
+      if (String(paquete.estado).toUpperCase().includes("ENTREGADO")) {
         resultado.innerHTML = `
-          <div class="ok">
-            <div style="font-size:18px;color:#1f8b3a;font-weight:bold;">Estado final</div>
-            <div class="grande">ENTREGADO</div>
-            <p><strong>CPK:</strong> ${paquete.cpkCompleto}</p>
-            <p><strong>Cliente:</strong> ${paquete.cliente || "No disponible"}</p>
-            <p><strong>Fecha:</strong> ${formatearFecha(paquete.fecha)}</p>
-            <p><strong>Descripción:</strong> ${paquete.descripcion || "No disponible"}</p>
-            ${historialHTML}
+          <div class="card delivered">
+            <div class="estado entregado" style="color:${color};">ENTREGADO</div>
+            <div>Tu paquete ya fue entregado correctamente.</div>
           </div>
         `;
         return;
       }
 
       resultado.innerHTML = `
-        <div class="panel" style="border-color:${color};">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-            <h2>${paquete.cpkCompleto}</h2>
-            <span class="estado-pill" style="background:${color};">${paquete.estado}</span>
-          </div>
-
-          <div class="grid">
-            <div class="campo"><strong>Cliente</strong><span>${paquete.cliente || "No disponible"}</span></div>
-            <div class="campo"><strong>Fecha</strong><span>${formatearFecha(paquete.fecha)}</span></div>
-            <div class="campo"><strong>Descripción</strong><span>${paquete.descripcion || "No disponible"}</span></div>
-            <div class="campo"><strong>Factura</strong><span>${paquete.factura || "No disponible"}</span></div>
-            <div class="campo"><strong>Dirección</strong><span>${paquete.direccion || "No disponible"}</span></div>
-            <div class="campo"><strong>Teléfono</strong><span>${paquete.telefono || "No disponible"}</span></div>
-            <div class="campo"><strong>Remitente</strong><span>${paquete.remitente || "No disponible"}</span></div>
-            <div class="campo"><strong>Peso</strong><span>${paquete.peso || "No disponible"}</span></div>
-          </div>
-
-          <div class="explicacion">
-            <h3>Explicación del estado</h3>
-            <p>${explicacion}</p>
-          </div>
-
-          ${historialHTML}
+        <div class="card">
+          <div class="detalle"><strong>Rastreo:</strong> ${escaparHTML(codigoBuscado)}</div>
+          <div class="estado" style="color:${color};">${estado}</div>
+          <div class="detalle"><strong>Destinatario:</strong> ${nombre}</div>
+          <div class="detalle"><strong>Contenido:</strong> ${descripcion}</div>
+          <div class="detalle"><strong>Fecha:</strong> ${fecha}</div>
+          <div class="explicacion">${explicacion}</div>
         </div>
       `;
     }
 
-    function iniciarBase() {
-      baseDatos = parsearRawData(RAW_DATA);
-      document.getElementById("totalRegistros").textContent = totalLineasProcesadas;
-      document.getElementById("totalCPK").textContent = Object.keys(baseDatos).length;
-    }
-
-    document.getElementById("cpkInput").addEventListener("keypress", function(e) {
-      if (e.key === "Enter") buscarPaquete();
+    document.getElementById("cpkInput").addEventListener("keypress", function(e){
+      if (e.key === "Enter") buscarCPK();
     });
-
-    iniciarBase();
   </script>
 </body>
 </html>
