@@ -1,316 +1,175 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rastreador Chambatina</title>
-  <style>
-    body{
-      font-family: Arial, sans-serif;
-      margin:0;
-      padding:0;
-      background:#f5f5f5;
-      color:#111;
-    }
-    .container{
-      max-width:1000px;
-      margin:0 auto;
-      padding:20px;
-    }
-    .card{
-      background:#fff;
-      border-radius:14px;
-      padding:20px;
-      margin-bottom:20px;
-      box-shadow:0 6px 20px rgba(0,0,0,.08);
-    }
-    h1,h2{
-      margin-top:0;
-    }
-    .hero{
-      background:#ff7a00;
-      color:white;
-      border-radius:16px;
-      padding:24px;
-    }
-    input, textarea, button{
-      width:100%;
-      padding:12px;
-      margin-top:10px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      font-size:16px;
-      box-sizing:border-box;
-    }
-    textarea{
-      min-height:220px;
-      resize:vertical;
-      font-family:monospace;
-    }
-    button{
-      background:#111;
-      color:white;
-      border:none;
-      cursor:pointer;
-      font-weight:bold;
-    }
-    button:hover{
-      opacity:.92;
-    }
-    .result{
-      margin-top:15px;
-      padding:16px;
-      border-radius:12px;
-      background:#fff8f1;
-      border-left:5px solid #ff7a00;
-    }
-    .success{
-      background:#eefaf0;
-      border-left:5px solid #1f8f45;
-    }
-    .error{
-      background:#fff1f1;
-      border-left:5px solid #c62828;
-    }
-    .status{
-      display:inline-block;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#ffe7d1;
-      color:#a14b00;
-      font-weight:bold;
-      margin-bottom:10px;
-    }
-    .big{
-      font-size:30px;
-      font-weight:800;
-      color:#1f8f45;
-    }
-    .small{
-      color:#666;
-      font-size:14px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="card hero">
-      <h1>Rastreador Chambatina</h1>
-      <p>Consulta por número CPK o por los dígitos del CPK.</p>
-    </div>
-
-    <div class="card">
-      <h2>Buscar paquete</h2>
-      <input type="text" id="codigoBuscar" placeholder="Ejemplo: 0260199 o CPK-0260199">
-      <button onclick="buscarPaquete()">Buscar</button>
-      <div id="resultado"></div>
-    </div>
-
-    <div class="card">
-      <h2>Actualizar información</h2>
-      <p class="small">Pega aquí el texto del manifiesto y pulsa “Procesar información”. Esto funciona en GitHub porque se procesa en tu navegador.</p>
-      <textarea id="textoDatos" placeholder="Pega aquí tu manifiesto completo..."></textarea>
-      <button onclick="procesarDatos()">Procesar información</button>
-      <p class="small">La información se guarda en este navegador. Si quieres que quede fija para todos, después reemplazas el bloque DATOS_BASE del código y haces commit.</p>
-      <div id="infoCarga" class="small"></div>
-    </div>
-  </div>
-
-  <script>
-    var DATOS_BASE = `
-CHAMBATINA MIAMI	GEO MIA		CPK-0260199	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIO	BATERIA 51 V 100 AH	11159	2026-03-25	ROBERTO PACHECO RAMIREZ	77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571
-CHAMBATINA MIAMI	GEO MIA		CPK-0260197	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIO	INVERSOR 10 MIL WATTS	11159	2026-03-25	ROBERTO PACHECO RAMIREZ	77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571
-CHAMBATINA MIAMI	GEO MIA		CPK-0260020	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA	70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954
+<script>
+  var DATOS_BASE = `
+PEGA_AQUI_TU_TEXTO_COMPLETO
 `;
 
-    function limpiarCPK(valor) {
-      return String(valor || "")
-        .toUpperCase()
-        .replace("CPK-", "")
-        .replace("CPK", "")
-        .replace(/[^0-9]/g, "");
+  function limpiarCPK(valor) {
+    return String(valor || "")
+      .toUpperCase()
+      .replace(/CPK-/g, "")
+      .replace(/CPK/g, "")
+      .replace(/\D/g, "");
+  }
+
+  function normalizarEstado(estado) {
+    var e = String(estado || "").toUpperCase().trim();
+    if (e.indexOf("ENTREGADO") >= 0) return "ENTREGADO";
+    if (e.indexOf("DISTRIB") >= 0) return "DISTRIBUCIÓN";
+    if (e.indexOf("DESPACH") >= 0) return "DESPACHO";
+    if (e.indexOf("DESAGRUP") >= 0) return "DESAGRUPE";
+    if (e.indexOf("CLASIFIC") >= 0) return "CLASIFICADO";
+    if (e.indexOf("AGENCIA") >= 0) return "EN AGENCIA";
+    if (e.indexOf("ALMACEN") >= 0 || e.indexOf("ALMACÉN") >= 0) return "EN ALMACÉN";
+    if (e.indexOf("ARRIBO") >= 0) return "ARRIBO";
+    if (e.indexOf("CANAL ROJO") >= 0) return "CANAL ROJO";
+    return e || "EN PROCESO";
+  }
+
+  function explicacionEstado(estado) {
+    switch (estado) {
+      case "ENTREGADO": return "Su paquete ya fue entregado. Gracias por confiar en Chambatina.";
+      case "EN AGENCIA": return "Su paquete ya está en agencia y entra en coordinación de entrega local.";
+      case "EN ALMACÉN": return "Su paquete se encuentra resguardado en almacén, pendiente del siguiente movimiento logístico.";
+      case "CLASIFICADO": return "Su envío ya fue identificado y organizado por ruta o provincia para continuar avanzando.";
+      case "DESAGRUPE": return "Su paquete está siendo separado del contenedor o carga consolidada para continuar su ruta.";
+      case "DESPACHO": return "Su envío está en fase de despacho y sigue avanzando en la operación logística.";
+      case "DISTRIBUCIÓN": return "Su paquete se encuentra en distribución local hacia su zona final.";
+      case "ARRIBO": return "Su paquete registra arribo a una nueva etapa del proceso logístico.";
+      case "CANAL ROJO": return "Su envío está bajo revisión adicional. Puede tardar un poco más, pero sigue en proceso.";
+      default: return "Su paquete continúa en proceso logístico.";
+    }
+  }
+
+  function parsearTexto(texto) {
+    var base = {};
+    var limpio = String(texto || "").replace(/\r/g, "");
+
+    var bloques = limpio.split(/(?=CPK-\d+)/g);
+
+    for (var i = 0; i < bloques.length; i++) {
+      var bloque = bloques[i].trim();
+      if (!bloque) continue;
+
+      var cpkMatch = bloque.match(/CPK-(\d+)/i);
+      if (!cpkMatch) continue;
+      var cpk = limpiarCPK(cpkMatch[1]);
+
+      var fechaMatch = bloque.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+      var fecha = fechaMatch ? fechaMatch[1] : "";
+
+      var estadoMatch = bloque.match(/\b(ENTREGADO|EN AGENCIA|EN ALMACEN|EN ALMACÉN|CLASIFICADO|DESAGRUPE|DESPACHO|DISTRIBUCION|DISTRIBUCIÓN|ARRIBO|CANAL ROJO)\b/i);
+      var estado = estadoMatch ? normalizarEstado(estadoMatch[1]) : "EN PROCESO";
+
+      var descripcion = "";
+      var descMatch = bloque.match(/ENVIO\s+([^\t\n]+?)\s+\d{0,6}\s+20\d{2}-\d{2}-\d{2}/i);
+      if (descMatch) descripcion = descMatch[1].trim();
+
+      var nombre = "";
+      if (fecha) {
+        var nombreMatch = bloque.match(new RegExp(fecha + "\\s+([^\\t\\n]+?)\\s+\\d{8,12}", "i"));
+        if (nombreMatch) nombre = nombreMatch[1].trim();
+      }
+
+      var telefono = "";
+      var telMatches = bloque.match(/\b\d{7,12}\b/g);
+      if (telMatches && telMatches.length) {
+        telefono = telMatches[telMatches.length - 1];
+      }
+
+      var direccion = "";
+      if (fecha) {
+        var dirMatch = bloque.match(new RegExp(fecha + "\\s+[^\\t\\n]+\\s+\\d{8,12}\\s+([^\\t\\n]+?)\\s+\\d{7,12}", "i"));
+        if (dirMatch) direccion = dirMatch[1].trim();
+      }
+
+      base[cpk] = {
+        cpk: cpk,
+        estado: estado,
+        fecha: fecha,
+        nombre: nombre,
+        descripcion: descripcion,
+        direccion: direccion,
+        telefono: telefono
+      };
     }
 
-    function normalizarEstado(estado) {
-      var e = String(estado || "").toUpperCase().trim();
-      if (e.indexOf("ENTREGADO") >= 0) return "ENTREGADO";
-      if (e.indexOf("DISTRIB") >= 0) return "DISTRIBUCIÓN";
-      if (e.indexOf("DESPACH") >= 0) return "DESPACHO";
-      if (e.indexOf("DESAGRUP") >= 0) return "DESAGRUPE";
-      if (e.indexOf("CLASIFIC") >= 0) return "CLASIFICADO";
-      if (e.indexOf("AGENCIA") >= 0) return "EN AGENCIA";
-      if (e.indexOf("ALMACEN") >= 0 || e.indexOf("ALMACÉN") >= 0) return "EN ALMACÉN";
-      if (e.indexOf("ARRIBO") >= 0) return "ARRIBO";
-      if (e.indexOf("CANAL ROJO") >= 0) return "CANAL ROJO";
-      return e || "EN PROCESO";
+    return base;
+  }
+
+  function obtenerBase() {
+    var guardado = localStorage.getItem("chambatina_db");
+    if (guardado) {
+      try {
+        return JSON.parse(guardado);
+      } catch (e) {}
+    }
+    return parsearTexto(DATOS_BASE);
+  }
+
+  function procesarDatos() {
+    var texto = document.getElementById("textoDatos").value;
+    if (!texto.trim()) {
+      document.getElementById("infoCarga").innerHTML = "No has pegado ninguna información.";
+      return;
     }
 
-    function explicacionEstado(estado) {
-      switch (estado) {
-        case "ENTREGADO":
-          return "Su paquete ya fue entregado. Gracias por confiar en Chambatina.";
-        case "EN AGENCIA":
-          return "Su paquete ya está en agencia y entra en coordinación de entrega local.";
-        case "EN ALMACÉN":
-          return "Su paquete se encuentra resguardado en almacén, pendiente del siguiente movimiento logístico.";
-        case "CLASIFICADO":
-          return "Su envío ya fue identificado y organizado por ruta o provincia para continuar avanzando.";
-        case "DESAGRUPE":
-          return "Su paquete está siendo separado del contenedor o carga consolidada para continuar su ruta.";
-        case "DESPACHO":
-          return "Su envío está en fase de despacho y sigue avanzando en la operación logística.";
-        case "DISTRIBUCIÓN":
-          return "Su paquete se encuentra en distribución local hacia su zona final.";
-        case "ARRIBO":
-          return "Su paquete registra arribo a una nueva etapa del proceso logístico.";
-        case "CANAL ROJO":
-          return "Su envío está bajo revisión adicional. Puede tardar un poco más, pero sigue en proceso.";
-        default:
-          return "Su paquete continúa en proceso logístico.";
-      }
+    var base = parsearTexto(texto);
+    localStorage.setItem("chambatina_db", JSON.stringify(base));
+    document.getElementById("infoCarga").innerHTML =
+      "Registros cargados: " + Object.keys(base).length +
+      "<br>Prueba con uno de estos: " + Object.keys(base).slice(0, 8).join(", ");
+  }
+
+  function buscarPaquete() {
+    var valor = document.getElementById("codigoBuscar").value;
+    var codigo = limpiarCPK(valor);
+    var resultado = document.getElementById("resultado");
+    var base = obtenerBase();
+
+    if (!codigo) {
+      resultado.innerHTML = '<div class="result error">Debe escribir un número válido.</div>';
+      return;
     }
 
-    function parsearTexto(texto) {
-      var lineas = texto.split(/\r?\n/);
-      var base = {};
-
-      for (var i = 0; i < lineas.length; i++) {
-        var linea = lineas[i].trim();
-        if (!linea) continue;
-        if (linea.indexOf("CPK-") === -1 && linea.indexOf("CPK") === -1) continue;
-
-        var columnas = linea.split("\t");
-        var cpk = "";
-        var estado = "";
-        var fecha = "";
-        var nombre = "";
-        var descripcion = "";
-        var direccion = "";
-        var telefono = "";
-
-        for (var j = 0; j < columnas.length; j++) {
-          var celda = columnas[j].trim();
-
-          if (!cpk && /CPK-?\d+/i.test(celda)) {
-            cpk = limpiarCPK(celda);
-          }
-
-          if (!fecha && /^\d{4}-\d{2}-\d{2}$/.test(celda)) {
-            fecha = celda;
-            if (columnas[j + 1]) nombre = columnas[j + 1].trim();
-            if (columnas[j + 3]) direccion = columnas[j + 3].trim();
-            if (columnas[j + 4]) telefono = columnas[j + 4].trim();
-          }
-
-          if (!estado) {
-            var mayus = celda.toUpperCase();
-            if (
-              mayus === "ENTREGADO" ||
-              mayus === "EN AGENCIA" ||
-              mayus === "EN ALMACEN" ||
-              mayus === "EN ALMACÉN" ||
-              mayus === "CLASIFICADO" ||
-              mayus === "DESAGRUPE" ||
-              mayus === "DESPACHO" ||
-              mayus === "DISTRIBUCION" ||
-              mayus === "DISTRIBUCIÓN" ||
-              mayus === "ARRIBO" ||
-              mayus === "CANAL ROJO"
-            ) {
-              estado = mayus;
-            }
-          }
-
-          if (celda.toUpperCase() === "ENVIO" && columnas[j + 1]) {
-            descripcion = columnas[j + 1].trim();
-          }
-        }
-
-        if (cpk) {
-          base[cpk] = {
-            cpk: cpk,
-            estado: normalizarEstado(estado),
-            fecha: fecha,
-            nombre: nombre,
-            descripcion: descripcion,
-            direccion: direccion,
-            telefono: telefono
-          };
-        }
-      }
-
-      return base;
-    }
-
-    function obtenerBase() {
-      var guardado = localStorage.getItem("chambatina_db");
-      if (guardado) {
-        try {
-          return JSON.parse(guardado);
-        } catch (e) {}
-      }
-      return parsearTexto(DATOS_BASE);
-    }
-
-    function procesarDatos() {
-      var texto = document.getElementById("textoDatos").value;
-      if (!texto.trim()) {
-        document.getElementById("infoCarga").innerHTML = "No has pegado ninguna información.";
-        return;
-      }
-
-      var base = parsearTexto(texto);
-      localStorage.setItem("chambatina_db", JSON.stringify(base));
-      document.getElementById("infoCarga").innerHTML = "Registros cargados: " + Object.keys(base).length;
-    }
-
-    function buscarPaquete() {
-      var valor = document.getElementById("codigoBuscar").value;
-      var codigo = limpiarCPK(valor);
-      var resultado = document.getElementById("resultado");
-      var base = obtenerBase();
-
-      if (!codigo) {
-        resultado.innerHTML = '<div class="result error">Debe escribir un número válido.</div>';
-        return;
-      }
-
-      if (!base[codigo]) {
-        resultado.innerHTML = '<div class="result error">No encontramos ese CPK. Revise el número y vuelva a intentar.</div>';
-        return;
-      }
-
-      var item = base[codigo];
-
-      if (item.estado === "ENTREGADO") {
-        resultado.innerHTML =
-          '<div class="result success">' +
-          '<div class="big">ENTREGADO</div>' +
-          '<p><strong>CPK:</strong> ' + item.cpk + '</p>' +
-          '<p><strong>Cliente:</strong> ' + (item.nombre || "No disponible") + '</p>' +
-          '<p><strong>Fecha:</strong> ' + (item.fecha || "No disponible") + '</p>' +
-          '</div>';
-        return;
-      }
-
+    if (!base[codigo]) {
       resultado.innerHTML =
-        '<div class="result">' +
-        '<div class="status">' + item.estado + '</div>' +
+        '<div class="result error">No encontramos ese CPK.<br><br>Prueba con uno que sí esté cargado, por ejemplo: ' +
+        Object.keys(base).slice(0, 8).join(", ") +
+        '</div>';
+      return;
+    }
+
+    var item = base[codigo];
+
+    if (item.estado === "ENTREGADO") {
+      resultado.innerHTML =
+        '<div class="result success">' +
+        '<div class="big">ENTREGADO</div>' +
         '<p><strong>CPK:</strong> ' + item.cpk + '</p>' +
         '<p><strong>Cliente:</strong> ' + (item.nombre || "No disponible") + '</p>' +
-        '<p><strong>Descripción:</strong> ' + (item.descripcion || "No disponible") + '</p>' +
         '<p><strong>Fecha:</strong> ' + (item.fecha || "No disponible") + '</p>' +
-        '<p><strong>Dirección:</strong> ' + (item.direccion || "No disponible") + '</p>' +
-        '<p><strong>Teléfono:</strong> ' + (item.telefono || "No disponible") + '</p>' +
-        '<p><strong>Explicación:</strong> ' + explicacionEstado(item.estado) + '</p>' +
         '</div>';
+      return;
     }
 
-    window.onload = function() {
-      document.getElementById("textoDatos").value = DATOS_BASE.trim();
-      var base = obtenerBase();
-      document.getElementById("infoCarga").innerHTML = "Registros listos: " + Object.keys(base).length;
-    };
-  </script>
-</body>
-</html>
+    resultado.innerHTML =
+      '<div class="result">' +
+      '<div class="status">' + item.estado + '</div>' +
+      '<p><strong>CPK:</strong> ' + item.cpk + '</p>' +
+      '<p><strong>Cliente:</strong> ' + (item.nombre || "No disponible") + '</p>' +
+      '<p><strong>Descripción:</strong> ' + (item.descripcion || "No disponible") + '</p>' +
+      '<p><strong>Fecha:</strong> ' + (item.fecha || "No disponible") + '</p>' +
+      '<p><strong>Dirección:</strong> ' + (item.direccion || "No disponible") + '</p>' +
+      '<p><strong>Teléfono:</strong> ' + (item.telefono || "No disponible") + '</p>' +
+      '<p><strong>Explicación:</strong> ' + explicacionEstado(item.estado) + '</p>' +
+      '</div>';
+  }
+
+  window.onload = function() {
+    document.getElementById("textoDatos").value = DATOS_BASE.trim();
+    var base = obtenerBase();
+    document.getElementById("infoCarga").innerHTML =
+      "Registros listos: " + Object.keys(base).length +
+      "<br>Ejemplos cargados: " + Object.keys(base).slice(0, 8).join(", ");
+  };
+</script>
