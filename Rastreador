@@ -2,385 +2,486 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rastreador Chambatina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chambatina | Rastreo de Paquetes</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #fff8f0, #ffe7cc);
-      color: #1a1a1a;
+      background: linear-gradient(135deg, #fff7ef, #f4f4f4);
+      color: #1f1f1f;
     }
     .wrap {
-      max-width: 980px;
-      margin: 40px auto;
-      padding: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
     }
     .card {
-      background: #ffffff;
-      border: 2px solid #ff7a00;
+      background: #fff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #ff7a00, #ff9f43);
+      color: #fff;
       border-radius: 22px;
-      padding: 26px;
-      box-shadow: 0 12px 35px rgba(0,0,0,.10);
+      padding: 28px;
+      margin-bottom: 22px;
+      box-shadow: 0 15px 40px rgba(255,122,0,.28);
     }
-    h1 {
-      margin: 0 0 10px;
-      text-align: center;
-      font-size: 34px;
-      color: #111;
-    }
-    .sub {
-      text-align: center;
-      color: #444;
-      margin-bottom: 24px;
-      font-size: 17px;
-    }
-    .search-box {
+    h1, h2, h3 { margin-top: 0; }
+    .muted { color: #666; }
+    .row {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 22px;
     }
-    .search-box input {
-      flex: 1;
-      min-width: 240px;
-      max-width: 380px;
-      padding: 15px 16px;
-      border-radius: 14px;
-      border: 2px solid #111;
-      font-size: 18px;
+    input, textarea, button {
+      font: inherit;
+      border-radius: 12px;
+    }
+    input, textarea {
+      width: 100%;
+      border: 1px solid #d9d9d9;
+      padding: 14px;
+      background: #fff;
+    }
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    button {
+      border: none;
+      padding: 14px 18px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-main {
       background: #111;
       color: #fff;
-      outline: none;
     }
-    .search-box input::placeholder { color: #d0d0d0; }
-    .search-box button {
-      padding: 15px 22px;
-      border: none;
-      border-radius: 14px;
+    .btn-orange {
       background: #ff7a00;
       color: #fff;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
     }
-    .search-box button:hover { opacity: .92; }
-
-    .resultado {
-      margin-top: 10px;
-    }
-
-    .estado-pill {
-      display: inline-block;
-      padding: 10px 16px;
-      border-radius: 999px;
-      color: #fff;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .bloque {
-      background: #fff;
-      border-radius: 20px;
-      padding: 22px;
-      border: 2px solid #ddd;
-      box-shadow: 0 8px 24px rgba(0,0,0,.07);
-    }
-
-    .bloque h2 {
-      margin: 0 0 12px;
-      font-size: 29px;
+    .btn-light {
+      background: #f1f1f1;
       color: #111;
     }
-
-    .info p {
-      margin: 8px 0;
-      line-height: 1.6;
-      font-size: 17px;
-    }
-
-    .explicacion {
-      margin-top: 18px;
-      background: #fff6eb;
+    .result {
       border-left: 6px solid #ff7a00;
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .explicacion h3 {
-      margin: 0 0 8px;
-      font-size: 20px;
-      color: #111;
-    }
-
-    .ok {
-      text-align: center;
-      border: 2px solid #1f8b3a;
-      background: #fff;
-      border-radius: 22px;
-      padding: 28px 20px;
-    }
-
-    .ok .grande {
-      font-size: 46px;
-      font-weight: 900;
-      color: #1f8b3a;
-      margin: 12px 0;
-    }
-
-    .error, .vacio {
-      background: #fff;
-      border-radius: 16px;
       padding: 18px;
-      border-left: 6px solid #d32f2f;
-      color: #222;
+      background: #fffaf5;
+      border-radius: 12px;
+      margin-top: 16px;
     }
-
-    .vacio {
-      border-left-color: #ff7a00;
+    .ok {
+      border-left-color: #16a34a;
+      background: #f0fff4;
     }
-
-    .mini {
-      font-size: 14px;
+    .danger {
+      border-left-color: #dc2626;
+      background: #fff5f5;
+    }
+    .badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .badge-orange { background: #fff1e6; color: #c65c00; }
+    .badge-green { background: #eafaf0; color: #166534; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .box {
+      background: #fafafa;
+      border: 1px solid #ececec;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .small { font-size: 13px; }
+    .big-status {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #16a34a;
+      margin: 10px 0;
+    }
+    .admin-lock {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .hidden { display: none; }
+    .footer-note {
+      font-size: 12px;
       color: #666;
-      margin-top: 24px;
-      text-align: center;
-    }
-
-    @media (max-width: 640px) {
-      h1 { font-size: 28px; }
-      .bloque h2 { font-size: 24px; }
-      .ok .grande { font-size: 38px; }
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>Rastreador de Paquetería Chambatina</h1>
-      <div class="sub">Escriba su número CPK sin letras para consultar el estado de su envío.</div>
+    <section class="hero">
+      <h1>Rastreador Chambatina</h1>
+      <p>Ingrese su número CPK o solo los dígitos del CPK. Ejemplo: <strong>0260199</strong></p>
+    </section>
 
-      <div class="search-box">
-        <input id="cpkInput" type="text" placeholder="Ejemplo: 45821" />
-        <button onclick="buscarPaquete()">Consultar</button>
+    <section class="card">
+      <h2>Consultar paquete</h2>
+      <div class="row">
+        <div style="flex: 1 1 320px;">
+          <input id="buscarCPK" type="text" placeholder="Ejemplo: 0260199 o CPK-0260199" />
+        </div>
+        <div>
+          <button class="btn-orange" onclick="buscarPaquete()">Buscar</button>
+        </div>
+      </div>
+      <div id="resultado"></div>
+    </section>
+
+    <section class="card">
+      <h2>Panel privado de actualización</h2>
+      <p class="muted">Este panel es para que tú pegues el manifiesto bruto y el sistema lo convierta solo.</p>
+
+      <div class="admin-lock">
+        <input id="pinAdmin" type="password" placeholder="PIN privado" style="max-width:220px;">
+        <button class="btn-main" onclick="abrirPanel()">Abrir panel</button>
       </div>
 
-      <div id="resultado" class="resultado"></div>
+      <div id="panelAdmin" class="hidden">
+        <p class="small muted">
+          Pega aquí las líneas completas del manifiesto. El sistema busca automáticamente CPK, estado, fecha, descripción, nombre, dirección y teléfono.
+        </p>
 
-      <div class="mini">
-        Actualice los números dentro del bloque <strong>const paquetes</strong>.
+        <textarea id="manifestInput"></textarea>
+
+        <div class="row" style="margin-top: 12px;">
+          <button class="btn-orange" onclick="procesarManifest()">Procesar y guardar en este navegador</button>
+          <button class="btn-light" onclick="cargarTextoBase()">Cargar texto base</button>
+          <button class="btn-light" onclick="exportarJSON()">Exportar JSON</button>
+          <button class="btn-light" onclick="borrarBase()">Borrar base local</button>
+        </div>
+
+        <div id="adminInfo" class="footer-note"></div>
       </div>
-    </div>
+    </section>
   </div>
 
   <script>
-    const paquetes = {
-      "45821": {
-        nombre: "María Pérez",
-        estado: "CLASIFICADO",
-        fecha: "2026-03-20",
-        descripcion: "Caja con alimentos y aseo",
-        detalle: "El paquete fue identificado y separado por destino y almacén."
-      },
-      "45822": {
-        nombre: "Juan Hernández",
-        estado: "DESAGRUPE",
-        fecha: "2026-03-18",
-        descripcion: "Bulto con ropa y calzado",
-        detalle: "La carga está siendo retirada del contenedor para continuar el flujo logístico."
-      },
-      "45823": {
-        nombre: "Liset Gómez",
-        estado: "DESPACHO",
-        fecha: "2026-03-17",
-        descripcion: "Caja con miscelánea",
-        detalle: "El paquete está en fase de salida del proceso aduanal y operativo."
-      },
-      "45824": {
-        nombre: "Carlos Ruiz",
-        estado: "DISTRIBUCIÓN",
-        fecha: "2026-03-15",
-        descripcion: "Paquete con equipos del hogar",
-        detalle: "La carga avanza hacia la zona correspondiente para su entrega."
-      },
-      "45825": {
-        nombre: "Ana Milena",
-        estado: "EN AGENCIA",
-        fecha: "2026-03-21",
-        descripcion: "Caja pequeña",
-        detalle: "El paquete se encuentra en agencia, pendiente de entrega o coordinación local."
-      },
-      "45826": {
-        nombre: "Pedro López",
-        estado: "ARRIBO",
-        fecha: "2026-03-16",
-        descripcion: "Caja mediana",
-        detalle: "La carga arribó al país y sigue su proceso interno."
-      },
-      "45827": {
-        nombre: "Yanet Torres",
-        estado: "CANAL ROJO",
-        fecha: "2026-03-14",
-        descripcion: "Caja con varios artículos",
-        detalle: "El paquete requiere una revisión adicional dentro del proceso."
-      },
-      "45828": {
-        nombre: "Rafael Díaz",
-        estado: "ENTREGADO",
-        fecha: "2026-03-22",
-        descripcion: "Entrega finalizada",
-        detalle: "Su paquete fue entregado correctamente."
-      }
-    };
+    /*********************************************************
+     * CONFIGURACIÓN
+     *********************************************************/
+    const ADMIN_PIN = "2184";
 
+    /*
+      PEGA AQUÍ TU MANIFIESTO BRUTO COMPLETO.
+      Cada vez que tengas datos nuevos, reemplazas este bloque.
+      Luego haces commit en GitHub y todos los clientes verán la nueva base.
+    */
+    const RAW_MANIFEST = String.raw`
+CHAMBATINA MIAMI	GEO MIA		CPK-0260199	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BATERIA 51 V 100 AH	11159	2026-03-25	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO
+CHAMBATINA MIAMI	GEO MIA		CPK-0260197	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	INVERSOR 10 MIL WATTS	11159	2026-03-25	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO
+CHAMBATINA MIAMI	GEO MIA		CPK-0260020	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA
+CHAMBATINA MIAMI	GEO MIA		CPK-0259575	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS	11113	2026-03-23	FELICIA CARVAJAL MARTIN		73082101550	CALLE DELICIAS # S/N Rpto. CASERIO GUARACABULLA e/ CAMILO CIENFUEGOS y MARTI, PLACETAS, VILLA CLARA	53282278	MAIKEL HERNANDEZ LLANEZA
+CHAMBATINA MIAMI	GEO MIA		CPK-0259555	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BICICLETA ELECTRICA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS
+`;
+
+    /*********************************************************
+     * UTILIDADES
+     *********************************************************/
+    function limpiarCPK(valor) {
+      return String(valor || "")
+        .toUpperCase()
+        .replace("CPK-", "")
+        .replace("CPK", "")
+        .replace(/\D/g, "");
+    }
+
+    function diasDesde(fechaStr) {
+      if (!fechaStr) return null;
+      const fecha = new Date(fechaStr + "T00:00:00");
+      if (isNaN(fecha.getTime())) return null;
+      const hoy = new Date();
+      hoy.setHours(0,0,0,0);
+      return Math.floor((hoy - fecha) / 86400000);
+    }
+
+    function estadoVisual(estado) {
+      const e = (estado || "").toUpperCase();
+      if (e.includes("ENTREGADO")) return "ENTREGADO";
+      if (e.includes("DISTRIB")) return "DISTRIBUCIÓN";
+      if (e.includes("DESPACH")) return "DESPACHO";
+      if (e.includes("DESAGRUP")) return "DESAGRUPE";
+      if (e.includes("CLASIFIC")) return "CLASIFICADO";
+      if (e.includes("AGENCIA")) return "EN AGENCIA";
+      if (e.includes("ALMACEN")) return "EN ALMACÉN";
+      if (e.includes("ARRIBO")) return "ARRIBO";
+      if (e.includes("CANAL ROJO")) return "CANAL ROJO";
+      return e || "EN PROCESO";
+    }
+
+    function explicacionEstado(estado, dias) {
+      const e = estadoVisual(estado);
+
+      const tramo = dias == null ? "" :
+        dias <= 3 ? "El proceso apenas está comenzando." :
+        dias <= 7 ? "Su envío continúa avanzando dentro de la cadena logística." :
+        dias <= 15 ? "La operación sigue su curso normal." :
+        dias <= 30 ? "El paquete está dentro del rango lógico de gestión y movimiento." :
+        "El envío puede requerir coordinación adicional, pero sigue dentro del proceso logístico.";
+
+      if (e === "ENTREGADO") {
+        return "Su paquete ya fue entregado. Gracias por confiar en Chambatina.";
+      }
+      if (e === "EN AGENCIA") {
+        return "El paquete ya se encuentra en agencia, listo para gestión local y entrega según coordinación de la zona. " + tramo;
+      }
+      if (e === "EN ALMACÉN") {
+        return "El paquete está bajo resguardo logístico en almacén, pendiente del siguiente movimiento operativo. " + tramo;
+      }
+      if (e === "CLASIFICADO") {
+        return "El envío ya fue identificado y organizado por ruta, provincia o destino. Eso significa que pasó una etapa importante de ordenamiento. " + tramo;
+      }
+      if (e === "DESAGRUPE") {
+        return "El paquete se encuentra en proceso de salida del contenedor o consolidado logístico para seguir su ruta interna. " + tramo;
+      }
+      if (e === "DESPACHO") {
+        return "El envío está en fase de despacho, avanzando hacia la distribución correspondiente. " + tramo;
+      }
+      if (e === "DISTRIBUCIÓN") {
+        return "El paquete ya va entrando en fase de distribución local hacia su área final. " + tramo;
+      }
+      if (e === "ARRIBO") {
+        return "El envío ya registra arribo, lo cual indica entrada a una nueva etapa del proceso. " + tramo;
+      }
+      if (e === "CANAL ROJO") {
+        return "El paquete está bajo revisión adicional dentro del proceso aduanal o logístico. Esto puede tardar un poco más, pero no significa pérdida. " + tramo;
+      }
+      return "El paquete continúa en proceso logístico. " + tramo;
+    }
+
+    function detectarFecha(tokens) {
+      return tokens.find(t => /^\d{4}-\d{2}-\d{2}$/.test(t)) || "";
+    }
+
+    function detectarTelefono(tokens) {
+      const posibles = tokens.filter(t => /^\d{7,12}$/.test(t));
+      return posibles.length ? posibles[posibles.length - 1] : "";
+    }
+
+    function detectarEstado(tokens) {
+      const estadosPosibles = [
+        "ENTREGADO", "EN DISTRIBUCION", "EN DISTRIBUCIÓN", "DISTRIBUCION", "DISTRIBUCIÓN",
+        "DESPACHO", "DESAGRUPE", "CLASIFICADO", "EN AGENCIA", "EN ALMACEN", "EN ALMACÉN",
+        "ARRIBO", "CANAL ROJO"
+      ];
+      for (const token of tokens) {
+        const t = token.toUpperCase().trim();
+        if (estadosPosibles.includes(t)) return t;
+      }
+      return "EN PROCESO";
+    }
+
+    function detectarCPK(tokens) {
+      const cpk = tokens.find(t => /CPK-\d+/i.test(t));
+      return cpk ? limpiarCPK(cpk) : "";
+    }
+
+    function detectarDescripcion(tokens) {
+      const idxEnvio = tokens.findIndex(t => t.toUpperCase().trim() === "ENVIO");
+      if (idxEnvio >= 0 && tokens[idxEnvio + 1]) return tokens[idxEnvio + 1].trim();
+      return "";
+    }
+
+    function detectarNombre(tokens, fechaIdx) {
+      if (fechaIdx >= 0 && tokens[fechaIdx + 1]) return tokens[fechaIdx + 1].trim();
+      return "";
+    }
+
+    function detectarDireccion(tokens, fechaIdx) {
+      if (fechaIdx >= 0 && tokens[fechaIdx + 4]) return tokens[fechaIdx + 4].trim();
+      return "";
+    }
+
+    function parseManifest(raw) {
+      const lineas = String(raw || "")
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      const base = {};
+
+      for (const linea of lineas) {
+        if (!/CPK-\d+/i.test(linea)) continue;
+
+        const tokens = linea.split("\t").map(t => t.trim()).filter(t => t !== "");
+        const cpk = detectarCPK(tokens);
+        if (!cpk) continue;
+
+        const estado = detectarEstado(tokens);
+        const fecha = detectarFecha(tokens);
+        const fechaIdx = tokens.findIndex(t => t === fecha);
+        const descripcion = detectarDescripcion(tokens);
+        const nombre = detectarNombre(tokens, fechaIdx);
+        const direccion = detectarDireccion(tokens, fechaIdx);
+        const telefono = detectarTelefono(tokens);
+
+        base[cpk] = {
+          cpk: cpk,
+          estado: estadoVisual(estado),
+          fecha: fecha || "",
+          nombre: nombre || "",
+          direccion: direccion || "",
+          telefono: telefono || "",
+          descripcion: descripcion || ""
+        };
+      }
+
+      return base;
+    }
+
+    function cargarBase() {
+      const local = localStorage.getItem("chambatina_tracking_db");
+      if (local) {
+        try {
+          return JSON.parse(local);
+        } catch(e) {}
+      }
+      return parseManifest(RAW_MANIFEST);
+    }
+
+    function guardarBase(db) {
+      localStorage.setItem("chambatina_tracking_db", JSON.stringify(db));
+    }
+
+    /*********************************************************
+     * ACCIONES PÚBLICAS
+     *********************************************************/
     function buscarPaquete() {
-      const input = document.getElementById("cpkInput").value.trim();
-      const cpk = input.replace(/\D/g, "");
-      const resultado = document.getElementById("resultado");
+      const valor = document.getElementById("buscarCPK").value;
+      const cpk = limpiarCPK(valor);
+      const db = cargarBase();
+      const item = db[cpk];
+      const out = document.getElementById("resultado");
 
       if (!cpk) {
-        resultado.innerHTML = `
-          <div class="vacio">
-            Por favor, escriba su número CPK.
+        out.innerHTML = `<div class="result danger">Debe escribir un número CPK válido.</div>`;
+        return;
+      }
+
+      if (!item) {
+        out.innerHTML = `
+          <div class="result danger">
+            <strong>No encontramos ese CPK.</strong><br><br>
+            Revise si escribió bien los números. Si el problema continúa, contacte a Chambatina.
           </div>
         `;
         return;
       }
 
-      const paquete = paquetes[cpk];
+      const dias = diasDesde(item.fecha);
+      const explicacion = explicacionEstado(item.estado, dias);
 
-      if (!paquete) {
-        resultado.innerHTML = `
-          <div class="error">
-            <strong>Número no encontrado.</strong><br>
-            No encontramos información para el CPK <strong>${cpk}</strong>. Revise el número e intente otra vez.
+      if (item.estado === "ENTREGADO") {
+        out.innerHTML = `
+          <div class="result ok">
+            <div class="badge badge-green">Proceso finalizado</div>
+            <div class="big-status">ENTREGADO</div>
+            <div><strong>CPK:</strong> ${item.cpk}</div>
+            <div><strong>Cliente:</strong> ${item.nombre || "No disponible"}</div>
+            <div><strong>Fecha base:</strong> ${item.fecha || "No disponible"}</div>
           </div>
         `;
         return;
       }
 
-      const color = colorPorEstado(paquete.estado);
-
-      if (paquete.estado.toUpperCase() === "ENTREGADO") {
-        resultado.innerHTML = `
-          <div class="ok">
-            <div style="font-size:18px;color:#1f8b3a;font-weight:bold;">Estado final</div>
-            <div class="grande">ENTREGADO</div>
-            <p><strong>Cliente:</strong> ${paquete.nombre}</p>
-            <p><strong>Fecha:</strong> ${formatearFecha(paquete.fecha)}</p>
-            <p><strong>Descripción:</strong> ${paquete.descripcion}</p>
-            <p>Su paquete fue entregado correctamente. Gracias por confiar en Chambatina.</p>
+      out.innerHTML = `
+        <div class="result">
+          <div class="badge badge-orange">${item.estado}</div>
+          <h3>Resultado del paquete ${item.cpk}</h3>
+          <div class="grid">
+            <div class="box"><strong>Cliente</strong><br>${item.nombre || "No disponible"}</div>
+            <div class="box"><strong>Descripción</strong><br>${item.descripcion || "No disponible"}</div>
+            <div class="box"><strong>Fecha base</strong><br>${item.fecha || "No disponible"}</div>
+            <div class="box"><strong>Días transcurridos</strong><br>${dias ?? "No disponible"}</div>
+            <div class="box"><strong>Teléfono</strong><br>${item.telefono || "No disponible"}</div>
+            <div class="box"><strong>Dirección</strong><br>${item.direccion || "No disponible"}</div>
           </div>
-        `;
-        return;
-      }
-
-      resultado.innerHTML = `
-        <div class="bloque" style="border-color:${color};">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-            <h2>CPK ${cpk}</h2>
-            <span class="estado-pill" style="background:${color};">${paquete.estado}</span>
-          </div>
-
-          <div class="info">
-            <p><strong>Cliente:</strong> ${paquete.nombre}</p>
-            <p><strong>Fecha registrada:</strong> ${formatearFecha(paquete.fecha)}</p>
-            <p><strong>Descripción:</strong> ${paquete.descripcion}</p>
-            <p><strong>Detalle:</strong> ${paquete.detalle}</p>
-          </div>
-
-          <div class="explicacion">
-            <h3>Explicación del estado</h3>
-            <p>${generarMensajePorEstado(paquete.estado, paquete.fecha)}</p>
-          </div>
+          <div style="margin-top:14px;"><strong>Explicación:</strong> ${explicacion}</div>
         </div>
       `;
     }
 
-    function generarMensajePorEstado(estado, fechaTexto) {
-      const e = (estado || "").toUpperCase().trim();
-      const dias = calcularDiasDesde(fechaTexto);
-
-      let progreso = "";
-      if (dias <= 3) {
-        progreso = "El proceso acaba de iniciar y el paquete avanza dentro del flujo logístico normal.";
-      } else if (dias <= 6) {
-        progreso = "La carga continúa organizándose y moviéndose de forma estable dentro del sistema.";
-      } else if (dias <= 9) {
-        progreso = "El paquete sigue su curso y entra en una etapa más cercana a despacho o distribución.";
-      } else if (dias <= 12) {
-        progreso = "La operación mantiene avance. En esta fase suelen consolidarse movimientos internos importantes.";
-      } else if (dias <= 15) {
-        progreso = "Su envío ya se encuentra en una fase más avanzada del proceso logístico.";
-      } else {
-        progreso = "Algunos procesos pueden extenderse un poco más, pero la carga continúa dentro de la cadena logística.";
+    /*********************************************************
+     * ACCIONES ADMIN
+     *********************************************************/
+    function abrirPanel() {
+      const pin = document.getElementById("pinAdmin").value;
+      if (pin !== ADMIN_PIN) {
+        alert("PIN incorrecto");
+        return;
       }
-
-      switch (e) {
-        case "CLASIFICADO":
-          return "Su paquete ya fue identificado por provincia, ruta o almacén correspondiente. Eso significa que fue organizado correctamente para seguir a la siguiente fase. " + progreso;
-
-        case "DESAGRUPE":
-          return "Su paquete está siendo separado del contenedor o del lote general. Es una etapa normal para organizar cada bulto individualmente. " + progreso;
-
-        case "DESPACHO":
-          return "Su paquete se encuentra en proceso de despacho. En términos simples, está saliendo de una fase de revisión o liberación para continuar su recorrido. " + progreso;
-
-        case "DISTRIBUCIÓN":
-          return "Su paquete ya entró en distribución. Esto indica que avanza hacia el área o almacén final desde donde será encaminado para la entrega. " + progreso;
-
-        case "EN AGENCIA":
-          return "Su paquete ya está en agencia. Normalmente esto significa que se encuentra bastante cerca del momento de entrega o coordinación local. " + progreso;
-
-        case "ARRIBO":
-          return "La carga ya arribó y continúa el proceso interno de organización y movimiento hacia la etapa siguiente. " + progreso;
-
-        case "CANAL ROJO":
-          return "Su paquete está en revisión adicional. Eso no significa pérdida; solo indica un control más detallado dentro del proceso. " + progreso;
-
-        default:
-          return "Su paquete sigue en proceso logístico. " + progreso;
-      }
+      document.getElementById("panelAdmin").classList.remove("hidden");
+      document.getElementById("manifestInput").value = RAW_MANIFEST.trim();
+      mostrarInfoAdmin();
     }
 
-    function calcularDiasDesde(fechaTexto) {
-      if (!fechaTexto) return 0;
-      const inicio = new Date(fechaTexto + "T00:00:00");
-      const hoy = new Date();
-      const diff = hoy - inicio;
-      return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    function procesarManifest() {
+      const raw = document.getElementById("manifestInput").value;
+      const db = parseManifest(raw);
+      guardarBase(db);
+      mostrarInfoAdmin(Object.keys(db).length);
+      alert("Base actualizada en este navegador.");
     }
 
-    function formatearFecha(fechaTexto) {
-      if (!fechaTexto) return "Sin fecha";
-      const fecha = new Date(fechaTexto + "T00:00:00");
-      return fecha.toLocaleDateString("es-US", {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit"
-      });
+    function cargarTextoBase() {
+      document.getElementById("manifestInput").value = RAW_MANIFEST.trim();
     }
 
-    function colorPorEstado(estado) {
-      const e = (estado || "").toUpperCase().trim();
-      switch (e) {
-        case "CLASIFICADO": return "#1565c0";
-        case "DESAGRUPE": return "#8e24aa";
-        case "DESPACHO": return "#ef6c00";
-        case "DISTRIBUCIÓN": return "#00897b";
-        case "EN AGENCIA": return "#6d4c41";
-        case "ARRIBO": return "#3949ab";
-        case "CANAL ROJO": return "#c62828";
-        case "ENTREGADO": return "#1f8b3a";
-        default: return "#424242";
-      }
+    function borrarBase() {
+      localStorage.removeItem("chambatina_tracking_db");
+      mostrarInfoAdmin();
+      alert("Base local eliminada. Ahora se usará el texto base del código.");
     }
 
-    document.getElementById("cpkInput").addEventListener("keypress", function(e) {
-      if (e.key === "Enter") buscarPaquete();
-    });
+    function exportarJSON() {
+      const db = cargarBase();
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "chambatina-tracking-db.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function mostrarInfoAdmin(conteoManual) {
+      const db = cargarBase();
+      const total = conteoManual || Object.keys(db).length;
+      document.getElementById("adminInfo").innerText =
+        `Registros detectados: ${total}. Si quieres que todos los clientes vean la actualización en GitHub Pages, debes pegar el manifiesto nuevo dentro de RAW_MANIFEST y hacer commit.`;
+    }
+
+    /*********************************************************
+     * INICIO
+     *********************************************************/
+    (function init() {
+      mostrarInfoAdmin();
+    })();
   </script>
 </body>
 </html>
