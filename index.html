@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat Chambatina</title>
+  <title>Rastreo de paquetes Chambatina</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -20,12 +20,16 @@
       background: #1b1b1b;
       border-radius: 14px;
       padding: 24px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.25);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
     }
 
     h1 {
       margin-top: 0;
       color: orange;
+    }
+
+    p {
+      line-height: 1.5;
     }
 
     input {
@@ -71,19 +75,21 @@
   </style>
 </head>
 <body>
-  <h1>Rastreo de paquetes Chambatina</h1>
+  <div class="box">
+    <h1>Rastreo de paquetes Chambatina</h1>
 
-<p>Para consultar tu envío, introduce tu número de CPK en el campo de abajo.</p>
+    <p>Para consultar tu envío, introduce tu número de CPK en el campo de abajo.</p>
 
-<p><strong>Ejemplo: CPK-0260443</strong></p>
-    <input‹‹‹
+    <p><strong>Ejemplo: CPK-0260443</strong></p>
+
+    <input
       type="text"
       id="mensaje"
-      placeholder="Escribe tu pregunta aquí"
+      placeholder="Escribe tu número de CPK aquí"
       onkeydown="if(event.key==='Enter'){enviar();}"
     />
 
-    <button onclick="enviar()">Enviar</button>
+    <button onclick="enviar()">Consultar</button>
 
     <div id="estado"></div>
     <div id="respuesta">Aquí aparecerá la respuesta.</div>
@@ -98,7 +104,8 @@
       const mensaje = input.value.trim();
 
       if (!mensaje) {
-        respuesta.innerText = "Escribe una pregunta primero.";
+        respuesta.innerText = "Escribe tu número de CPK primero.";
+        estado.innerText = "";
         return;
       }
 
@@ -123,7 +130,7 @@
         }
 
         respuesta.innerText = data.reply || "No llegó texto de respuesta.";
-        estado.innerText = "Respuesta recibida.";
+        estado.innerText = "Consulta completada.";
       } catch (error) {
         respuesta.innerText = "Error de conexión con el servidor.";
         estado.innerText = "No se pudo conectar con Render.";
