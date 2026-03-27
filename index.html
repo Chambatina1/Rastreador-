@@ -1,36 +1,222 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rastreador Chambatina</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #fff7ef, #ffe8d1);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #222;
+      padding: 20px;
+    }
+
+    .contenedor {
+      width: 100%;
+      max-width: 760px;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 30px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+      border: 2px solid #f2f2f2;
+    }
+
+    .encabezado {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .encabezado h1 {
+      margin: 0;
+      font-size: 34px;
+      color: #111;
+    }
+
+    .encabezado p {
+      margin: 10px 0 0;
+      font-size: 16px;
+      color: #666;
+    }
+
+    .caja-busqueda {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .caja-busqueda input {
+      flex: 1;
+      min-width: 240px;
+      padding: 16px 18px;
+      font-size: 17px;
+      border: 2px solid #ddd;
+      border-radius: 14px;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    .caja-busqueda input:focus {
+      border-color: #ff7a00;
+      box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.12);
+    }
+
+    .caja-busqueda button {
+      padding: 16px 24px;
+      border: none;
+      border-radius: 14px;
+      background: #ff7a00;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .caja-busqueda button:hover {
+      background: #e56700;
+      transform: translateY(-1px);
+    }
+
+    .resultado {
+      display: none;
+      background: #fffaf5;
+      border-left: 6px solid #ff7a00;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: inset 0 0 0 1px #ffe1c2;
+    }
+
+    .resultado.mostrar {
+      display: block;
+    }
+
+    .estado {
+      font-size: 24px;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 12px;
+    }
+
+    .detalle {
+      font-size: 17px;
+      line-height: 1.6;
+      color: #444;
+      white-space: pre-line;
+    }
+
+    .estado-ok {
+      color: #0a7a2f;
+    }
+
+    .estado-alerta {
+      color: #d35400;
+    }
+
+    .pie {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+    }
+
+    @media (max-width: 640px) {
+      .contenedor {
+        padding: 22px;
+      }
+
+      .encabezado h1 {
+        font-size: 28px;
+      }
+
+      .caja-busqueda {
+        flex-direction: column;
+      }
+
+      .caja-busqueda button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Rastreador Chambatina</h2>
-  <input id="cpk" placeholder="Escribe tu CPK">
-  <button onclick="buscar()">Buscar</button>
-  <p id="respuesta"></p>
+  <div class="contenedor">
+    <div class="encabezado">
+      <h1>Rastreador Chambatina</h1>
+      <p>Escriba su número CPK para consultar el estado de su paquete</p>
+    </div>
+
+    <div class="caja-busqueda">
+      <input id="msg" type="text" placeholder="Ejemplo: 0260443" />
+      <button onclick="enviar()">Buscar</button>
+    </div>
+
+    <div id="resultado" class="resultado">
+      <div id="estado" class="estado"></div>
+      <div id="detalle" class="detalle"></div>
+    </div>
+
+    <div class="pie">
+      Chambatina · Seguimiento informativo de paquetería
+    </div>
+  </div>
 
   <script>
-    async function buscar() {
-      const cpk = document.getElementById("cpk").value;
+    async function enviar() {
+      const mensaje = document.getElementById("msg").value.trim();
+      const resultado = document.getElementById("resultado");
+      const estado = document.getElementById("estado");
+      const detalle = document.getElementById("detalle");
+
+      if (!mensaje) {
+        resultado.classList.add("mostrar");
+        estado.className = "estado estado-alerta";
+        estado.textContent = "Dato requerido";
+        detalle.textContent = "Por favor, escriba un número CPK para realizar la búsqueda.";
+        return;
+      }
+
+      resultado.classList.add("mostrar");
+      estado.className = "estado estado-alerta";
+      estado.textContent = "Consultando...";
+      detalle.textContent = "Espere un momento mientras revisamos su información.";
 
       try {
-        const res = await fetch("https://rastreador-tj5b.onrender.com/buscar", {
+        const res = await fetch("https://rastreador-tj5b.onrender.com/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cpk })
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: mensaje })
         });
 
         const data = await res.json();
 
-        if (data.ok) {
-          document.getElementById("respuesta").innerText =
-            "CPK: " + data.cpk + "\nEstado: " + data.estado + "\n" + data.explicacion;
+        const texto = data.reply || data.error || "No se recibió respuesta del servidor.";
+
+        if (texto.toUpperCase().includes("ENTREGADO")) {
+          estado.className = "estado estado-ok";
         } else {
-          document.getElementById("respuesta").innerText = data.mensaje;
+          estado.className = "estado estado-alerta";
         }
-      } catch (e) {
-        document.getElementById("respuesta").innerText = "Error conectando con el servidor";
+
+        estado.textContent = "Resultado de la búsqueda";
+        detalle.textContent = texto;
+
+      } catch (error) {
+        estado.className = "estado estado-alerta";
+        estado.textContent = "Error de conexión";
+        detalle.textContent = "No fue posible conectar con el servidor en este momento.";
       }
     }
   </script>
