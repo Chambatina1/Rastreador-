@@ -1,373 +1,131 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rastreo Chambatina</title>
-  <style>
-    body{
-      margin:0;
-      font-family:Arial,Helvetica,sans-serif;
-      background:#f5f5f5;
-      color:#222;
-    }
-    .wrap{
-      max-width:800px;
-      margin:50px auto;
-      background:#fff;
-      border-radius:18px;
-      box-shadow:0 10px 28px rgba(0,0,0,.08);
-      padding:28px;
-    }
-    h1{
-      text-align:center;
-      margin:0 0 10px;
-      color:#111;
-    }
-    .sub{
-      text-align:center;
-      color:#666;
-      margin-bottom:24px;
-    }
-    .search-box{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    input{
-      flex:1;
-      min-width:240px;
-      padding:14px 16px;
-      font-size:16px;
-      border:1px solid #ccc;
-      border-radius:12px;
-      outline:none;
-    }
-    button{
-      padding:14px 22px;
-      font-size:16px;
-      font-weight:bold;
-      border:none;
-      border-radius:12px;
-      background:#f57c00;
-      color:#fff;
-      cursor:pointer;
-    }
-    button:hover{
-      background:#e46f00;
-    }
-    #resultado{
-      margin-top:24px;
-    }
-    .card{
-      padding:22px;
-      border-radius:16px;
-      background:#fafafa;
-      border:1px solid #e6e6e6;
-    }
-    .alert{
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-    }
-    .warn{
-      background:#fff3e0;
-      border:1px solid #ffd8a8;
-      color:#8a4b00;
-    }
-    .error{
-      background:#fff4f4;
-      border:1px solid #f3c2c2;
-      color:#8b0000;
-    }
-    .delivered{
-      background:#f1fff3;
-      border:1px solid #b8e6bf;
-      text-align:center;
-    }
-    .estado{
-      font-size:30px;
-      font-weight:800;
-      margin:8px 0 14px;
-    }
-    .estado.entregado{
-      font-size:38px;
-    }
-    .detalle{
-      margin-bottom:8px;
-      line-height:1.5;
-    }
-    .explicacion{
-      margin-top:14px;
-      padding:14px;
-      border-radius:12px;
-      background:#fff8e8;
-      color:#6a4b00;
-      line-height:1.6;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rastreador Chambatina</title>
 
-    /* Zona privada para ti. No la ve el cliente. */
-    #zonaPrivada{
-      display:none !important;
-    }
-  </style>
+<style>
+body{font-family:Arial;background:#f5f5f5;margin:0;padding:20px}
+.card{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.1)}
+input,textarea,button{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #ccc}
+button{background:#111;color:white;font-weight:bold}
+.result{margin-top:15px;padding:15px;border-radius:10px;background:#fff8f1;border-left:5px solid orange}
+.ok{color:green;font-size:28px;font-weight:bold}
+.estado{background:#ffe7d1;padding:6px 10px;border-radius:20px;display:inline-block;margin-bottom:10px}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>Rastrea tu paquete</h1>
-    <div class="sub">Consulta el estado actual de tu envío con tu número de rastreo.</div>
 
-    <div class="search-box">
-      <input id="cpkInput" type="text" placeholder="Ej: 0259443" />
-      <button onclick="buscarCPK()">Buscar</button>
-    </div>
+<div class="card">
+<h1>Rastreador Chambatina</h1>
 
-    <div id="resultado"></div>
-  </div>
+<input id="buscar" placeholder="Ej: 0260199">
+<button onclick="buscar()">Buscar</button>
 
-  <!--
-    ZONA PRIVADA
-    Aquí pegas tus datos sin organizar.
-    Puedes pegar líneas completas como salen de tu tabla.
-    No se muestra al cliente.
-  -->
-  <textarea id="zonaPrivada">
-CHAMBATINA MIAMI	GEO MIA		CPK-0259557	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	VENTILADOR DE TECHO	11113	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	5.6	0.072	0	0	0
-CHAMBATINA MIAMI	GEO MIA		CPK-0259555	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BICICLETA ELECTRICA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	106.4	3.375	0	0	0
-CHAMBATINA MIAMI	GEO MIA		CPK-0259547	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	JOSE MANUEL HERNANDEZ CABEZAS		00082162286	CALLE J # 453 ALTO Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	GEO CABEZAS			0	0	1	7	0.072	0	0	0
-CHAMBATINA MIAMI	GEO MIA		CPK-0259443	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	7.32	0.579	0	0	0
-  </textarea>
+<div id="res"></div>
 
-  <script>
-    function normalizarCPK(valor){
-      return String(valor || "")
-        .normalize("NFKC")
-        .toUpperCase()
-        .replace(/\u00A0/g, " ")
-        .replace(/\s+/g, "")
-        .replace(/CPK[-:]?/g, "")
-        .replace(/[^0-9]/g, "");
-    }
+<h3>Base de datos</h3>
+<textarea id="data"></textarea>
+<button onclick="guardar()">Guardar</button>
 
-    function escaparHTML(texto){
-      return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
+</div>
 
-    function colorEstado(estado){
-      const e = String(estado || "").toUpperCase();
-      if (e.includes("ENTREGADO")) return "#1b5e20";
-      if (e.includes("DISTRIB")) return "#1565c0";
-      if (e.includes("DESPACHO")) return "#6a1b9a";
-      if (e.includes("DESAGRUPE")) return "#ef6c00";
-      if (e.includes("CLASIFIC")) return "#00838f";
-      if (e.includes("ALMACEN")) return "#5d4037";
-      if (e.includes("AGENCIA")) return "#ad1457";
-      if (e.includes("ARRIBO")) return "#2e7d32";
-      if (e.includes("CANAL ROJO")) return "#c62828";
-      return "#333";
-    }
+<script>
 
-    function explicacionAutomatica(estado){
-      const e = String(estado || "").toUpperCase();
+// ===== DATOS (EDITAS SOLO ESTO) =====
+var BASE = `
+0260199|EN AGENCIA|2026-03-25|ROBERTO PACHECO|BATERIA 51V|SANTIAGO|5353194571
+0260197|EN AGENCIA|2026-03-25|ROBERTO PACHECO|INVERSOR 10KW|SANTIAGO|5353194571
+0260020|EN AGENCIA|2026-03-24|NANCY ROJAS|MISCELANEAS|HABANA|53608954
+0259575|EN ALMACEN|2026-03-23|FELICIA CARVAJAL|MISCELANEAS|VILLA CLARA|53282278
+0259555|EN AGENCIA|2026-03-23|OSMANY CASTELLON|BICICLETA|CIENFUEGOS|53421145
+`;
 
-      if (e.includes("ENTREGADO")) {
-        return "Tu paquete ya fue entregado correctamente.";
-      }
-      if (e.includes("EN AGENCIA")) {
-        return "Tu envío ya fue registrado en agencia y sigue su recorrido logístico normal.";
-      }
-      if (e.includes("EN ALMACEN")) {
-        return "Tu paquete figura en almacén. Ya fue identificado y permanece dentro del proceso de organización y salida.";
-      }
-      if (e.includes("CLASIFICADO")) {
-        return "Tu envío ya fue clasificado por destino y se prepara para avanzar dentro de la logística correspondiente.";
-      }
-      if (e.includes("DESAGRUPE")) {
-        return "Tu paquete se encuentra en proceso de extracción y separación dentro de la carga consolidada.";
-      }
-      if (e.includes("DESPACHO")) {
-        return "Tu envío se encuentra en fase de despacho y continúa avanzando dentro del proceso logístico.";
-      }
-      if (e.includes("DISTRIB")) {
-        return "Tu paquete está en distribución. Esta etapa indica que se acerca a su destino final.";
-      }
-      if (e.includes("ARRIBO")) {
-        return "Tu envío ya registra arribo y continúa su revisión y avance dentro del flujo logístico.";
-      }
-      if (e.includes("CANAL ROJO")) {
-        return "Tu paquete fue marcado para una revisión adicional. Esto puede demorar un poco más, pero sigue dentro del proceso.";
-      }
+// ===== FUNCIONES =====
+function limpiar(x){
+ return x.replace(/\D/g,"");
+}
 
-      return "Tu envío se encuentra registrado y avanzando dentro del proceso logístico.";
-    }
+function parsear(txt){
+ var base={};
+ var lineas=txt.split("\n");
 
-    function extraerRegistroDeLinea(linea){
-      const texto = String(linea || "").trim();
-      if (!texto) return null;
+ for(var i=0;i<lineas.length;i++){
+   var l=lineas[i].trim();
+   if(!l) continue;
 
-      const cpkMatch = texto.match(/CPK[-\s:]*0*\d+/i);
-      if (!cpkMatch) return null;
+   var p=l.split("|");
+   if(p.length<2) continue;
 
-      const cpkOriginal = cpkMatch[0].replace(/\s+/g, "").replace(/:/g, "-");
-      const cpkNormalizado = normalizarCPK(cpkOriginal);
+   var id=limpiar(p[0]);
 
-      const estadosPosibles = [
-        "ENTREGADO",
-        "EN DISTRIBUCION",
-        "EN DISTRIBUCIÓN",
-        "DISTRIBUCION",
-        "DISTRIBUCIÓN",
-        "DESPACHO",
-        "DESAGRUPE",
-        "CLASIFICADO",
-        "EN ALMACEN",
-        "EN ALMACÉN",
-        "EN AGENCIA",
-        "ARRIBO",
-        "CANAL ROJO"
-      ];
+   base[id]={
+     cpk:id,
+     estado:p[1],
+     fecha:p[2],
+     nombre:p[3],
+     desc:p[4],
+     dir:p[5],
+     tel:p[6]
+   };
+ }
 
-      let estado = "";
-      for (const e of estadosPosibles) {
-        const regex = new RegExp(e, "i");
-        if (regex.test(texto)) {
-          estado = texto.match(regex)[0].toUpperCase()
-            .replace("ALMACÉN", "ALMACEN")
-            .replace("DISTRIBUCIÓN", "DISTRIBUCION");
-          break;
-        }
-      }
+ return base;
+}
 
-      const fechaMatch = texto.match(/\b\d{4}-\d{2}-\d{2}\b/);
-      const fecha = fechaMatch ? fechaMatch[0] : "";
+function getDB(){
+ var g=localStorage.getItem("db");
+ if(g){return JSON.parse(g);}
+ return parsear(BASE);
+}
 
-      let descripcion = "";
-      let nombre = "";
+function guardar(){
+ var txt=document.getElementById("data").value;
+ var db=parsear(txt);
+ localStorage.setItem("db",JSON.stringify(db));
+ alert("Datos guardados");
+}
 
-      const partes = texto.split(/\t+/).map(x => x.trim()).filter(Boolean);
+function buscar(){
+ var c=limpiar(document.getElementById("buscar").value);
+ var db=getDB();
+ var r=document.getElementById("res");
 
-      const idxCPK = partes.findIndex(p => /CPK[-\s:]*0*\d+/i.test(p));
-      const idxEstado = partes.findIndex(p =>
-        /ENTREGADO|EN DISTRIBUCION|EN DISTRIBUCIÓN|DISTRIBUCION|DISTRIBUCIÓN|DESPACHO|DESAGRUPE|CLASIFICADO|EN ALMACEN|EN ALMACÉN|EN AGENCIA|ARRIBO|CANAL ROJO/i.test(p)
-      );
-      const idxFecha = partes.findIndex(p => /^\d{4}-\d{2}-\d{2}$/.test(p));
+ if(!c){
+   r.innerHTML='<div class="result">Escribe un CPK</div>';
+   return;
+ }
 
-      if (idxEstado >= 0) {
-        for (let i = idxEstado + 1; i < partes.length; i++) {
-          const p = partes[i];
-          if (/^\d{4}-\d{2}-\d{2}$/.test(p)) break;
-          if (/^Sí$|^No$/i.test(p)) continue;
-          if (/^ENVIO$/i.test(p)) continue;
-          if (/^ENVIOS FACTURADOS/i.test(p)) continue;
-          if (/^\d+(\.\d+)?$/.test(p)) continue;
-          if (/^\d{5,}$/.test(p)) continue;
-          if (p.length > 2 && !/CPK/i.test(p)) {
-            descripcion = p;
-            break;
-          }
-        }
-      }
+ if(!db[c]){
+   r.innerHTML='<div class="result">No encontrado</div>';
+   return;
+ }
 
-      if (idxFecha >= 0) {
-        for (let i = idxFecha + 1; i < partes.length; i++) {
-          const p = partes[i];
-          if (/^[A-ZÁÉÍÓÚÑ ]{6,}$/i.test(p) && !/\d/.test(p)) {
-            nombre = p;
-            break;
-          }
-        }
-      }
+ var x=db[c];
 
-      return {
-        cpkOriginal,
-        cpkNormalizado,
-        estado: estado || "EN PROCESO",
-        fecha,
-        nombre,
-        descripcion,
-        explicacion: explicacionAutomatica(estado || "EN PROCESO")
-      };
-    }
+ if(x.estado=="ENTREGADO"){
+   r.innerHTML='<div class="result"><div class="ok">ENTREGADO</div></div>';
+   return;
+ }
 
-    function cargarPaquetesDesdeTexto(){
-      const bruto = document.getElementById("zonaPrivada").value || "";
-      const lineas = bruto.split(/\r?\n/);
-      const mapa = new Map();
+ r.innerHTML=
+ '<div class="result">'+
+ '<div class="estado">'+x.estado+'</div>'+
+ '<p><b>Cliente:</b> '+x.nombre+'</p>'+
+ '<p><b>Producto:</b> '+x.desc+'</p>'+
+ '<p><b>Fecha:</b> '+x.fecha+'</p>'+
+ '<p><b>Dirección:</b> '+x.dir+'</p>'+
+ '<p><b>Tel:</b> '+x.tel+'</p>'+
+ '</div>';
+}
 
-      for (const linea of lineas) {
-        const reg = extraerRegistroDeLinea(linea);
-        if (reg && reg.cpkNormalizado) {
-          mapa.set(reg.cpkNormalizado, reg);
-        }
-      }
+window.onload=function(){
+ document.getElementById("data").value=BASE.trim();
+}
 
-      return mapa;
-    }
+</script>
 
-    function buscarCPK(){
-      const input = document.getElementById("cpkInput").value;
-      const codigoBuscado = normalizarCPK(input);
-      const resultado = document.getElementById("resultado");
-
-      if (!codigoBuscado) {
-        resultado.innerHTML = `
-          <div class="alert warn">
-            Por favor, escribe un número de rastreo válido.
-          </div>
-        `;
-        return;
-      }
-
-      const paquetes = cargarPaquetesDesdeTexto();
-      const paquete = paquetes.get(codigoBuscado);
-
-      if (!paquete) {
-        resultado.innerHTML = `
-          <div class="alert error">
-            <div style="font-size:22px;font-weight:bold;margin-bottom:8px;">No encontrado</div>
-            <div>No encontramos información para ese número. Revísalo e inténtalo de nuevo.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const estado = escaparHTML(paquete.estado);
-      const nombre = escaparHTML(paquete.nombre || "Cliente registrado");
-      const descripcion = escaparHTML(paquete.descripcion || "Envío registrado");
-      const fecha = escaparHTML(paquete.fecha || "Sin fecha visible");
-      const explicacion = escaparHTML(paquete.explicacion || "Tu envío se encuentra registrado.");
-      const color = colorEstado(paquete.estado);
-
-      if (String(paquete.estado).toUpperCase().includes("ENTREGADO")) {
-        resultado.innerHTML = `
-          <div class="card delivered">
-            <div class="estado entregado" style="color:${color};">ENTREGADO</div>
-            <div>Tu paquete ya fue entregado correctamente.</div>
-          </div>
-        `;
-        return;
-      }
-
-      resultado.innerHTML = `
-        <div class="card">
-          <div class="detalle"><strong>Rastreo:</strong> ${escaparHTML(codigoBuscado)}</div>
-          <div class="estado" style="color:${color};">${estado}</div>
-          <div class="detalle"><strong>Destinatario:</strong> ${nombre}</div>
-          <div class="detalle"><strong>Contenido:</strong> ${descripcion}</div>
-          <div class="detalle"><strong>Fecha:</strong> ${fecha}</div>
-          <div class="explicacion">${explicacion}</div>
-        </div>
-      `;
-    }
-
-    document.getElementById("cpkInput").addEventListener("keypress", function(e){
-      if (e.key === "Enter") buscarCPK();
-    });
-  </script>
 </body>
 </html>
