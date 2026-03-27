@@ -2,123 +2,145 @@ import express from "express";
 import cors from "cors";
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Servidor Chambatina activo");
-});
+// =====================================================
+// CHAMBATINA MIAMI	GEO MIA		CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	DIANARA CORREA SANCHEZ		94092744494	Ave Piti fajardo # Edificio 27 Apto 4 Rpto. Emilio Barcenas e/ 9 y 11, HOLGUIN, HOLGUIN	52065680	YISEL LOPEZ ALVAREZ			2.99	0	1	32	3.375	0.5	0	0		
+				
+   CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0	 DE DATOS MANUAL DE CPK
+// PEGA TUS DATOS AQUÍ MISMO
+// FORMATO:
+// "NUMERO": { estado: "ESTADO", descripcion: "TEXTO" },
+// =====================================================
+const CPK_DB = {
+  "260443": {
+    estado: "EN AGENCIA",
+    descripcion: "Tu paquete fue recibido y ya está en agencia, listo para continuar avanzando dentro del proceso logístico."
+  },
 
-const rawData = `
-CHAMBATINA MIAMI GEO MIA CPK-0260443 EN AGENCIA
-CHAMBATINA MIAMI GEO MIA CPK-0260440 EN AGENCIA
-CHAMBATINA MIAMI GEO MIA CPK-0260199 EMBARCADO
-`;
+  "260440": {
+    estado: "EN AGENCIA",
+    descripcion: "Tu paquete fue recibido y ya se encuentra en agencia, en espera de continuar su recorrido logístico."
+  },
 
-const ESTADOS_VALIDOS = [
-  "ENTREGADO",
-  "EN AGENCIA",
-  "EMBARCADO",
-  "CLASIFICADO",
-  "DESAGRUPE",
-  "DESPACHO",
-  "DISTRIBUCION",
-  "DISTRIBUCIÓN",
-  "EN ALMACEN",
-  "EN ALMACÉN",
-  "ARRIBO",
-  "CANAL ROJO",
-  "EN DISTRIBUCION",
-  "EN DISTRIBUCIÓN"
-];
+  "259847": {
+    estado: "EN AGENCIA",
+    descripcion: "Tu paquete ya está en agencia y debidamente registrado para seguir avanzando en el proceso."
+  },
 
-function limpiarTexto(texto) {
-  return String(texto || "")
-    .replace(/\r/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+  "259844": {
+    estado: "EN AGENCIA",
+    descripcion: "Tu paquete fue recibido en agencia y está preparado para continuar con su siguiente fase logística."
+  }
 
-function extraerCPK(linea) {
-  const m = linea.match(/CPK-\s*0*([0-9]+)/i);
-  return m ? m[1] : null;
-}
+  // PEGA MÁS CPK DEBAJO SIGUIENDO ESTE MISMO FORMATO
+};
 
-function extraerEstado(linea) {
-  const lineaMayus = limpiarTexto(linea).toUpperCase();
+app.post("/chat", async (req, res) => {
+  try {
+    const userMessage = req.body.message;
 
-  for (const estado of ESTADOS_VALIDOS) {
-    if (lineaMayus.includes(estado.toUpperCase())) {
-      return estado;
+    if (!userMessage || typeof userMessage !== "string") {
+      return res.status(400).json({ error: "Falta el mensaje" });
     }
+
+    // Detecta números dentro del mensaje, por ejemplo:
+    // CPK-0260443 -> 0260443 -> 260443
+    const posibleCPK = userMessage.replace(/\D/g, "").replace(/^0+/, "");
+
+    if (CPK_DB[posibleCPK]) {
+      const item = CPK_DB[posibleCPK];
+
+      return res.json({
+        reply: Estado: ${item.estado}\n\n${item.descripcion}
+      });
+    }
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
+Eres el asistente oficial de Chambatina.
+
+Tu función es ayudar a los clientes con:
+- Envíos
+- Cálculo de precios
+- Estados de paquetes
+- Equipos eléctricos
+- Información general
+
+Reglas:
+- No mencionar países
+- No inventar información
+- Explicar precios paso a paso
+- Responder claro y profesional
+- Dar seguridad al cliente
+
+Precios:
+$1.99 por libra
+$2.30 si recogemos en la puerta de su casa
+$1.80 si compra por nuestros links
+
+Cargos adicionales:
+Equipos: de $15 a $35 adicionales
+Equipos de más de 200 libras: $45 adicionales
+
+Cajas:
+12x12x12 = $45 hasta 60 libras
+15x15x15 = $65 hasta 100 libras
+16x16x16 = $85 hasta 100 libras
+
+Estados:
+EN AGENCIA = paquete recibido
+CLASIFICADO = organizado por ruta
+DESAGRUPE = separado del contenedor
+DESPACHO = en tránsito
+DISTRIBUCIÓN = en camino final
+ENTREGADO = finalizado
+
+Tiempo estimado: 18 a 30 días
+
+Si el cliente pregunta por un CPK y no aparece en la base de datos, indícale con respeto que en este momento ese número no está disponible en el sistema y que revise si lo escribió correctamente.
+`
+          },
+          {
+            role: "user",
+            content: userMessage
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error?.message || "Error con OpenAI"
+      });
+    }
+
+    const reply = data?.choices?.[0]?.message?.content || "Sin respuesta";
+
+    res.json({ reply });
+
+  } catch (error) {
+    console.error("Error en /chat:", error);
+    res.status(500).json({ error: "Error en el servidor" });
   }
-
-  return "SIN ESTADO";
-}
-
-function explicarEstado(estado) {
-  const e = estado.toUpperCase();
-
-  if (e === "ENTREGADO") return "Su paquete fue entregado.";
-  if (e.includes("EN AGENCIA")) return "Su paquete fue recibido en agencia.";
-  if (e === "EMBARCADO") return "Su paquete ya salió en barco.";
-  if (e === "CLASIFICADO") return "Su paquete fue clasificado.";
-  if (e === "DESAGRUPE") return "Su paquete está en desagrupación.";
-  if (e === "DESPACHO") return "Su paquete está en despacho.";
-  if (e.includes("DISTRIBUCION") || e.includes("DISTRIBUCIÓN")) return "Su paquete está en distribución.";
-  if (e.includes("ALMACEN") || e.includes("ALMACÉN")) return "Su paquete está en almacén.";
-  if (e === "ARRIBO") return "Su paquete arribó.";
-  if (e === "CANAL ROJO") return "Su paquete está en revisión.";
-  return "Su paquete está en proceso logístico.";
-}
-
-function construirBase(raw) {
-  const base = {};
-  const lineas = String(raw || "").split("\n");
-
-  for (const lineaOriginal of lineas) {
-    const linea = limpiarTexto(lineaOriginal);
-    if (!linea) continue;
-
-    const cpk = extraerCPK(linea);
-    if (!cpk) continue;
-
-    const estado = extraerEstado(linea);
-
-    base[cpk] = {
-      cpk,
-      estado,
-      explicacion: explicarEstado(estado)
-    };
-  }
-
-  return base;
-}
-
-const paquetes = construirBase(rawData);
-
-app.post("/buscar", (req, res) => {
-  const codigo = String(req.body.cpk || "").replace(/[^\d]/g, "").trim();
-
-  if (!codigo) {
-    return res.json({ ok: false, mensaje: "Debe escribir un CPK válido" });
-  }
-
-  const resultado = paquetes[codigo];
-
-  if (!resultado) {
-    return res.json({ ok: false, mensaje: "No encontramos ese CPK" });
-  }
-
-  return res.json({
-    ok: true,
-    cpk: resultado.cpk,
-    estado: resultado.estado,
-    explicacion: resultado.explicacion
-  });
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log("Servidor corriendo en puerto " + PORT);
 });
