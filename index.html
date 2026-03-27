@@ -1,76 +1,169 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Chambatina Chat</title>
-
-<style>
-body {
-    font-family: Arial;
-    background: #111;
-    color: white;
-    text-align: center;
-    padding: 40px;
-}
-
-#chatbox {
-    width: 90%;
-    max-width: 500px;
-    margin: auto;
-}
-
-input {
-    width: 80%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-}
-
-button {
-    padding: 10px;
-    background: orange;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#respuesta {
-    margin-top: 20px;
-    background: #222;
-    padding: 15px;
-    border-radius: 10px;
-}
-</style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat Chambatina</title>
+  <style>
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:#050505;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:100vh;
+      padding-top:80px;
+    }
+    .wrap{
+      width:90%;
+      max-width:700px;
+    }
+    h1{
+      text-align:center;
+      margin-bottom:20px;
+    }
+    .row{
+      display:flex;
+      gap:8px;
+    }
+    input{
+      flex:1;
+      padding:14px;
+      border-radius:8px;
+      border:none;
+      font-size:16px;
+    }
+    button{
+      background:#f5a000;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      padding:0 18px;
+      font-size:16px;
+      cursor:pointer;
+    }
+    .chat{
+      margin-top:20px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .msg{
+      padding:14px;
+      border-radius:10px;
+      max-width:85%;
+      white-space:pre-wrap;
+    }
+    .user{
+      background:#f5a000;
+      align-self:flex-end;
+    }
+    .bot{
+      background:#1e1e1e;
+      align-self:flex-start;
+    }
+    .error{
+      background:#5a1f1f;
+      align-self:flex-start;
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Chat Chambatina</h1>
+    <div class="row">
+      <input id="mensaje" type="text" placeholder="Escribe aquí..." />
+      <button onclick="enviar()">Enviar</button>
+    </div>
+    <div class="chat" id="chat"></div>
+  </div>
 
-<h2>Chat Chambatina</h2>
+  <script>
+    const API_KEY = "PON_AQUI_TU_API_KEY_REAL";
 
-<div id="chatbox">
-    <input id="mensaje" placeholder="Escribe tu pregunta..." />
-    <button onclick="enviar()">Enviar</button>
+    function agregarMensaje(texto, tipo){
+      const div = document.createElement("div");
+      div.className = "msg " + tipo;
+      div.textContent = texto;
+      document.getElementById("chat").appendChild(div);
+    }
 
-    <div id="respuesta"></div>
-</div>
+    async function enviar(){
+      const input = document.getElementById("mensaje");
+      const texto = input.value.trim();
+      if(!texto) return;
 
-<script>
-async function enviar() {
-    const mensaje = document.getElementById("mensaje").value;
+      agregarMensaje(texto, "user");
+      input.value = "";
 
-    const res = await fetch("https://rastreador-tj5b.onrender.com/chat", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: mensaje })
+      try{
+        const respuesta = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + API_KEY
+          },
+          body: JSON.stringify({
+            model: "gpt-4.1-mini",
+            input: [
+              {
+                role: "system",
+                content: "Eres Chambita, asistente de Chambatina. Responde en español, claro y breve."
+              },
+              {
+                role: "user",
+                content: texto
+              }
+            ]
+          })
+        });
+
+        const data = await respuesta.json();
+        console.log("RESPUESTA COMPLETA:", data);
+
+        if(!respuesta.ok){
+          agregarMensaje("Error API: " + (data.error?.message || "No se pudo completar la consulta."), "error");
+          return;
+        }
+
+        let salida = "";
+
+        if (data.output_text) {
+          salida = data.output_text;
+        } else if (data.output && Array.isArray(data.output)) {
+          const textos = [];
+          for (const item of data.output) {
+            if (item.content && Array.isArray(item.content)) {
+              for (const parte of item.content) {
+                if (parte.type === "output_text" && parte.text) {
+                  textos.push(parte.text);
+                }
+              }
+            }
+          }
+          salida = textos.join("\n").trim();
+        }
+
+        if(!salida){
+          agregarMensaje("La API respondió, pero no llegó texto visible. Mira la consola del navegador.", "error");
+          return;
+        }
+
+        agregarMensaje(salida, "bot");
+
+      }catch(error){
+        console.error(error);
+        agregarMensaje("No se pudo conectar. Puede ser por la API key, CORS o un bloqueo del navegador.", "error");
+      }
+    }
+
+    document.getElementById("mensaje").addEventListener("keydown", function(e){
+      if(e.key === "Enter"){
+        enviar();
+      }
     });
-
-    const data = await res.json();
-
-    document.getElementById("respuesta").innerText = data.reply;
-}
-</script>
-
+  </script>
 </body>
 </html>
