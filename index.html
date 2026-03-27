@@ -1,140 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rastreo de paquetes Chambatina</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      text-align: center;
-      padding: 40px 20px;
-      margin: 0;
-    }
-
-    .box {
-      max-width: 700px;
-      margin: 0 auto;
-      background: #1b1b1b;
-      border-radius: 14px;
-      padding: 24px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
-    }
-
-    h1 {
-      margin-top: 0;
-      color: orange;
-    }
-
-    p {
-      line-height: 1.5;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid #444;
-      font-size: 16px;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-    }
-
-    button {
-      background: orange;
-      color: black;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    #estado {
-      margin-top: 16px;
-      font-size: 14px;
-      color: #ccc;
-    }
-
-    #respuesta {
-      margin-top: 18px;
-      background: #252525;
-      padding: 18px;
-      border-radius: 12px;
-      min-height: 70px;
-      text-align: left;
-      white-space: pre-wrap;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Rastreador Chambatina</title>
 </head>
 <body>
-  <div class="box">
-    <h1>Rastreo de paquetes Chambatina</h1>
-
-    <p>Para consultar tu envío, introduce tu número de CPK en el campo de abajo.</p>
-
-    <p><strong>Ejemplo: CPK-0260443</strong></p>
-
-    <input
-      type="text"
-      id="mensaje"
-      placeholder="Escribe tu número de CPK aquí"
-      onkeydown="if(event.key==='Enter'){enviar();}"
-    />
-
-    <button onclick="enviar()">Consultar</button>
-
-    <div id="estado"></div>
-    <div id="respuesta">Aquí aparecerá la respuesta.</div>
-  </div>
+  <h2>Rastreador Chambatina</h2>
+  <input id="cpk" placeholder="Escribe tu CPK">
+  <button onclick="buscar()">Buscar</button>
+  <p id="respuesta"></p>
 
   <script>
-    async function enviar() {
-      const input = document.getElementById("mensaje");
-      const estado = document.getElementById("estado");
-      const respuesta = document.getElementById("respuesta");
-
-      const mensaje = input.value.trim();
-
-      if (!mensaje) {
-        respuesta.innerText = "Escribe tu número de CPK primero.";
-        estado.innerText = "";
-        return;
-      }
-
-      estado.innerText = "Consultando servidor...";
-      respuesta.innerText = "";
+    async function buscar() {
+      const cpk = document.getElementById("cpk").value;
 
       try {
-        const res = await fetch("https://rastreador-tj5b.onrender.com/chat", {
+        const res = await fetch("https://rastreador-tj5b.onrender.com/buscar", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ message: mensaje })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cpk })
         });
 
         const data = await res.json();
 
-        if (!res.ok) {
-          respuesta.innerText = "Error: " + (data.error || "No se pudo obtener respuesta.");
-          estado.innerText = "La consulta falló.";
-          return;
+        if (data.ok) {
+          document.getElementById("respuesta").innerText =
+            "CPK: " + data.cpk + "\nEstado: " + data.estado + "\n" + data.explicacion;
+        } else {
+          document.getElementById("respuesta").innerText = data.mensaje;
         }
-
-        respuesta.innerText = data.reply || "No llegó texto de respuesta.";
-        estado.innerText = "Consulta completada.";
-      } catch (error) {
-        respuesta.innerText = "Error de conexión con el servidor.";
-        estado.innerText = "No se pudo conectar con Render.";
-        console.error(error);
+      } catch (e) {
+        document.getElementById("respuesta").innerText = "Error conectando con el servidor";
       }
     }
   </script>
