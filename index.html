@@ -6,7 +6,7 @@
 <title>Chambatina Chat</title>
 
 <style>
-body { margin:0; font-family:Arial; background:#f5f5f5; }
+body { margin:0; font-family:Arial; }
 
 .chat-btn {
   position:fixed; bottom:20px; right:20px;
@@ -61,14 +61,12 @@ body { margin:0; font-family:Arial; background:#f5f5f5; }
   <div class="chat-header">Chambatina Chat</div>
   <div class="chat-messages" id="messages"></div>
   <div class="chat-input">
-    <input id="input" placeholder="Escribe aquí..." />
+    <input id="input" placeholder="Pregunta por tu envío..." />
     <button onclick="send()">Enviar</button>
   </div>
 </div>
 
 <script>
-const API_KEY = "PON_AQUI_TU_API_KEY";
-
 function toggleChat(){
   const box = document.getElementById("chatBox");
   box.style.display = box.style.display === "flex" ? "none" : "flex";
@@ -81,7 +79,7 @@ function addMessage(text, type){
   document.getElementById("messages").appendChild(div);
 }
 
-async function send(){
+function send(){
   const input = document.getElementById("input");
   const text = input.value.trim();
   if(!text) return;
@@ -89,27 +87,25 @@ async function send(){
   addMessage(text,"user");
   input.value = "";
 
-  try{
-    const res = await fetch("https://api.openai.com/v1/responses",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + API_KEY
-      },
-      body:JSON.stringify({
-        model:"gpt-5.3",
-        input:`Eres Chambita, asistente de Chambatina. Responde claro y ayuda sobre envíos. Usuario: ${text}`
-      })
-    });
+  // RESPUESTA INTELIGENTE SIMULADA (SIN API)
+  let respuesta = "";
 
-    const data = await res.json();
-    const reply = data.output_text || "No tengo respuesta ahora.";
-
-    addMessage(reply,"bot");
-
-  }catch(e){
-    addMessage("Error conectando con el servidor","bot");
+  if(text.toLowerCase().includes("cpk")){
+    respuesta = "Por favor envíame tu número CPK para ayudarte con el estado de tu paquete.";
   }
+  else if(text.toLowerCase().includes("tiempo")){
+    respuesta = "El tiempo estimado es de 18 a 30 días después de embarcado.";
+  }
+  else if(text.toLowerCase().includes("precio")){
+    respuesta = "El precio depende del peso. Escríbeme cuántas libras tienes y te ayudo.";
+  }
+  else{
+    respuesta = "Soy el asistente de Chambatina. Puedo ayudarte con envíos, tiempos y paquetes.";
+  }
+
+  setTimeout(()=>{
+    addMessage(respuesta,"bot");
+  },500);
 }
 </script>
 
