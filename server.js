@@ -6,14 +6,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.send("Servidor Chambatina activo");
+});
+
 // =====================================================
 // CHAMBATINA MIAMI	GEO MIA		CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	DIANARA CORREA SANCHEZ		94092744494	Ave Piti fajardo # Edificio 27 Apto 4 Rpto. Emilio Barcenas e/ 9 y 11, HOLGUIN, HOLGUIN	52065680	YISEL LOPEZ ALVAREZ			2.99	0	1	32	3.375	0.5	0	0		
-				
-   CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0	 DE DATOS MANUAL DE CPK
-// PEGA TUS DATOS AQUÍ MISMO
-// FORMATO:
-// "NUMERO": { estado: "ESTADO", descripcion: "TEXTO" },
+
+// CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0
 // =====================================================
+
 const CPK_DB = {
   "260443": {
     estado: "EN AGENCIA",
@@ -34,8 +36,6 @@ const CPK_DB = {
     estado: "EN AGENCIA",
     descripcion: "Tu paquete fue recibido en agencia y está preparado para continuar con su siguiente fase logística."
   }
-
-  // PEGA MÁS CPK DEBAJO SIGUIENDO ESTE MISMO FORMATO
 };
 
 app.post("/chat", async (req, res) => {
@@ -46,15 +46,13 @@ app.post("/chat", async (req, res) => {
       return res.status(400).json({ error: "Falta el mensaje" });
     }
 
-    // Detecta números dentro del mensaje, por ejemplo:
-    // CPK-0260443 -> 0260443 -> 260443
     const posibleCPK = userMessage.replace(/\D/g, "").replace(/^0+/, "");
 
     if (CPK_DB[posibleCPK]) {
       const item = CPK_DB[posibleCPK];
 
       return res.json({
-        reply: Estado: ${item.estado}\n\n${item.descripcion}
+        reply: `Estado: ${item.estado}\n\n${item.descripcion}`
       });
     }
 
