@@ -1,280 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rastreo de Paquetes Chambatina</title>
-  <style>
-    * { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chambatina Chat</title>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #fff8f0, #ffe7cc);
-      color: #222;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+<style>
+body { margin:0; font-family:Arial; background:#f5f5f5; }
 
-    .card {
-      width: 100%;
-      max-width: 620px;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-      padding: 30px 24px;
-      border: 2px solid #f28c28;
-    }
+.chat-btn {
+  position:fixed; bottom:20px; right:20px;
+  width:70px; height:70px;
+  border-radius:50%; border:none;
+  background:#ff7a00; color:#fff;
+  font-size:28px; cursor:pointer;
+}
 
-    .logo {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 700;
-      color: #f28c28;
-      margin-bottom: 10px;
-    }
+.chat-box {
+  position:fixed; bottom:100px; right:20px;
+  width:350px; height:500px;
+  background:#fff; border-radius:15px;
+  box-shadow:0 0 20px rgba(0,0,0,0.2);
+  display:none; flex-direction:column;
+}
 
-    .subtitle {
-      text-align: center;
-      color: #555;
-      font-size: 15px;
-      margin-bottom: 24px;
-    }
+.chat-header {
+  background:#111; color:#fff;
+  padding:12px; font-weight:bold;
+}
 
-    .search-box {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+.chat-messages {
+  flex:1; padding:10px; overflow-y:auto;
+}
 
-    .search-box input {
-      flex: 1;
-      min-width: 220px;
-      padding: 14px 16px;
-      border: 2px solid #ddd;
-      border-radius: 12px;
-      font-size: 17px;
-      outline: none;
-    }
+.msg { margin:6px 0; padding:8px; border-radius:10px; max-width:80%; }
 
-    .search-box input:focus {
-      border-color: #f28c28;
-    }
+.user { background:#ff7a00; color:#fff; margin-left:auto; }
+.bot { background:#eee; }
 
-    .search-box button {
-      padding: 14px 22px;
-      border: none;
-      border-radius: 12px;
-      background: #f28c28;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+.chat-input {
+  display:flex; border-top:1px solid #ccc;
+}
 
-    .search-box button:hover {
-      background: #d97312;
-    }
+.chat-input input {
+  flex:1; border:none; padding:10px;
+}
 
-    .result {
-      margin-top: 22px;
-      padding: 18px;
-      border-radius: 14px;
-      background: #fafafa;
-      border: 1px solid #eee;
-      display: none;
-    }
-
-    .result.show {
-      display: block;
-    }
-
-    .status {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #111;
-    }
-
-    .status.entregado {
-      font-size: 34px;
-      text-align: center;
-      color: #0a8f3d;
-    }
-
-    .detail {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #333;
-    }
-
-    .error {
-      color: #b00020;
-      font-weight: bold;
-    }
-
-    .footer-note {
-      margin-top: 18px;
-      font-size: 13px;
-      color: #777;
-      text-align: center;
-    }
-
-    @media (max-width: 600px) {
-      .search-box {
-        flex-direction: column;
-      }
-
-      .search-box button {
-        width: 100%;
-      }
-    }
-  </style>
+.chat-input button {
+  border:none; background:#ff7a00;
+  color:#fff; padding:10px;
+}
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <div class="logo">Chambatina</div>
-    <div class="subtitle">Rastrea tu paquete escribiendo tu código</div>
 
-    <div class="search-box">
-      <input
-        type="text"
-        id="codigoInput"
-        placeholder="Ejemplo: 0259557 o CPK-0259557"
-        onkeydown="if(event.key==='Enter'){buscarPaquete();}"
-      />
-      <button onclick="buscarPaquete()">Buscar</button>
-    </div>
+<button class="chat-btn" onclick="toggleChat()">💬</button>
 
-    <div id="resultado" class="result"></div>
-
-    <div class="footer-note">
-      Consulta rápida y segura del estado de tu envío
-    </div>
+<div class="chat-box" id="chatBox">
+  <div class="chat-header">Chambatina Chat</div>
+  <div class="chat-messages" id="messages"></div>
+  <div class="chat-input">
+    <input id="input" placeholder="Escribe aquí..." />
+    <button onclick="send()">Enviar</button>
   </div>
+</div>
 
-  <script>
-    /*
-      ==========================================
-   
-      ==========================================
-      IMPORTANTE:
-      - Esta parte NO se ve en la pantalla.
-      - Aquí puedes pegar y actualizar tus datos manualmente.
-      - El público solo verá la caja de búsqueda y el resultado.
-      - Pero recuerda: al estar en un solo archivo HTML, un técnico
-        sí podría inspeccionar el código fuente.
-    */
+<script>
+const API_KEY = "PON_AQUI_TU_API_KEY";
 
-    const paquetes = [
-      {
-        codigo: "0259557",
-        estado: "EN ALMACEN",
-        fecha: "2026-03-23",
-        mensaje: "Tu paquete se encuentra en almacén, en proceso de preparación logística. Nuestro equipo continúa organizando la salida correspondiente."
+function toggleChat(){
+  const box = document.getElementById("chatBox");
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+}
+
+function addMessage(text, type){
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerText = text;
+  document.getElementById("messages").appendChild(div);
+}
+
+async function send(){
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+  if(!text) return;
+
+  addMessage(text,"user");
+  input.value = "";
+
+  try{
+    const res = await fetch("https://api.openai.com/v1/responses",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + API_KEY
       },
-      {
-        codigo: "0259555",
-        estado: "EN AGENCIA",
-        fecha: "2026-03-23",
-        mensaje: "Tu paquete ya está en agencia. Se encuentra dentro del flujo normal de recepción y procesamiento previo a su avance logístico."
-      },
-      {
-        codigo: "0259558",
-        estado: "CLASIFICADO",
-        fecha: "2026-03-24",
-        mensaje: "Tu paquete ya fue identificado y clasificado para su ruta correspondiente. Esto indica avance dentro del proceso logístico."
-      },
-      {
-        codigo: "0259559",
-        estado: "DESPACHO",
-        fecha: "2026-03-24",
-        mensaje: "Tu paquete se encuentra en despacho. Eso significa que continúa avanzando dentro del proceso de salida y control logístico."
-      },
-      {
-        codigo: "0259560",
-        estado: "EN DISTRIBUCION",
-        fecha: "2026-03-25",
-        mensaje: "Tu paquete está en distribución. Esto indica una fase avanzada del proceso y se dirige hacia la entrega final."
-      },
-      {
-        codigo: "0259561",
-        estado: "ENTREGADO",
-        fecha: "2026-03-25",
-        mensaje: "ENTREGADO"
-      }
-    ];
+      body:JSON.stringify({
+        model:"gpt-5.3",
+        input:`Eres Chambita, asistente de Chambatina. Responde claro y ayuda sobre envíos. Usuario: ${text}`
+      })
+    });
 
-    function limpiarCodigo(valor) {
-      return valor
-        .toUpperCase()
-        .replace(/CPK-/g, "")
-        .replace(/[^0-9]/g, "")
-        .trim();
-    }
+    const data = await res.json();
+    const reply = data.output_text || "No tengo respuesta ahora.";
 
-    function buscarPaquete() {
-      const input = document.getElementById("codigoInput");
-      const resultado = document.getElementById("resultado");
-      const codigoBuscado = limpiarCodigo(input.value);
+    addMessage(reply,"bot");
 
-      resultado.className = "result show";
+  }catch(e){
+    addMessage("Error conectando con el servidor","bot");
+  }
+}
+</script>
 
-      if (!codigoBuscado) {
-        resultado.innerHTML = '<div class="error">Por favor, escribe un código válido.</div>';
-        return;
-      }
-
-      const paquete = paquetes.find(p => limpiarCodigo(p.codigo) === codigoBuscado);
-
-      if (!paquete) {
-        resultado.innerHTML = `
-          <div class="error">No encontramos información para ese código.</div>
-          <div class="detail" style="margin-top:8px;">
-            Verifica si lo escribiste correctamente e inténtalo otra vez.
-          </div>
-        `;
-        return;
-      }
-
-      if (paquete.estado === "ENTREGADO") {
-        resultado.innerHTML = `
-          <div class="status entregado">ENTREGADO</div>
-        `;
-        return;
-      }
-
-      resultado.innerHTML = `
-        <div class="status">${paquete.estado}</div>
-        <div class="detail">${paquete.mensaje}</div>
-      `;
-    }
-
-    /*
-      ==========================================
-      CÓMO ACTUALIZAR TUS DATOS
-      ==========================================
-      SOLO DUPLICA ESTE FORMATO DENTRO DEL ARREGLO "paquetes":
-
-      {
-        codigo: "0260001",
-        estado: "CLASIFICADO",
-        fecha: "2026-03-26",
-        mensaje: "Tu paquete ya fue clasificado y continúa su avance logístico."
-      },
-
-      SI ESTÁ ENTREGADO:
-
-      {
-        codigo: "0260002",
-        estado: "ENTREGADO",
-        fecha: "2026-03-26",
-        mensaje: "ENTREGADO"
-      }
-    */
-  </script>
 </body>
 </html>
