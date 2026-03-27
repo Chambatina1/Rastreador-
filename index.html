@@ -2,110 +2,73 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chambatina Chat</title>
 
 <style>
-body { margin:0; font-family:Arial; }
-
-.chat-btn {
-  position:fixed; bottom:20px; right:20px;
-  width:70px; height:70px;
-  border-radius:50%; border:none;
-  background:#ff7a00; color:#fff;
-  font-size:28px; cursor:pointer;
+body {
+    font-family: Arial;
+    background: #111;
+    color: white;
+    text-align: center;
+    padding: 40px;
 }
 
-.chat-box {
-  position:fixed; bottom:100px; right:20px;
-  width:350px; height:500px;
-  background:#fff; border-radius:15px;
-  box-shadow:0 0 20px rgba(0,0,0,0.2);
-  display:none; flex-direction:column;
+#chatbox {
+    width: 90%;
+    max-width: 500px;
+    margin: auto;
 }
 
-.chat-header {
-  background:#111; color:#fff;
-  padding:12px; font-weight:bold;
+input {
+    width: 80%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
 }
 
-.chat-messages {
-  flex:1; padding:10px; overflow-y:auto;
+button {
+    padding: 10px;
+    background: orange;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-.msg { margin:6px 0; padding:8px; border-radius:10px; max-width:80%; }
-
-.user { background:#ff7a00; color:#fff; margin-left:auto; }
-.bot { background:#eee; }
-
-.chat-input {
-  display:flex; border-top:1px solid #ccc;
-}
-
-.chat-input input {
-  flex:1; border:none; padding:10px;
-}
-
-.chat-input button {
-  border:none; background:#ff7a00;
-  color:#fff; padding:10px;
+#respuesta {
+    margin-top: 20px;
+    background: #222;
+    padding: 15px;
+    border-radius: 10px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<button class="chat-btn" onclick="toggleChat()">💬</button>
+<h2>Chat Chambatina</h2>
 
-<div class="chat-box" id="chatBox">
-  <div class="chat-header">Chambatina Chat</div>
-  <div class="chat-messages" id="messages"></div>
-  <div class="chat-input">
-    <input id="input" placeholder="Pregunta por tu envío..." />
-    <button onclick="send()">Enviar</button>
-  </div>
+<div id="chatbox">
+    <input id="mensaje" placeholder="Escribe tu pregunta..." />
+    <button onclick="enviar()">Enviar</button>
+
+    <div id="respuesta"></div>
 </div>
 
 <script>
-function toggleChat(){
-  const box = document.getElementById("chatBox");
-  box.style.display = box.style.display === "flex" ? "none" : "flex";
-}
+async function enviar() {
+    const mensaje = document.getElementById("mensaje").value;
 
-function addMessage(text, type){
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerText = text;
-  document.getElementById("messages").appendChild(div);
-}
+    const res = await fetch("https://rastreador-tj5b.onrender.com/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: mensaje })
+    });
 
-function send(){
-  const input = document.getElementById("input");
-  const text = input.value.trim();
-  if(!text) return;
+    const data = await res.json();
 
-  addMessage(text,"user");
-  input.value = "";
-
-  // RESPUESTA INTELIGENTE SIMULADA (SIN API)
-  let respuesta = "";
-
-  if(text.toLowerCase().includes("cpk")){
-    respuesta = "Por favor envíame tu número CPK para ayudarte con el estado de tu paquete.";
-  }
-  else if(text.toLowerCase().includes("tiempo")){
-    respuesta = "El tiempo estimado es de 18 a 30 días después de embarcado.";
-  }
-  else if(text.toLowerCase().includes("precio")){
-    respuesta = "El precio depende del peso. Escríbeme cuántas libras tienes y te ayudo.";
-  }
-  else{
-    respuesta = "Soy el asistente de Chambatina. Puedo ayudarte con envíos, tiempos y paquetes.";
-  }
-
-  setTimeout(()=>{
-    addMessage(respuesta,"bot");
-  },500);
+    document.getElementById("respuesta").innerText = data.reply;
 }
 </script>
 
