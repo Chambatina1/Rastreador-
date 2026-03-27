@@ -5,165 +5,130 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chat Chambatina</title>
   <style>
-    body{
-      margin:0;
-      font-family:Arial, sans-serif;
-      background:#050505;
-      color:#fff;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-      min-height:100vh;
-      padding-top:80px;
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin: 0;
     }
-    .wrap{
-      width:90%;
-      max-width:700px;
+
+    .box {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #1b1b1b;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.25);
     }
-    h1{
-      text-align:center;
-      margin-bottom:20px;
+
+    h1 {
+      margin-top: 0;
+      color: orange;
     }
-    .row{
-      display:flex;
-      gap:8px;
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      font-size: 16px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
     }
-    input{
-      flex:1;
-      padding:14px;
-      border-radius:8px;
-      border:none;
-      font-size:16px;
+
+    button {
+      background: orange;
+      color: black;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
     }
-    button{
-      background:#f5a000;
-      color:#fff;
-      border:none;
-      border-radius:8px;
-      padding:0 18px;
-      font-size:16px;
-      cursor:pointer;
+
+    button:hover {
+      opacity: 0.9;
     }
-    .chat{
-      margin-top:20px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+
+    #estado {
+      margin-top: 16px;
+      font-size: 14px;
+      color: #ccc;
     }
-    .msg{
-      padding:14px;
-      border-radius:10px;
-      max-width:85%;
-      white-space:pre-wrap;
-    }
-    .user{
-      background:#f5a000;
-      align-self:flex-end;
-    }
-    .bot{
-      background:#1e1e1e;
-      align-self:flex-start;
-    }
-    .error{
-      background:#5a1f1f;
-      align-self:flex-start;
+
+    #respuesta {
+      margin-top: 18px;
+      background: #252525;
+      padding: 18px;
+      border-radius: 12px;
+      min-height: 70px;
+      text-align: left;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="box">
     <h1>Chat Chambatina</h1>
-    <div class="row">
-      <input id="mensaje" type="text" placeholder="Escribe aquí..." />
-      <button onclick="enviar()">Enviar</button>
-    </div>
-    <div class="chat" id="chat"></div>
+    <p>Pregunte sobre envíos, libras, precios o logística.</p>
+
+    <input
+      type="text"
+      id="mensaje"
+      placeholder="Escribe tu pregunta aquí"
+      onkeydown="if(event.key==='Enter'){enviar();}"
+    />
+
+    <button onclick="enviar()">Enviar</button>
+
+    <div id="estado"></div>
+    <div id="respuesta">Aquí aparecerá la respuesta.</div>
   </div>
 
   <script>
-    const API_KEY = "PON_AQUI_TU_API_KEY_REAL";
-
-    function agregarMensaje(texto, tipo){
-      const div = document.createElement("div");
-      div.className = "msg " + tipo;
-      div.textContent = texto;
-      document.getElementById("chat").appendChild(div);
-    }
-
-    async function enviar(){
+    async function enviar() {
       const input = document.getElementById("mensaje");
-      const texto = input.value.trim();
-      if(!texto) return;
+      const estado = document.getElementById("estado");
+      const respuesta = document.getElementById("respuesta");
 
-      agregarMensaje(texto, "user");
-      input.value = "";
+      const mensaje = input.value.trim();
 
-      try{
-        const respuesta = await fetch("https://api.openai.com/v1/responses", {
+      if (!mensaje) {
+        respuesta.innerText = "Escribe una pregunta primero.";
+        return;
+      }
+
+      estado.innerText = "Consultando servidor...";
+      respuesta.innerText = "";
+
+      try {
+        const res = await fetch("https://rastreador-tj5b.onrender.com/chat", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + API_KEY
+            "Content-Type": "application/json"
           },
-          body: JSON.stringify({
-            model: "gpt-4.1-mini",
-            input: [
-              {
-                role: "system",
-                content: "Eres Chambita, asistente de Chambatina. Responde en español, claro y breve."
-              },
-              {
-                role: "user",
-                content: texto
-              }
-            ]
-          })
+          body: JSON.stringify({ message: mensaje })
         });
 
-        const data = await respuesta.json();
-        console.log("RESPUESTA COMPLETA:", data);
+        const data = await res.json();
 
-        if(!respuesta.ok){
-          agregarMensaje("Error API: " + (data.error?.message || "No se pudo completar la consulta."), "error");
+        if (!res.ok) {
+          respuesta.innerText = "Error: " + (data.error || "No se pudo obtener respuesta.");
+          estado.innerText = "La consulta falló.";
           return;
         }
 
-        let salida = "";
-
-        if (data.output_text) {
-          salida = data.output_text;
-        } else if (data.output && Array.isArray(data.output)) {
-          const textos = [];
-          for (const item of data.output) {
-            if (item.content && Array.isArray(item.content)) {
-              for (const parte of item.content) {
-                if (parte.type === "output_text" && parte.text) {
-                  textos.push(parte.text);
-                }
-              }
-            }
-          }
-          salida = textos.join("\n").trim();
-        }
-
-        if(!salida){
-          agregarMensaje("La API respondió, pero no llegó texto visible. Mira la consola del navegador.", "error");
-          return;
-        }
-
-        agregarMensaje(salida, "bot");
-
-      }catch(error){
+        respuesta.innerText = data.reply || "No llegó texto de respuesta.";
+        estado.innerText = "Respuesta recibida.";
+      } catch (error) {
+        respuesta.innerText = "Error de conexión con el servidor.";
+        estado.innerText = "No se pudo conectar con Render.";
         console.error(error);
-        agregarMensaje("No se pudo conectar. Puede ser por la API key, CORS o un bloqueo del navegador.", "error");
       }
     }
-
-    document.getElementById("mensaje").addEventListener("keydown", function(e){
-      if(e.key === "Enter"){
-        enviar();
-      }
-    });
   </script>
 </body>
 </html>
