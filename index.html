@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rastreador Chambatina</title>
   <style>
+    *{box-sizing:border-box}
     body{
       margin:0;
       font-family:Arial,Helvetica,sans-serif;
-      background:#f6f6f6;
+      background:#f5f5f5;
       color:#111;
     }
     .wrap{
@@ -19,33 +20,31 @@
     .hero{
       background:linear-gradient(135deg,#f26b00,#ff9a3d);
       color:#fff;
-      border-radius:18px;
       padding:24px;
-      box-shadow:0 12px 30px rgba(0,0,0,.12);
+      border-radius:18px;
       margin-bottom:20px;
+      box-shadow:0 10px 28px rgba(0,0,0,.12);
     }
     .card{
       background:#fff;
       border-radius:16px;
       padding:20px;
       box-shadow:0 8px 24px rgba(0,0,0,.08);
+      margin-bottom:20px;
     }
-    h1,h2,p{margin-top:0}
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    input,button{
-      font:inherit;
+    h1,h2,h3,p{margin-top:0}
+    input,textarea,button{
+      width:100%;
       padding:14px;
       border-radius:12px;
-      border:1px solid #d8d8d8;
-      box-sizing:border-box;
+      border:1px solid #d7d7d7;
+      font-size:16px;
+      font-family:inherit;
     }
-    input{
-      flex:1 1 320px;
-      min-width:220px;
+    textarea{
+      min-height:220px;
+      resize:vertical;
+      font-family:monospace;
     }
     button{
       background:#111;
@@ -53,297 +52,234 @@
       border:none;
       cursor:pointer;
       font-weight:700;
-      min-width:140px;
+      margin-top:10px;
     }
-    #resultado{
+    .result{
       margin-top:16px;
-    }
-    .box{
-      background:#fff4ec;
-      padding:14px;
+      padding:16px;
       border-left:5px solid #f26b00;
-      border-radius:10px;
-      line-height:1.45;
+      background:#fff7f0;
+      border-radius:12px;
+      line-height:1.5;
+    }
+    .error{
+      border-left-color:#c62828;
+      background:#fff1f1;
     }
     .ok{
       border-left-color:#2e7d32;
       background:#eef8f0;
     }
-    .tag{
+    .badge{
       display:inline-block;
-      padding:6px 10px;
+      padding:7px 12px;
       border-radius:999px;
       background:#ffe4cf;
       color:#a34900;
       font-size:13px;
       font-weight:700;
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
-    .entregado{
-      color:#2e7d32;
+    .big{
       font-size:30px;
       font-weight:800;
-      letter-spacing:.5px;
-      margin-bottom:8px;
+      color:#2e7d32;
+      margin-bottom:10px;
     }
     .small{
       color:#666;
       font-size:13px;
-      margin-top:12px;
+      margin-top:10px;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <section class="hero">
-      <h1>Rastreo de Paquetería Chambatina</h1>
-      <p>Escriba su número CPK sin letras. Ejemplo: 0259555</p>
-    </section>
+    <div class="hero">
+      <h1>Rastreador Chambatina</h1>
+      <p>Ingrese su número CPK o solo los dígitos. Ejemplo: <b>0259555</b></p>
+    </div>
 
-    <section class="card">
-      <h2>Consultar envío</h2>
-      <div class="row">
-        <input id="cpkInput" type="text" placeholder="Ingrese su CPK" />
-        <button id="btnBuscar" type="button">Buscar</button>
-      </div>
+    <div class="card">
+      <h2>Buscar paquete</h2>
+      <input id="buscar" type="text" placeholder="Ejemplo: 0259555 o CPK-0259555">
+      <button onclick="buscarPaquete()">Buscar</button>
       <div id="resultado"></div>
-      <div class="small">
-        Este archivo está preparado para GitHub Pages. Solo necesita llamarse <b>index.html</b>.
-      </div>
-    </section>
+    </div>
+
+    <div class="card">
+      <h3>Actualizar base de datos</h3>
+      <p class="small">Pega aquí una línea por paquete usando este formato:</p>
+      <p class="small"><b>CPK|ESTADO|FECHA|NOMBRE|DESCRIPCION|DIRECCION|TELEFONO</b></p>
+      <textarea id="datos"></textarea>
+      <button onclick="guardarDatos()">Guardar datos en este navegador</button>
+      <div id="info" class="small"></div>
+    </div>
   </div>
 
-  <script id="BASE_DATOS_CHAMBATINA" type="text/plain">
-CHAMBATINA MIAMI	GEO MIA		CPK-0251927	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	COLCHON		2026-02-23	MARIANELA HERNÁNDEZ MONTERO		63021505492	CALLE FELIZ EDÉN AGUADA Rpto. HORQUITA e/ CAMILO TORRES y EDUARDO CHIVAS, ABREUS, CIENFUEGOS	56649464	YAIMARA FERNANDEZ
-CHAMBATINA MIAMI	GEO MIA		CPK-0251926	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	COLCHON		2026-02-23	MNARIANELA HERNANDEZ MONTERO		63021505492	CALLE FELIX EDEN AGUADA # S/N Rpto. ORQUITA e/ CAMILO TORRES y EDUARDO CHIVAS, ABREUS, CIENFUEGOS	56649464	YAIMARA FERNANDEZ
-CHAMBATINA MIAMI	GEO MIA		CPK-0243642	PENDIENTE DESAGRUPE	Sí	066(CPK-298)	DENEB/(BSIU 9724046)/(CWPS26145982)	ENVIO	RAC PARA BATERÍAS	10412	2026-02-03	CARMEN DELIA PEREZ HERNANDEZ		61062404372	CALLE LIBERTAD # 359 Rpto. VISTA ALEGRE e/ 2 y 3, CIEGO DE AVILA, CIEGO DE AVILA	53646579	YASBEL PEREZ
-CHAMBATINA MIAMI	GEO MIA		CPK-0237523	ENTREGADO	Sí	045(CPK-292)	DENEB/(GAOU 6491582)/(CWPS26139909)	ENVIO	BATERIA 48 V 100 AH	10138	2026-01-19	FELICIA CARVAJAL MARTIN		73082101550	CALLE DELICIAS # S/N Rpto. CASERIO GUARACABULLA e/ CAMILO CIENFUEGOS y MARTI, PLACETAS, VILLA CLARA	53282278	MAIKEL HERNANDEZ LLANEZA
-CHAMBATINA MIAMI	GEO MIA		CPK-0257453	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BATERIA 12 V 100 AH		2026-03-17	CIRIA UMPIERRE NAPOLES		57112204096	CALLE CRUCERO LOS ANGELES SENADO # 27, MINAS, CAMAGUEY	51202638	ISRAEL TENDERO UMPIERRE
-CHAMBATINA MIAMI	GEO MIA		CPK-0259555	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BICICLETA ELECTRICA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS
-CHAMBATINA MIAMI	GEO MIA		CPK-0259532	EN ALMACEN	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15	11113	2026-03-23	MARIA TERESA ROJAS GONZALEZ		70112204811	CALLE VIRTUDES # 15 e/ VELEZ CAVIEDES Y OSMANI ARENADO, PINAR DEL RIO, PINAR DEL RIO	55916464	PEDRO DIAZ PAEZ
-CHAMBATINA MIAMI	GEO MIA		CPK-0259529	EN AGENCIA	Sí	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	PISCINA	11114	2026-03-23	AMANDA LESVIA DIAZ YERO		01121178274	CALLE 21 # 10 Rpto. ALCIDES PINO e/ 28 y 30, HOLGUIN, HOLGUIN	55675812	JOSE LUIS CRUZ
-  </script>
-
   <script>
-  (function(){
-    function normalizarEspacios(s){
-      return String(s || "").replace(/\s+/g, " ").trim();
+    var DATOS_BASE = `
+0259555|EN AGENCIA|2026-03-23|OSMANY CASTELLON RAMIREZ|BICICLETA ELECTRICA|CIENFUEGOS, CIENFUEGOS|53421145
+0259532|EN ALMACEN|2026-03-23|MARIA TERESA ROJAS GONZALEZ|MISCELANEA 15|PINAR DEL RIO, PINAR DEL RIO|55916464
+0259529|EN AGENCIA|2026-03-23|AMANDA LESVIA DIAZ YERO|PISCINA|HOLGUIN, HOLGUIN|55675812
+0237523|ENTREGADO|2026-01-19|FELICIA CARVAJAL MARTIN|BATERIA 48 V 100 AH|PLACETAS, VILLA CLARA|53282278
+0257453|EN AGENCIA|2026-03-17|CIRIA UMPIERRE NAPOLES|BATERIA 12 V 100 AH|MINAS, CAMAGUEY|51202638
+0243642|PENDIENTE DESAGRUPE|2026-02-03|CARMEN DELIA PEREZ HERNANDEZ|RAC PARA BATERIAS|CIEGO DE AVILA, CIEGO DE AVILA|53646579
+`;
+
+    function limpiarCPK(valor){
+      return String(valor || "").replace(/\D/g,"");
     }
 
-    function limpiarCPK(v){
-      return String(v || "").replace(/\D/g, "");
+    function normalizarEstado(estado){
+      var e = String(estado || "").toUpperCase().trim();
+      if(e.indexOf("ENTREGADO") >= 0) return "ENTREGADO";
+      if(e.indexOf("DISTRIB") >= 0) return "DISTRIBUCIÓN";
+      if(e.indexOf("DESPACH") >= 0) return "DESPACHO";
+      if(e.indexOf("DESAGRUP") >= 0) return "DESAGRUPE";
+      if(e.indexOf("CLASIFIC") >= 0) return "CLASIFICADO";
+      if(e.indexOf("AGENCIA") >= 0) return "EN AGENCIA";
+      if(e.indexOf("ALMACEN") >= 0 || e.indexOf("ALMACÉN") >= 0) return "EN ALMACÉN";
+      if(e.indexOf("ARRIBO") >= 0) return "ARRIBO";
+      if(e.indexOf("CANAL ROJO") >= 0) return "CANAL ROJO";
+      if(e.indexOf("TRANSITO") >= 0 || e.indexOf("TRÁNSITO") >= 0) return "EN TRÁNSITO";
+      return e || "EN PROCESO";
     }
 
-    function tieneCPK(linea){
-      return /CPK-\d+/i.test(linea || "");
+    function explicacionEstado(estado){
+      switch(estado){
+        case "ENTREGADO":
+          return "Su paquete ya fue entregado. Gracias por confiar en Chambatina.";
+        case "EN AGENCIA":
+          return "Su paquete ya se encuentra en agencia y entra en coordinación de entrega local.";
+        case "EN ALMACÉN":
+          return "Su paquete se encuentra resguardado en almacén, pendiente del siguiente movimiento logístico.";
+        case "CLASIFICADO":
+          return "Su paquete ya fue clasificado por zona o ruta para continuar avanzando.";
+        case "DESAGRUPE":
+          return "Su paquete está en proceso de separación del consolidado para seguir su ruta.";
+        case "DESPACHO":
+          return "Su envío está en fase de despacho y sigue avanzando dentro del proceso logístico.";
+        case "DISTRIBUCIÓN":
+          return "Su paquete se encuentra en distribución local hacia su zona final.";
+        case "ARRIBO":
+          return "Su paquete registra arribo a una nueva etapa del proceso.";
+        case "CANAL ROJO":
+          return "Su envío está bajo revisión adicional. Esto puede extender un poco más el tiempo.";
+        case "EN TRÁNSITO":
+          return "Su paquete está en tránsito hacia la siguiente etapa logística.";
+        default:
+          return "Su paquete continúa en proceso logístico.";
+      }
     }
 
-    function tieneFecha(linea){
-      return /\d{4}-\d{2}-\d{2}/.test(linea || "");
+    function parsearBase(texto){
+      var base = {};
+      var lineas = String(texto || "").split(/\r?\n/);
+
+      for(var i=0;i<lineas.length;i++){
+        var linea = lineas[i].trim();
+        if(!linea) continue;
+
+        var partes = linea.split("|");
+        if(partes.length < 2) continue;
+
+        var cpk = limpiarCPK(partes[0]);
+        if(!cpk) continue;
+
+        base[cpk] = {
+          cpk: cpk,
+          estado: normalizarEstado(partes[1] || ""),
+          fecha: (partes[2] || "").trim(),
+          nombre: (partes[3] || "").trim(),
+          descripcion: (partes[4] || "").trim(),
+          direccion: (partes[5] || "").trim(),
+          telefono: (partes[6] || "").trim()
+        };
+      }
+
+      return base;
     }
 
-    function leerBaseCruda(){
-      var el = document.getElementById("BASE_DATOS_CHAMBATINA");
-      if(!el) return "";
-      return (el.textContent || "").replace(/\r/g, "");
+    function obtenerBase(){
+      var guardado = localStorage.getItem("chambatina_db_unica");
+      if(guardado){
+        try{
+          return JSON.parse(guardado);
+        }catch(e){}
+      }
+      return parsearBase(DATOS_BASE);
     }
 
-    function parsearBaseRobusta(){
-      var raw = leerBaseCruda();
-      var lines = raw.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
-
-      var fixed = [];
-      for(var i=0;i<lines.length;i++){
-        var cur = lines[i];
-        if(tieneCPK(cur) && !tieneFecha(cur) && i < lines.length - 1){
-          cur = cur + " " + lines[i+1];
-          i++;
-        }
-        fixed.push(cur);
-      }
-      return fixed;
-    }
-
-    function extraerFecha(linea){
-      var m = (linea || "").match(/\d{4}-\d{2}-\d{2}/);
-      return m ? new Date(m[0] + "T00:00:00") : null;
-    }
-
-    function diasHabiles(desde, hasta){
-      var d = new Date(desde.getTime());
-      var c = 0;
-      while(d <= hasta){
-        var day = d.getDay();
-        if(day !== 0 && day !== 6) c++;
-        d.setDate(d.getDate() + 1);
-      }
-      return c;
-    }
-
-    function detectarEstado(linea){
-      var L = (linea || "").toUpperCase();
-      var estados = [
-        "ENTREGADO",
-        "ENTREGADO PP",
-        "EN AGENCIA",
-        "EN ALMACEN",
-        "EN ALMACÉN",
-        "EN DISTRIBUCION",
-        "EN DISTRIBUCIÓN",
-        "EN ESPERA DE TRANSITO",
-        "EN TRANSITO",
-        "EN TRÁNSITO",
-        "CLASIFICADO",
-        "ARRIBO",
-        "DESPACHADO",
-        "DESPACHO",
-        "PENDIENTE DESAGRUPE",
-        "DESAGRUPE",
-        "CANAL ROJO"
-      ];
-      for(var i=0;i<estados.length;i++){
-        if(L.indexOf(estados[i]) !== -1){
-          return estados[i]
-            .replace("EN TRÁNSITO","EN TRANSITO")
-            .replace("EN ALMACÉN","EN ALMACEN")
-            .replace("EN DISTRIBUCIÓN","EN DISTRIBUCION");
-        }
-      }
-      return "EN PROCESO";
-    }
-
-    function extraerMercancia(linea){
-      var m = (linea || "").match(/ENVIO\s+(.+?)\s+\d{4}-\d{2}-\d{2}/i);
-      if(m) return normalizarEspacios(m[1]);
-      var m2 = (linea || "").match(/ENVIO\s+(.+)$/i);
-      return m2 ? normalizarEspacios(m2[1]) : "No especificada";
-    }
-
-    function movimientoLogistico(dias){
-      if(dias <= 3) return "Fase inicial de preparación y consolidación. Los bultos se agrupan para organizar su salida.";
-      if(dias <= 7) return "El bulto viaja dentro del contenedor junto a otras cargas con destino al país.";
-      if(dias <= 9) return "El contenedor ya arribó al país y está en proceso de descarga para continuar etapas logísticas.";
-      if(dias <= 15) return "Extracción del contenedor y paso por revisión de aduana y controles correspondientes.";
-      if(dias <= 25) return "Organizado y clasificado por región o provincia, preparándose para traslado interno.";
-      if(dias <= 35) return "Traslado interno hacia su provincia o área de destino.";
-      return "Sigue en distribución. Por volumen y procesos logísticos o aduanales, esta etapa puede extenderse.";
-    }
-
-    function mensajeRetraso(){
-      return "Su envío sigue en proceso. Cuando el volumen operativo o la revisión logística aumenta, el movimiento puede tardar más de lo habitual, pero el registro continúa activo.";
-    }
-
-    function mensajePorEstadoYDias(estado, dias){
-      if(estado === "ENTREGADO" || estado === "ENTREGADO PP"){
-        return "Su paquete fue entregado correctamente. Gracias por confiar en Chambatina.";
-      }
-      if(estado === "EN AGENCIA"){
-        return "Su paquete ya se encuentra en agencia y entra en coordinación para entrega o recogida según la operación local.";
-      }
-      if(estado === "EN ALMACEN"){
-        return "Su paquete se encuentra resguardado en almacén y pendiente del siguiente movimiento interno.";
-      }
-      if(estado === "EN DISTRIBUCION"){
-        return "Su envío está en distribución hacia la zona final.";
-      }
-      if(estado === "PENDIENTE DESAGRUPE" || estado === "DESAGRUPE"){
-        return "Su bulto está pendiente de separación del consolidado para continuar la ruta.";
-      }
-      if(estado === "DESPACHO" || estado === "DESPACHADO"){
-        return "Su envío está en fase de despacho y sigue avanzando dentro del proceso logístico.";
-      }
-      if(estado === "CLASIFICADO"){
-        return "Su paquete ya fue clasificado por zona o ruta para continuar el tránsito interno.";
-      }
-      if(estado === "CANAL ROJO"){
-        return "Su envío está bajo revisión adicional. Esto puede extender un poco más el tiempo.";
-      }
-      if(estado === "EN ESPERA DE TRANSITO" || estado === "EN TRANSITO"){
-        return "Su paquete está pendiente o en curso de traslado hacia la siguiente etapa logística.";
-      }
-      if(estado === "ARRIBO"){
-        return "Su envío registra arribo a una nueva etapa del proceso.";
-      }
-      return dias <= 35
-        ? "Su envío continúa en proceso logístico normal."
-        : mensajeRetraso();
-    }
-
-    function buscarCPK(){
-      var input = document.getElementById("cpkInput");
-      var res = document.getElementById("resultado");
-      var cpk = limpiarCPK(input.value);
-
-      if(!cpk){
-        res.innerHTML = "<div class='box'>Escriba un número CPK válido.</div>";
+    function guardarDatos(){
+      var texto = document.getElementById("datos").value;
+      if(!texto.trim()){
+        document.getElementById("info").innerHTML = "No has pegado datos.";
         return;
       }
 
-      var base = parsearBaseRobusta();
-      var hoy = new Date();
-
-      for(var i=0;i<base.length;i++){
-        var linea = base[i];
-        if(linea.indexOf("CPK-" + cpk) !== -1){
-          var estado = detectarEstado(linea);
-          var mercancia = extraerMercancia(linea);
-          var fecha = extraerFecha(linea);
-          var dias = fecha ? diasHabiles(fecha, hoy) : null;
-
-          var mensajeFinal;
-          if(estado !== "ENTREGADO" && estado !== "ENTREGADO PP" && dias !== null && dias > 35){
-            mensajeFinal = mensajeRetraso();
-          } else if(dias !== null){
-            mensajeFinal = mensajePorEstadoYDias(estado, dias);
-          } else {
-            mensajeFinal = "Registro encontrado, pero falta la fecha en la línea.";
-          }
-
-          var colorClass = (estado === "ENTREGADO" || estado === "ENTREGADO PP") ? "box ok" : "box";
-
-          if(estado === "ENTREGADO" || estado === "ENTREGADO PP"){
-            res.innerHTML =
-              "<div class='" + colorClass + "'>" +
-                "<div class='entregado'>ENTREGADO</div>" +
-                "<div><b>CPK:</b> " + cpk + "</div>" +
-                "<div><b>Mercancía:</b> " + mercancia + "</div>" +
-                "<div style='margin-top:10px'>" + mensajeFinal + "</div>" +
-              "</div>";
-            return;
-          }
-
-          res.innerHTML =
-            "<div class='" + colorClass + "'>" +
-              "<div class='tag'>" + estado + "</div>" +
-              "<div><b>CPK:</b> " + cpk + "</div>" +
-              "<div><b>Mercancía:</b> " + mercancia + "</div>" +
-              "<hr style='border:none;border-top:1px solid rgba(0,0,0,.12);margin:10px 0'>" +
-              "<div><b>Movimiento logístico:</b><br>" +
-                (dias !== null ? movimientoLogistico(dias) : "No disponible.") +
-              "</div>" +
-              "<div style='margin-top:10px'><b>Situación actual de su envío:</b><br>" + mensajeFinal + "</div>" +
-            "</div>";
-          return;
-        }
-      }
-
-      res.innerHTML = "<div class='box'>No se encontraron envíos activos con ese número.</div>";
+      var base = parsearBase(texto);
+      localStorage.setItem("chambatina_db_unica", JSON.stringify(base));
+      document.getElementById("info").innerHTML =
+        "Registros guardados: " + Object.keys(base).length +
+        ". Ejemplos: " + Object.keys(base).slice(0,5).join(", ");
     }
 
-    document.addEventListener("DOMContentLoaded", function(){
-      var btn = document.getElementById("btnBuscar");
-      var input = document.getElementById("cpkInput");
-      if(btn) btn.addEventListener("click", buscarCPK);
-      if(input){
-        input.addEventListener("keydown", function(e){
-          if(e.key === "Enter"){
-            e.preventDefault();
-            buscarCPK();
-          }
-        });
+    function buscarPaquete(){
+      var codigo = limpiarCPK(document.getElementById("buscar").value);
+      var resultado = document.getElementById("resultado");
+      var base = obtenerBase();
+
+      if(!codigo){
+        resultado.innerHTML = '<div class="result error">Debe escribir un número CPK válido.</div>';
+        return;
+      }
+
+      if(!base[codigo]){
+        resultado.innerHTML = '<div class="result error">No encontramos ese CPK.</div>';
+        return;
+      }
+
+      var x = base[codigo];
+
+      if(x.estado === "ENTREGADO"){
+        resultado.innerHTML =
+          '<div class="result ok">' +
+          '<div class="big">ENTREGADO</div>' +
+          '<div><b>CPK:</b> ' + x.cpk + '</div>' +
+          '<div><b>Cliente:</b> ' + (x.nombre || "No disponible") + '</div>' +
+          '<div><b>Fecha:</b> ' + (x.fecha || "No disponible") + '</div>' +
+          '<div style="margin-top:10px">' + explicacionEstado(x.estado) + '</div>' +
+          '</div>';
+        return;
+      }
+
+      resultado.innerHTML =
+        '<div class="result">' +
+        '<div class="badge">' + x.estado + '</div>' +
+        '<div><b>CPK:</b> ' + x.cpk + '</div>' +
+        '<div><b>Cliente:</b> ' + (x.nombre || "No disponible") + '</div>' +
+        '<div><b>Descripción:</b> ' + (x.descripcion || "No disponible") + '</div>' +
+        '<div><b>Fecha:</b> ' + (x.fecha || "No disponible") + '</div>' +
+        '<div><b>Dirección:</b> ' + (x.direccion || "No disponible") + '</div>' +
+        '<div><b>Teléfono:</b> ' + (x.telefono || "No disponible") + '</div>' +
+        '<div style="margin-top:10px"><b>Explicación:</b> ' + explicacionEstado(x.estado) + '</div>' +
+        '</div>';
+    }
+
+    window.onload = function(){
+      document.getElementById("datos").value = DATOS_BASE.trim();
+      var base = obtenerBase();
+      document.getElementById("info").innerHTML =
+        "Registros listos: " + Object.keys(base).length +
+        ". Pruebe con: " + Object.keys(base).slice(0,5).join(", ");
+    };
+
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Enter" && document.activeElement.id === "buscar"){
+        buscarPaquete();
       }
     });
-  })();
   </script>
 </body>
 </html>
