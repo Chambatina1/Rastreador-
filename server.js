@@ -1,6 +1,6 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
+const express = require("express");
+const cors = require("cors");
+const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
@@ -21,7 +21,7 @@ app.post("/chat", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "Eres el asistente de Chambatina. Respondes sobre envíos, libras, tiempos de entrega a Cuba y atención al cliente."
+            content: "Eres el asistente de Chambatina. Respondes sobre envíos, libras y logística."
           },
           {
             role: "user",
@@ -32,19 +32,14 @@ app.post("/chat", async (req, res) => {
     });
 
     const data = await response.json();
-
-    res.json({
-      reply: data.choices[0].message.content
-    });
+    res.json({ reply: data.choices[0].message.content });
 
   } catch (error) {
-    res.json({ reply: "Error en el servidor" });
+    console.error(error);
+    res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Servidor Chambatina activo");
+app.listen(3000, () => {
+  console.log("Servidor corriendo en puerto 3000");
 });
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("Servidor corriendo en puerto " + PORT));
