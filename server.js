@@ -25,7 +25,7 @@ app.post("/chat", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "Eres el asistente oficial de Chambatina. Ayudas con envíos, libras, tiempos y logística. Responde claro y directo."
+            content: "Eres el asistente oficial de Chambatina. Ayudas con envíos, libras, precios, tiempos y logística. Responde claro, directo y profesional."
           },
           {
             role: "user",
@@ -48,12 +48,13 @@ app.post("/chat", async (req, res) => {
     res.json({ reply });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error en servidor" });
+    console.error("Error en /chat:", error);
+    res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto " + PORT);
 });
