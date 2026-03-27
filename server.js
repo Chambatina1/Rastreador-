@@ -1,6 +1,5 @@
-const express = require("express");
-const cors = require("cors");
-const fetch = require("node-fetch");
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
@@ -12,7 +11,7 @@ app.post("/chat", async (req, res) => {
     const userMessage = req.body.message;
 
     if (!userMessage || typeof userMessage !== "string") {
-      return res.status(400).json({ error: "Falta el mensaje del usuario" });
+      return res.status(400).json({ error: "Falta el mensaje" });
     }
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -26,7 +25,7 @@ app.post("/chat", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "Eres el asistente de Chambatina. Respondes sobre envíos, libras y logística."
+            content: "Eres el asistente oficial de Chambatina. Ayudas con envíos, libras, tiempos y logística. Responde claro y directo."
           },
           {
             role: "user",
@@ -39,19 +38,18 @@ app.post("/chat", async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Error de OpenAI:", data);
       return res.status(response.status).json({
-        error: data.error?.message || "Error al consultar OpenAI"
+        error: data.error?.message || "Error con OpenAI"
       });
     }
 
-    const reply = data?.choices?.[0]?.message?.content || "No se recibió respuesta del asistente.";
+    const reply = data?.choices?.[0]?.message?.content || "Sin respuesta";
 
     res.json({ reply });
 
   } catch (error) {
-    console.error("Error en /chat:", error);
-    res.status(500).json({ error: "Error en el servidor" });
+    console.error(error);
+    res.status(500).json({ error: "Error en servidor" });
   }
 });
 
