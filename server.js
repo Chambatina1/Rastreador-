@@ -11,14 +11,25 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// =========================
+// BASE DE DATOS DE RASTREO
+// =========================
 const CPK_DB = {
   "260443": {
     fecha: "2026-03-26",
     estado: "EN AGENCIA",
     descripcion: "Tu paquete fue recibido y ya está en agencia."
+  },
+  "260444": {
+    fecha: "2026-03-26",
+    estado: "EN AGENCIA",
+    descripcion: "Tu paquete fue recibido y está en proceso."
   }
 };
 
+// =========================
+// RUTA DE RASTREO
+// =========================
 app.get("/api/rastreo/:cpk", (req, res) => {
   const cpk = String(req.params.cpk || "").replace(/\D/g, "");
   const data = CPK_DB[cpk];
@@ -34,13 +45,17 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     ok: true,
     cpk,
     estado: data.estado,
-    descripcion: data.descripcion
+    descripcion: data.descripcion,
+    fecha: data.fecha
   });
 });
 
+// =========================
+// RUTA DE CHAT
+// =========================
 app.post("/api/chat", async (req, res) => {
   try {
-    const mensaje = req.body?.mensaje?.trim();
+    const mensaje = String(req.body?.mensaje || "").trim();
 
     if (!mensaje) {
       return res.status(400).json({
@@ -49,14 +64,22 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        ok: false,
+        mensaje: "Falta configurar OPENAI_API_KEY en Render"
+      });
+    }
+
     const promptSistema = `
 Eres el asistente de Chambatina.
-Responde en español, claro y profesional.
-Debes ayudar con:
+Responde en español claro, útil y profesional.
+Ayudas con:
 - precios por libra
 - cajas
-- tiempo estimado
+- recogida
 - equipos
+- tiempos de entrega
 - rastreo básico
 Precios base:
 - Libra general: 1.99
@@ -69,7 +92,7 @@ Precios base:
 - Equipos de más de 200 lb: adicional de 45
 `;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -85,13 +108,14 @@ Precios base:
       })
     });
 
-    const data = await response.json();
+    const data = await openaiRes.json();
 
-    if (!response.ok) {
+    if (!openaiRes.ok) {
       console.error("Error OpenAI:", data);
       return res.status(500).json({
         ok: false,
-        mensaje: "Error consultando la IA"
+        mensaje: "Error consultando la IA",
+        detalle: data
       });
     }
 
@@ -110,11 +134,18 @@ Precios base:
   }
 });
 
+// =========================
+// SERVIR INDEX.HTML
+// =========================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// =========================
+// INICIAR SERVIDOR
+// =========================
 const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
