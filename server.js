@@ -1,58 +1,61 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// =========================
-// BASE DE DATOS DE RASTREO
-// =========================
 const CPK_DB = {
   "260443": {
     fecha: "2026-03-26",
     estado: "EN AGENCIA",
     descripcion: "Tu paquete fue recibido y ya está en agencia."
   },
-  "260444": {
-    fecha: "2026-03-26",
+  "259844": {
+    fecha: "2026-03-24",
     estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido y está en proceso."
+    descripcion: "Tu paquete fue recibido y se encuentra en proceso interno."
   }
 };
 
-// =========================
-// RUTA DE RASTREO
-// =========================
-app.get("/api/rastreo/:cpk", (req, res) => {
-  const cpk = String(req.params.cpk || "").replace(/\D/g, "");
-  const data = CPK_DB[cpk];
-
-  if (!data) {
-    return res.json({
-      ok: false,
-      mensaje: "No se encontró el CPK"
-    });
-  }
-
-  return res.json({
-    ok: true,
-    cpk,
-    estado: data.estado,
-    descripcion: data.descripcion,
-    fecha: data.fecha
-  });
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true });
 });
 
-// =========================
-// RUTA DE CHAT
-// =========================
+app.get("/api/rastreo/:cpk", (req, res) => {
+  try {
+    const cpk = String(req.params.cpk || "").replace(/\D/g, "");
+    const data = CPK_DB[cpk];
+
+    if (!data) {
+      return res.json({
+        ok: false,
+        mensaje: "No se encontró el CPK"
+      });
+    }
+
+    return res.json({
+      ok: true,
+      cpk,
+      fecha: data.fecha,
+      estado: data.estado,
+      descripcion: data.descripcion
+    });
+  } catch (error) {
+    console.error("Error en /api/rastreo:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
+    });
+  }
+});
+
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = String(req.body?.mensaje || "").trim();
@@ -67,32 +70,36 @@ app.post("/api/chat", async (req, res) => {
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         ok: false,
-        mensaje: "Falta configurar OPENAI_API_KEY en Render"
+        mensaje: "No está configurada la variable OPENAI_API_KEY"
       });
     }
 
-    const promptSistema = `
-Eres el asistente de Chambatina.
-Responde en español claro, útil y profesional.
-Ayudas con:
-- precios por libra
-- cajas
-- recogida
-- equipos
-- tiempos de entrega
-- rastreo básico
-Precios base:
-- Libra general: 1.99
-- Recogida en puerta: 2.30
-- Compras por links de TikTok: 1.80
-- Caja 12x12x12 hasta 60 lb: 45
-- Caja 15x15x15 hasta 100 lb: 65
-- Caja 16x16x16 hasta 100 lb: 85
-- Equipos de 15 a 35 tienen adicional
-- Equipos de más de 200 lb: adicional de 45
+    const systemPrompt = `
+Eres el asistente oficial de Chambatina.
+
+Responde siempre en español claro, directo y útil.
+No inventes precios, condiciones ni políticas.
+Debes mantenerte enfocado en la lógica real del negocio.
+
+Información de negocio:
+- Precio por libra: 1.99 más 10 dólares por manejo, seguro, arancel y transporte.
+- Si recogemos en la puerta de su casa: 2.30 por libra.
+- Si compran por nuestros links de TikTok: 1.80 por libra.
+- Cajas:
+  - 12x12x12 hasta 60 libras = 45 dólares
+  - 15x15x15 hasta 100 libras = 65 dólares
+  - 16x16x16 hasta 100 libras = 85 dólares
+- Equipos: de 15 a 35 dólares adicionales.
+- Equipos de más de 200 libras: 45 dólares adicionales.
+
+Comportamiento:
+- Responde de forma profesional y breve.
+- Si preguntan por rastreo específico, indícales que usen el CPK.
+- Si no tienes un dato concreto, dilo con honestidad.
+- No hables de configuraciones técnicas, backend, claves ni detalles internos.
 `;
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -101,29 +108,28 @@ Precios base:
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: promptSistema },
+          { role: "system", content: systemPrompt },
           { role: "user", content: mensaje }
         ],
         temperature: 0.4
       })
     });
 
-    const data = await openaiRes.json();
+    const data = await openaiResponse.json();
 
-    if (!openaiRes.ok) {
+    if (!openaiResponse.ok) {
       console.error("Error OpenAI:", data);
       return res.status(500).json({
         ok: false,
-        mensaje: "Error consultando la IA",
-        detalle: data
+        mensaje: data?.error?.message || "Error al consultar OpenAI"
       });
     }
 
-    const texto = data.choices?.[0]?.message?.content || "No hubo respuesta.";
+    const respuesta = data?.choices?.[0]?.message?.content?.trim() || "No hubo respuesta.";
 
     return res.json({
       ok: true,
-      respuesta: texto
+      respuesta
     });
   } catch (error) {
     console.error("Error en /api/chat:", error);
@@ -134,18 +140,14 @@ Precios base:
   }
 });
 
-// =========================
-// SERVIR INDEX.HTML
-// =========================
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.use((req, res) => {
+  res.status(404).json({
+    ok: false,
+    mensaje: "Ruta no encontrada"
+  });
 });
 
-// =========================
-// INICIAR SERVIDOR
-// =========================
-const PORT = process.env.PORT || 10000;
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto", PORT);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
