@@ -2,108 +2,138 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rastreador Chambatina</title>
   <style>
-    body {
+    body{
       font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      margin: 0;
-      padding: 0;
+      background:#111;
+      color:#fff;
+      margin:0;
+      padding:0;
     }
 
-    .wrap {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
+    .wrap{
+      max-width:960px;
+      margin:40px auto;
+      padding:20px;
     }
 
-    .card {
-      background: #1b1b1b;
-      border: 1px solid #2d2d2d;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    .card{
+      background:#1b1b1b;
+      border:1px solid #2d2d2d;
+      border-radius:18px;
+      padding:28px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
     }
 
-    h1 {
-      margin-top: 0;
-      text-align: center;
-      color: #ff8a00;
+    h1{
+      margin:0 0 10px 0;
+      text-align:center;
+      color:#ff8a00;
     }
 
-    p.sub {
-      text-align: center;
-      color: #ccc;
-      margin-bottom: 24px;
+    .sub{
+      text-align:center;
+      color:#ccc;
+      margin-bottom:24px;
+      line-height:1.5;
     }
 
-    .search {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+    .search{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
     }
 
-    input {
-      flex: 1;
-      min-width: 240px;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid #444;
-      background: #000;
-      color: #fff;
-      font-size: 16px;
+    input{
+      flex:1;
+      min-width:250px;
+      padding:14px;
+      border-radius:10px;
+      border:1px solid #444;
+      background:#000;
+      color:#fff;
+      font-size:16px;
+      box-sizing:border-box;
     }
 
-    button {
-      padding: 14px 20px;
-      border: none;
-      border-radius: 10px;
-      background: #ff8a00;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
+    button{
+      padding:14px 22px;
+      border:none;
+      border-radius:10px;
+      background:#ff8a00;
+      color:#fff;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
     }
 
-    button:hover {
-      opacity: .92;
+    button:hover{
+      opacity:.93;
     }
 
-    .result {
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 12px;
-      background: #101010;
-      border: 1px solid #2f2f2f;
-      display: none;
+    .result{
+      margin-top:22px;
+      padding:20px;
+      border-radius:14px;
+      background:#101010;
+      border:1px solid #2f2f2f;
+      display:none;
     }
 
-    .ok {
-      border-color: #2f7d32;
+    .estado{
+      font-size:30px;
+      font-weight:bold;
+      margin-bottom:10px;
+      color:#ffb347;
+      text-transform:uppercase;
     }
 
-    .bad {
-      border-color: #8a2d2d;
+    .entregado{
+      color:#4cd964;
+      font-size:34px;
     }
 
-    .estado {
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #ffb347;
+    .linea{
+      margin:8px 0;
+      color:#e0e0e0;
+      line-height:1.5;
     }
 
-    .entregado {
-      color: #4cd964;
-      font-size: 34px;
+    .mensaje{
+      margin-top:16px;
+      background:#181818;
+      border-radius:12px;
+      padding:15px;
+      line-height:1.7;
+      color:#f1f1f1;
+      white-space:pre-line;
     }
 
-    .linea {
-      margin: 8px 0;
-      color: #ddd;
+    .ok{
+      border-color:#2f7d32;
+    }
+
+    .bad{
+      border-color:#8a2d2d;
+    }
+
+    .mini{
+      margin-top:14px;
+      color:#bdbdbd;
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    @media (max-width:700px){
+      .search{
+        flex-direction:column;
+      }
+
+      button{
+        width:100%;
+      }
     }
   </style>
 </head>
@@ -111,10 +141,12 @@
   <div class="wrap">
     <div class="card">
       <h1>Rastreador Chambatina</h1>
-      <p class="sub">Ingrese su número de rastreo para consultar el estado de su paquete.</p>
+      <div class="sub">
+        Ingrese su número de rastreo o escriba su consulta.
+      </div>
 
       <div class="search">
-        <input id="codigo" type="text" placeholder="Ejemplo: 260443 o CPK-0260443" />
+        <input id="codigo" type="text" placeholder="Ejemplo: 260443, CPK-0260443, precio, baterías, cajas..." />
         <button onclick="buscarPaquete()">Buscar</button>
       </div>
 
@@ -122,181 +154,539 @@
     </div>
   </div>
 
-  <script>
-    const RAW_DATA = `
+  <!--
+    PEGA AQUI TU BASE DE DATOS COMO VENGA.
+    NO SE VE AL PUBLICO.
+    PUEDES PEGAR TEXTO CRUDO COMO EL DE ODOO.
+  -->
+  <script id="BASE_DATOS_CHAMBATINA" type="text/plain">
 CHAMBATINA MIAMI	GEO MIA	CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	2026-03-26	DIANARA CORREA SANCHEZ
-CHAMBATINA MIAMI	GEO MIA	CPK-0243024	ENTREGADO	Sí	066(CPK-297)	ENVIO	GANCHO PARA REMOLQUE	2026-02-02	RA...
-CHAMBATINA MIAMI	GEO MIA	CPK-0243013	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	MARIA TERESA
-CHAMBATINA MIAMI	GEO MIA	CPK-0242994	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ENEYDA
-CHAMBATINA MIAMI	GEO MIA	CPK-0242993	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ENEYDA
-CHAMBATINA MIAMI	GEO MIA	CPK-0242860	ENTREGADO	Sí	066(CPK-298)	ENVIO	MISCELANEAS	2026-02-02	CARIDAD
-CHAMBATINA MIAMI	GEO MIA	CPK-0242849	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ANELIS
-CHAMBATINA MIAMI	GEO MIA	CPK-0242848	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ANELIS
 CHAMBATINA MIAMI	GEO MIA	CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	2026-03-24	CLIENTE
-CHAMBATINA MIAMI	GEO MIA	CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	2026-03-24	CLIENTE
-`;
-</script>    
-  
-  function limpiarCodigo(valor = "") {
-      return String(valor).replace(/\D/g, "").replace(/^0+/, "");
+CHAMBATINA MIAMI	GEO MIA	CPK-0243024	ENTREGADO	Sí	066(CPK-297)	ENVIO	GANCHO PARA REMOLQUE	2026-02-02	CLIENTE
+CHAMBATINA MIAMI	GEO MIA	CPK-0243642	PENDIENTE DESAGRUPE	Sí	066(CPK-298)	ENVIO	RAC PARA BATERÍAS	2026-02-03	CLIENTE
+  </script>
+
+  <script>
+    function limpiarCodigo(valor = "") {
+      return String(valor)
+        .replace(/\D/g, "")
+        .replace(/^0+/, "");
+    }
+
+    function obtenerTextoBase() {
+      const nodo = document.getElementById("BASE_DATOS_CHAMBATINA");
+      return nodo ? nodo.textContent : "";
+    }
+
+    function extraerFecha(linea = "") {
+      const match = linea.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+      return match ? match[1] : "";
+    }
+
+    function extraerCodigo(linea = "") {
+      const match = linea.match(/CPK[-\s]*0*(\d+)/i);
+      return match ? limpiarCodigo(match[1]) : "";
+    }
+
+    function normalizarEstado(estado = "") {
+      const t = estado.toUpperCase().trim();
+
+      if (t.includes("PENDIENTE DESAGRUPE")) return "PENDIENTE DESAGRUPE";
+      if (t.includes("ENTREGADO")) return "ENTREGADO";
+      if (t.includes("EN DISTRIBUCIÓN")) return "EN DISTRIBUCIÓN";
+      if (t.includes("EN DISTRIBUCION")) return "EN DISTRIBUCIÓN";
+      if (t.includes("DISTRIBUCIÓN")) return "EN DISTRIBUCIÓN";
+      if (t.includes("DISTRIBUCION")) return "EN DISTRIBUCIÓN";
+      if (t.includes("DESPACHO")) return "DESPACHO";
+      if (t.includes("DESAGRUPE")) return "DESAGRUPE";
+      if (t.includes("CLASIFICADO")) return "CLASIFICADO";
+      if (t.includes("EN ALMACÉN")) return "EN ALMACÉN";
+      if (t.includes("EN ALMACEN")) return "EN ALMACÉN";
+      if (t.includes("ARRIBO")) return "ARRIBO";
+      if (t.includes("CANAL ROJO")) return "CANAL ROJO";
+      if (t.includes("EN AGENCIA")) return "EN AGENCIA";
+      return "EN PROCESO";
     }
 
     function extraerEstado(linea = "") {
       const estados = [
+        "PENDIENTE DESAGRUPE",
         "ENTREGADO",
-        "EN DISTRIBUCION",
         "EN DISTRIBUCIÓN",
-        "DISTRIBUCION",
+        "EN DISTRIBUCION",
         "DISTRIBUCIÓN",
+        "DISTRIBUCION",
         "DESPACHO",
         "DESAGRUPE",
         "CLASIFICADO",
-        "EN AGENCIA",
-        "EN ALMACEN",
         "EN ALMACÉN",
+        "EN ALMACEN",
         "ARRIBO",
-        "CANAL ROJO"
+        "CANAL ROJO",
+        "EN AGENCIA"
       ];
 
       const texto = linea.toUpperCase();
+
       for (const estado of estados) {
-        if (texto.includes(estado)) return estado;
+        if (texto.includes(estado)) {
+          return normalizarEstado(estado);
+        }
       }
+
       return "EN PROCESO";
     }
 
-    function extraerFecha(linea = "") {
-      const m = linea.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-      return m ? m[1] : "";
+    function extraerNombre(linea = "") {
+      const fecha = extraerFecha(linea);
+      if (!fecha) return "";
+
+      const partes = linea.split(fecha);
+      if (partes.length < 2) return "";
+
+      const despuesFecha = partes[1].trim();
+      if (!despuesFecha) return "";
+
+      const tokens = despuesFecha.split(/\t+/).map(x => x.trim()).filter(Boolean);
+      if (tokens.length > 0) return tokens[0];
+
+      return "";
     }
 
-    function generarDescripcion(estado) {
+    function extraerProducto(linea = "") {
+      const texto = linea.replace(/\t/g, " ");
+      const posibles = [
+        "DELTA PRO",
+        "DELTA 3",
+        "DELTA 2",
+        "GENERADOR ELECTRICO",
+        "GENERADOR ELÉCTRICO",
+        "BATERIA",
+        "BATERÍA",
+        "INVERSOR",
+        "TV",
+        "COLCHON",
+        "COLCHÓN",
+        "MISCELANEA 16",
+        "MISCELANEA 15",
+        "MISCELANEA 12",
+        "MISCELANEAS",
+        "MISCELÁNEAS",
+        "BICICLETA ELECTRICA",
+        "BICICLETA ELÉCTRICA",
+        "SECADORA",
+        "CAMA",
+        "CABECERA",
+        "SOPORTE PARA TV",
+        "MESA DE NOCHE",
+        "PULIDORA",
+        "VENTILADOR",
+        "ESCALERA",
+        "PISCINA"
+      ];
+
+      const upper = texto.toUpperCase();
+
+      for (const item of posibles) {
+        if (upper.includes(item)) return item;
+      }
+
+      return "";
+    }
+
+    function descripcionCorta(estado = "") {
       switch (estado) {
-        case "EN AGENCIA":
-          return "Tu paquete fue recibido y se encuentra en agencia.";
-        case "CLASIFICADO":
-          return "Tu paquete ya fue identificado y organizado para su ruta.";
-        case "DESAGRUPE":
-          return "Tu paquete está siendo separado del contenedor para continuar el proceso.";
-        case "DESPACHO":
-          return "Tu paquete está saliendo del área correspondiente dentro de la logística.";
-        case "EN DISTRIBUCION":
-        case "EN DISTRIBUCIÓN":
-        case "DISTRIBUCION":
-        case "DISTRIBUCIÓN":
-          return "Tu paquete está en distribución hacia su zona de destino.";
         case "ENTREGADO":
-          return "Tu paquete fue entregado correctamente.";
+          return "Su paquete fue entregado correctamente.";
+        case "EN AGENCIA":
+          return "Su paquete fue recibido y se encuentra en agencia.";
+        case "CLASIFICADO":
+          return "Su paquete ya fue identificado y organizado para su ruta.";
+        case "PENDIENTE DESAGRUPE":
+          return "Su paquete se encuentra pendiente del proceso de desagrupación.";
+        case "DESAGRUPE":
+          return "Su paquete está siendo separado del contenedor para continuar el proceso.";
+        case "DESPACHO":
+          return "Su paquete está saliendo del área correspondiente dentro de la logística.";
+        case "EN DISTRIBUCIÓN":
+          return "Su paquete está en distribución hacia su zona de destino.";
+        case "EN ALMACÉN":
+          return "Su paquete se encuentra organizado en almacén.";
         case "ARRIBO":
-          return "Tu paquete ya arribó y continúa su proceso.";
+          return "Su paquete ya arribó y continúa el proceso interno.";
         case "CANAL ROJO":
-          return "Tu paquete está en revisión logística especial.";
+          return "Su paquete está en revisión logística especial.";
         default:
-          return "Tu paquete continúa en proceso logístico.";
+          return "Su paquete continúa en proceso logístico.";
       }
     }
 
-    function construirBase(rawText = "") {
+    function construirBase() {
+      const raw = obtenerTextoBase();
       const db = {};
-      const lineas = rawText.split("\n").map(x => x.trim()).filter(Boolean);
+      const lineas = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
       for (const linea of lineas) {
-        const m = linea.match(/CPK[-\s]*0*(\d+)/i);
-        if (!m) continue;
-
-        const codigo = limpiarCodigo(m[1]);
+        const codigo = extraerCodigo(linea);
         if (!codigo) continue;
 
+        const estado = extraerEstado(linea);
+        const fecha = extraerFecha(linea);
+        const nombre = extraerNombre(linea);
+        const producto = extraerProducto(linea);
+
         db[codigo] = {
-          fecha: extraerFecha(linea),
-          estado: extraerEstado(linea),
-          descripcion: generarDescripcion(extraerEstado(linea))
+          codigo,
+          estado,
+          fecha,
+          nombre,
+          producto,
+          descripcion: descripcionCorta(estado)
         };
       }
 
       return db;
     }
 
-    function diasTranscurridos(fechaStr) {
+    function diasTranscurridos(fechaStr = "") {
       if (!fechaStr) return 0;
       const inicio = new Date(fechaStr + "T00:00:00");
       const hoy = new Date();
-      return Math.max(0, Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24)));
+      const diferencia = hoy - inicio;
+      return Math.max(0, Math.floor(diferencia / (1000 * 60 * 60 * 24)));
     }
 
-    function explicacionPorTiempo(estado, dias) {
+    function mensajeHumano(estado, dias, nombre = "", producto = "") {
+      const saludo = nombre ? `Hola, ${nombre}. ` : "";
+      const detalleProducto = producto ? `Su envío de ${producto} ` : "Su envío ";
+
       if (estado === "ENTREGADO") {
-        return "Entrega finalizada. Gracias por confiar en Chambatina.";
+        return (
+          saludo +
+          "fue entregado correctamente. Gracias por confiar en Chambatina."
+        );
       }
 
       if (estado === "EN AGENCIA") {
-        if (dias <= 3) return "Su paquete fue recibido y está iniciando el proceso logístico.";
-        if (dias <= 6) return "Su paquete continúa en agencia, siendo preparado para los siguientes movimientos.";
-        if (dias <= 9) return "Su paquete sigue avanzando dentro del flujo interno.";
-        return "Su paquete continúa su curso logístico normal.";
+        if (dias <= 3) {
+          return (
+            saludo +
+            detalleProducto +
+            "fue recibido y está iniciando el proceso logístico en nuestras instalaciones."
+          );
+        }
+        if (dias <= 6) {
+          return (
+            saludo +
+            detalleProducto +
+            "continúa en preparación dentro de nuestra agencia para sus siguientes movimientos."
+          );
+        }
+        if (dias <= 9) {
+          return (
+            saludo +
+            detalleProducto +
+            "sigue avanzando dentro del proceso interno de organización."
+          );
+        }
+        if (dias <= 15) {
+          return (
+            saludo +
+            detalleProducto +
+            "permanece dentro del flujo logístico normal mientras continúa su procesamiento."
+          );
+        }
+        return (
+          saludo +
+          detalleProducto +
+          "continúa en proceso logístico normal."
+        );
       }
 
       if (estado === "CLASIFICADO") {
-        return "Su paquete ya fue clasificado y continúa hacia el siguiente movimiento.";
+        if (dias <= 3) {
+          return (
+            saludo +
+            "su paquete ya fue clasificado por destino y ruta para seguir avanzando."
+          );
+        }
+        if (dias <= 6) {
+          return (
+            saludo +
+            "la clasificación fue realizada y el envío continúa hacia la siguiente etapa."
+          );
+        }
+        return (
+          saludo +
+          "su paquete sigue avanzando luego de haber sido clasificado."
+        );
+      }
+
+      if (estado === "PENDIENTE DESAGRUPE") {
+        return (
+          saludo +
+          "su paquete está pendiente del proceso de desagrupación antes de continuar su avance."
+        );
       }
 
       if (estado === "DESAGRUPE") {
-        return "Su paquete está siendo separado del contenedor para continuar su avance.";
+        if (dias <= 3) {
+          return (
+            saludo +
+            "su paquete está siendo separado del contenedor para continuar el proceso logístico."
+          );
+        }
+        if (dias <= 6) {
+          return (
+            saludo +
+            "el proceso de desagrupación continúa de forma normal."
+          );
+        }
+        return (
+          saludo +
+          "su paquete sigue avanzando luego del proceso de separación logística."
+        );
       }
 
       if (estado === "DESPACHO") {
-        return "Su paquete continúa en despacho dentro del proceso logístico.";
+        if (dias <= 3) {
+          return (
+            saludo +
+            "su paquete está en despacho y saliendo del área correspondiente."
+          );
+        }
+        if (dias <= 6) {
+          return (
+            saludo +
+            "el despacho continúa dentro del proceso logístico."
+          );
+        }
+        return (
+          saludo +
+          "su paquete continúa su curso normal después de la etapa de despacho."
+        );
+      }
+
+      if (estado === "EN DISTRIBUCIÓN") {
+        if (dias <= 3) {
+          return (
+            saludo +
+            "su paquete está siendo movido hacia el área de entrega."
+          );
+        }
+        if (dias <= 6) {
+          return (
+            saludo +
+            "la distribución continúa según la logística correspondiente."
+          );
+        }
+        return (
+          saludo +
+          "su paquete se encuentra en etapa final de distribución."
+        );
+      }
+
+      if (estado === "EN ALMACÉN") {
+        return (
+          saludo +
+          "su paquete se encuentra en almacén, organizado para su siguiente movimiento."
+        );
+      }
+
+      if (estado === "ARRIBO") {
+        return (
+          saludo +
+          "su paquete ya arribó y continúa el proceso interno correspondiente."
+        );
+      }
+
+      if (estado === "CANAL ROJO") {
+        return (
+          saludo +
+          "su paquete se encuentra en revisión logística especial. Esta etapa puede tomar más tiempo."
+        );
+      }
+
+      return (
+        saludo +
+        "su paquete continúa en proceso logístico."
+      );
+    }
+
+    function esNumeroCPK(texto = "") {
+      return limpiarCodigo(texto).length >= 5;
+    }
+
+    function responderNegocio(pregunta = "") {
+      const p = pregunta.toLowerCase();
+
+      if (
+        p.includes("precio") ||
+        p.includes("libra") ||
+        p.includes("tarifa") ||
+        p.includes("costo") ||
+        p.includes("envio")
+      ) {
+        return `📦 Envíos Chambatina:
+
+• $1.99 por libra
+• $10 adicionales por manejo, seguro, arancel y transporte
+• Si recogemos en la puerta de su casa: $2.30 por libra
+• Compras por nuestros links de TikTok: $1.80 por libra
+
+📌 Equipos:
+• Equipos de 15 a 35 adicionales
+• Equipos de más de 200 libras: 45 adicionales`;
       }
 
       if (
-        estado === "EN DISTRIBUCION" ||
-        estado === "EN DISTRIBUCIÓN" ||
-        estado === "DISTRIBUCION" ||
-        estado === "DISTRIBUCIÓN"
+        p.includes("caja") ||
+        p.includes("cajas") ||
+        p.includes("12x12") ||
+        p.includes("15x15") ||
+        p.includes("16x16")
       ) {
-        return "Su paquete se encuentra en distribución hacia el área de entrega.";
+        return `📦 Cajas disponibles:
+
+• Caja 12x12x12 pulgadas: hasta 60 libras → $45
+• Caja 15x15x15 pulgadas: hasta 100 libras → $65
+• Caja 16x16x16 pulgadas: hasta 100 libras → $85`;
       }
 
-      return "Su paquete continúa en proceso logístico.";
+      if (
+        p.includes("bateria") ||
+        p.includes("batería") ||
+        p.includes("baterias") ||
+        p.includes("baterías") ||
+        p.includes("ecoflow") ||
+        p.includes("delta") ||
+        p.includes("inversor") ||
+        p.includes("energia") ||
+        p.includes("energía")
+      ) {
+        return `🔋 Equipos de energía:
+
+Trabajamos con equipos como:
+• EcoFlow Delta 2
+• EcoFlow Delta Max
+• EcoFlow Delta Pro
+• Baterías
+• Inversores
+
+📌 Le orientamos sobre compatibilidad, uso y opciones según su necesidad.`;
+      }
+
+      if (
+        p.includes("termino") ||
+        p.includes("término") ||
+        p.includes("terminos") ||
+        p.includes("términos") ||
+        p.includes("condiciones") ||
+        p.includes("proceso") ||
+        p.includes("como funciona") ||
+        p.includes("cómo funciona")
+      ) {
+        return `📋 Cómo funciona Chambatina:
+
+• Recibimos y procesamos paquetes en Estados Unidos
+• Organizamos la carga y la documentación correspondiente
+• Entregamos a transitarias internacionales para su curso posterior
+
+📌 Chambatina opera como punto logístico y de distribución en Estados Unidos.`;
+      }
+
+      if (
+        p.includes("tiempo") ||
+        p.includes("demora") ||
+        p.includes("duracion") ||
+        p.includes("duración") ||
+        p.includes("cuanto tarda") ||
+        p.includes("cuánto tarda")
+      ) {
+        return `🚚 Proceso logístico:
+
+• Recepción en nuestras instalaciones en Estados Unidos
+• Organización y procesamiento
+• Entrega a transitarias internacionales
+
+⏱ El tiempo final depende de la empresa de transporte internacional seleccionada.`;
+      }
+
+      if (
+        p.includes("tiktok") ||
+        p.includes("link") ||
+        p.includes("links")
+      ) {
+        return `🛒 Compras por links:
+
+• Si compra por nuestros links de TikTok, la libra sale a $1.80
+• Aplican también los cargos correspondientes por manejo, seguro, arancel y transporte`;
+      }
+
+      return `Chambatina puede ayudarle con:
+
+• Rastreo de paquetes
+• Precios por libra
+• Cajas disponibles
+• Equipos de energía
+• Proceso logístico
+• Términos generales
+
+Escriba su número de rastreo o su consulta.`;
     }
 
-    const DB = construirBase(RAW_DATA);
+    const DB = construirBase();
 
     function buscarPaquete() {
-      const valor = document.getElementById("codigo").value;
+      const valor = document.getElementById("codigo").value.trim();
       const codigo = limpiarCodigo(valor);
       const caja = document.getElementById("resultado");
 
-      if (!codigo) {
-        caja.style.display = "block";
+      caja.style.display = "block";
+
+      if (!valor) {
         caja.className = "result bad";
-        caja.innerHTML = `<div class="linea">Ingrese un número válido.</div>`;
+        caja.innerHTML = `
+          <div class="linea">Ingrese un número de rastreo o una consulta válida.</div>
+        `;
+        return;
+      }
+
+      if (!esNumeroCPK(valor)) {
+        caja.className = "result ok";
+        caja.innerHTML = `
+          <div class="mensaje">${responderNegocio(valor)}</div>
+        `;
         return;
       }
 
       const paquete = DB[codigo];
 
       if (!paquete) {
-        caja.style.display = "block";
         caja.className = "result bad";
-        caja.innerHTML = `<div class="linea">No encontramos ese código en este momento. Revíselo y vuelva a intentarlo.</div>`;
+        caja.innerHTML = `
+          <div class="linea"><strong>No encontramos ese código en este momento.</strong></div>
+          <div class="mini">Revise el número y vuelva a intentarlo.</div>
+        `;
         return;
       }
 
       const dias = diasTranscurridos(paquete.fecha);
-      const explicacion = explicacionPorTiempo(paquete.estado, dias);
+      const explicacion = mensajeHumano(paquete.estado, dias, paquete.nombre, paquete.producto);
       const claseEstado = paquete.estado === "ENTREGADO" ? "estado entregado" : "estado";
 
-      caja.style.display = "block";
       caja.className = "result ok";
       caja.innerHTML = `
         <div class="${claseEstado}">${paquete.estado}</div>
-        <div class="linea"><strong>Código:</strong> ${codigo}</div>
         <div class="linea"><strong>Fecha:</strong> ${paquete.fecha || "No disponible"}</div>
         <div class="linea"><strong>Detalle:</strong> ${paquete.descripcion}</div>
-        <div class="linea"><strong>Información:</strong> ${explicacion}</div>
+        <div class="mensaje">${explicacion}</div>
       `;
     }
+
+    document.getElementById("codigo").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") buscarPaquete();
+    });
   </script>
 </body>
 </html>
