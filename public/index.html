@@ -1,39 +1,301 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rastreador Chambatina</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+    .wrap {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+    }
 
-app.post("/chat", async (req, res) => {
-  try {
-    const userMessage = req.body.message;
+    .card {
+      background: #1b1b1b;
+      border: 1px solid #2d2d2d;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        input: `Eres el asistente de Chambatina. Responde claro y enfocado en envíos a Cuba.\nCliente: ${userMessage}`
-      })
-    });
+    h1 {
+      margin-top: 0;
+      text-align: center;
+      color: #ff8a00;
+    }
 
-    const data = await response.json();
+    p.sub {
+      text-align: center;
+      color: #ccc;
+      margin-bottom: 24px;
+    }
 
-    res.json({
-      reply: data.output[0].content[0].text
-    });
+    .search {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
 
-  } catch (error) {
-    console.error(error);
-    res.json({ reply: "Error en el servidor" });
-  }
-});
+    input {
+      flex: 1;
+      min-width: 240px;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      background: #000;
+      color: #fff;
+      font-size: 16px;
+    }
 
-app.listen(3000, () => {
-  console.log("Servidor corriendo");
-});
+    button {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ff8a00;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      opacity: .92;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 12px;
+      background: #101010;
+      border: 1px solid #2f2f2f;
+      display: none;
+    }
+
+    .ok {
+      border-color: #2f7d32;
+    }
+
+    .bad {
+      border-color: #8a2d2d;
+    }
+
+    .estado {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #ffb347;
+    }
+
+    .entregado {
+      color: #4cd964;
+      font-size: 34px;
+    }
+
+    .linea {
+      margin: 8px 0;
+      color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Rastreador Chambatina</h1>
+      <p class="sub">Ingrese su número de rastreo para consultar el estado de su paquete.</p>
+
+      <div class="search">
+        <input id="codigo" type="text" placeholder="Ejemplo: 260443 o CPK-0260443" />
+        <button onclick="buscarPaquete()">Buscar</button>
+      </div>
+
+      <div id="resultado" class="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const RAW_DATA = `
+CHAMBATINA MIAMI	GEO MIA	CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	2026-03-26	DIANARA CORREA SANCHEZ
+CHAMBATINA MIAMI	GEO MIA	CPK-0243024	ENTREGADO	Sí	066(CPK-297)	ENVIO	GANCHO PARA REMOLQUE	2026-02-02	RA...
+CHAMBATINA MIAMI	GEO MIA	CPK-0243013	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	MARIA TERESA
+CHAMBATINA MIAMI	GEO MIA	CPK-0242994	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ENEYDA
+CHAMBATINA MIAMI	GEO MIA	CPK-0242993	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ENEYDA
+CHAMBATINA MIAMI	GEO MIA	CPK-0242860	ENTREGADO	Sí	066(CPK-298)	ENVIO	MISCELANEAS	2026-02-02	CARIDAD
+CHAMBATINA MIAMI	GEO MIA	CPK-0242849	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ANELIS
+CHAMBATINA MIAMI	GEO MIA	CPK-0242848	ENTREGADO	Sí	066(CPK-297)	ENVIO	MISCELANEAS	2026-02-02	ANELIS
+CHAMBATINA MIAMI	GEO MIA	CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	2026-03-24	CLIENTE
+CHAMBATINA MIAMI	GEO MIA	CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIO	MISCELANEAS	2026-03-24	CLIENTE
+`;
+
+    function limpiarCodigo(valor = "") {
+      return String(valor).replace(/\D/g, "").replace(/^0+/, "");
+    }
+
+    function extraerEstado(linea = "") {
+      const estados = [
+        "ENTREGADO",
+        "EN DISTRIBUCION",
+        "EN DISTRIBUCIÓN",
+        "DISTRIBUCION",
+        "DISTRIBUCIÓN",
+        "DESPACHO",
+        "DESAGRUPE",
+        "CLASIFICADO",
+        "EN AGENCIA",
+        "EN ALMACEN",
+        "EN ALMACÉN",
+        "ARRIBO",
+        "CANAL ROJO"
+      ];
+
+      const texto = linea.toUpperCase();
+      for (const estado of estados) {
+        if (texto.includes(estado)) return estado;
+      }
+      return "EN PROCESO";
+    }
+
+    function extraerFecha(linea = "") {
+      const m = linea.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+      return m ? m[1] : "";
+    }
+
+    function generarDescripcion(estado) {
+      switch (estado) {
+        case "EN AGENCIA":
+          return "Tu paquete fue recibido y se encuentra en agencia.";
+        case "CLASIFICADO":
+          return "Tu paquete ya fue identificado y organizado para su ruta.";
+        case "DESAGRUPE":
+          return "Tu paquete está siendo separado del contenedor para continuar el proceso.";
+        case "DESPACHO":
+          return "Tu paquete está saliendo del área correspondiente dentro de la logística.";
+        case "EN DISTRIBUCION":
+        case "EN DISTRIBUCIÓN":
+        case "DISTRIBUCION":
+        case "DISTRIBUCIÓN":
+          return "Tu paquete está en distribución hacia su zona de destino.";
+        case "ENTREGADO":
+          return "Tu paquete fue entregado correctamente.";
+        case "ARRIBO":
+          return "Tu paquete ya arribó y continúa su proceso.";
+        case "CANAL ROJO":
+          return "Tu paquete está en revisión logística especial.";
+        default:
+          return "Tu paquete continúa en proceso logístico.";
+      }
+    }
+
+    function construirBase(rawText = "") {
+      const db = {};
+      const lineas = rawText.split("\n").map(x => x.trim()).filter(Boolean);
+
+      for (const linea of lineas) {
+        const m = linea.match(/CPK[-\s]*0*(\d+)/i);
+        if (!m) continue;
+
+        const codigo = limpiarCodigo(m[1]);
+        if (!codigo) continue;
+
+        db[codigo] = {
+          fecha: extraerFecha(linea),
+          estado: extraerEstado(linea),
+          descripcion: generarDescripcion(extraerEstado(linea))
+        };
+      }
+
+      return db;
+    }
+
+    function diasTranscurridos(fechaStr) {
+      if (!fechaStr) return 0;
+      const inicio = new Date(fechaStr + "T00:00:00");
+      const hoy = new Date();
+      return Math.max(0, Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24)));
+    }
+
+    function explicacionPorTiempo(estado, dias) {
+      if (estado === "ENTREGADO") {
+        return "Entrega finalizada. Gracias por confiar en Chambatina.";
+      }
+
+      if (estado === "EN AGENCIA") {
+        if (dias <= 3) return "Su paquete fue recibido y está iniciando el proceso logístico.";
+        if (dias <= 6) return "Su paquete continúa en agencia, siendo preparado para los siguientes movimientos.";
+        if (dias <= 9) return "Su paquete sigue avanzando dentro del flujo interno.";
+        return "Su paquete continúa su curso logístico normal.";
+      }
+
+      if (estado === "CLASIFICADO") {
+        return "Su paquete ya fue clasificado y continúa hacia el siguiente movimiento.";
+      }
+
+      if (estado === "DESAGRUPE") {
+        return "Su paquete está siendo separado del contenedor para continuar su avance.";
+      }
+
+      if (estado === "DESPACHO") {
+        return "Su paquete continúa en despacho dentro del proceso logístico.";
+      }
+
+      if (
+        estado === "EN DISTRIBUCION" ||
+        estado === "EN DISTRIBUCIÓN" ||
+        estado === "DISTRIBUCION" ||
+        estado === "DISTRIBUCIÓN"
+      ) {
+        return "Su paquete se encuentra en distribución hacia el área de entrega.";
+      }
+
+      return "Su paquete continúa en proceso logístico.";
+    }
+
+    const DB = construirBase(RAW_DATA);
+
+    function buscarPaquete() {
+      const valor = document.getElementById("codigo").value;
+      const codigo = limpiarCodigo(valor);
+      const caja = document.getElementById("resultado");
+
+      if (!codigo) {
+        caja.style.display = "block";
+        caja.className = "result bad";
+        caja.innerHTML = `<div class="linea">Ingrese un número válido.</div>`;
+        return;
+      }
+
+      const paquete = DB[codigo];
+
+      if (!paquete) {
+        caja.style.display = "block";
+        caja.className = "result bad";
+        caja.innerHTML = `<div class="linea">No encontramos ese código en este momento. Revíselo y vuelva a intentarlo.</div>`;
+        return;
+      }
+
+      const dias = diasTranscurridos(paquete.fecha);
+      const explicacion = explicacionPorTiempo(paquete.estado, dias);
+      const claseEstado = paquete.estado === "ENTREGADO" ? "estado entregado" : "estado";
+
+      caja.style.display = "block";
+      caja.className = "result ok";
+      caja.innerHTML = `
+        <div class="${claseEstado}">${paquete.estado}</div>
+        <div class="linea"><strong>Código:</strong> ${codigo}</div>
+        <div class="linea"><strong>Fecha:</strong> ${paquete.fecha || "No disponible"}</div>
+        <div class="linea"><strong>Detalle:</strong> ${paquete.descripcion}</div>
+        <div class="linea"><strong>Información:</strong> ${explicacion}</div>
+      `;
+    }
+  </script>
+</body>
+</html>
