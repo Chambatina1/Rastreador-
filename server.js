@@ -1,529 +1,378 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chambatina Inteligencia</title>
-  <style>
-    * { box-sizing: border-box; }
+import express from "express";
+import cors from "cors";
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top, #2b2b2b 0%, #111 35%, #090909 100%);
-      color: #fff;
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// =====================================================
+// BASE MANUAL DE CPK
+// PEGA TUS DATOS AQUÍ
+// FORMATO:
+// "260443": {
+//   estado: "EN AGENCIA",
+//   descripcion: "Texto aquí"
+// },
+// =====================================================
+const CPK_DB = {
+  "260443": {
+    estado: "EN AGENCIA",
+    descripcion:
+      "Tu paquete fue recibido y ya está en agencia, listo para continuar avanzando dentro del proceso logístico."
+  },
+  "259844": {
+    estado: "EN AGENCIA",
+    descripcion:
+      "Tu paquete fue recibido en agencia y está preparado para continuar con su siguiente fase logística."
+  },
+  "259847": {
+    estado: "EN AGENCIA",
+    descripcion:
+      "Tu paquete ya está en agencia y debidamente registrado para seguir avanzando en el proceso."
+  }
+};
+
+// =====================================================
+// RESPUESTAS DIRECTAS POR PALABRAS CLAVE
+// =====================================================
+function responderPreciosLocales(mensaje) {
+  const texto = mensaje.toLowerCase();
+
+  // Cajas
+  if (
+    texto.includes("12x12x12") ||
+    (texto.includes("caja") && texto.includes("12"))
+  ) {
+    return "La caja de 12x12x12 tiene un precio de $45 y admite hasta 60 libras.";
+  }
+
+  if (
+    texto.includes("15x15x15") ||
+    (texto.includes("caja") && texto.includes("15"))
+  ) {
+    return "La caja de 15x15x15 tiene un precio de $65 y admite hasta 100 libras.";
+  }
+
+  if (
+    texto.includes("16x16x16") ||
+    (texto.includes("caja") && texto.includes("16"))
+  ) {
+    return "La caja de 16x16x16 tiene un precio de $85 y admite hasta 100 libras.";
+  }
+
+  // Libra y tarifas base
+  if (texto.includes("libra") || texto.includes("precio por libra")) {
+    return "La tarifa base es de $1.99 por libra. Si recogemos en la puerta de su casa, la libra es $2.30. Si la compra se hace por nuestros links, la libra es $1.80.";
+  }
+
+  // Puerta de la casa
+  if (
+    texto.includes("puerta de su casa") ||
+    texto.includes("recogemos en la puerta") ||
+    texto.includes("pickup")
+  ) {
+    return "Si recogemos en la puerta de su casa, la tarifa es de $2.30 por libra.";
+  }
+
+  // Compras por links
+  if (
+    texto.includes("links") ||
+    texto.includes("link") ||
+    texto.includes("tiktok")
+  ) {
+    return "Si la compra se realiza por nuestros links, la tarifa es de $1.80 por libra.";
+  }
+
+  // Manejo general
+  if (texto.includes("manejo general")) {
+    return "El manejo general tiene un cargo de $25.";
+  }
+
+  // Equipos
+  if (
+    texto.includes("equipo") &&
+    !texto.includes("solar") &&
+    !texto.includes("inversor") &&
+    !texto.includes("batería") &&
+    !texto.includes("bateria")
+  ) {
+    return "Los equipos llevan cargos adicionales que normalmente van de $15 a $35, según el tipo y condición del artículo. Los equipos de más de 200 libras llevan $45 adicionales.";
+  }
+
+  if (
+    texto.includes("200 libras") ||
+    texto.includes("+200 lb") ||
+    texto.includes("más de 200")
+  ) {
+    return "Los equipos de más de 200 libras llevan un cargo adicional de $45.";
+  }
+
+  // Bicicletas
+  if (texto.includes("bicicleta niño") || texto.includes("bicicleta de niño")) {
+    return "Bicicleta de niño: sin empacar $25, empacada $15.";
+  }
+
+  if (texto.includes("bicicleta adulto") || texto.includes("bicicleta de adulto")) {
+    return "Bicicleta de adulto: sin empacar $45, empacada $25.";
+  }
+
+  if (texto.includes("bicicleta eléctrica") || texto.includes("bicicleta electrica")) {
+    return "Bicicleta eléctrica: en caja $35, sin caja $50.";
+  }
+
+  // Colchones
+  if (texto.includes("colchón") || texto.includes("colchon") || texto.includes("colchones")) {
+    return "Colchones: hasta 50 lb = $15. Más de 50 lb = $40 total.";
+  }
+
+  // Ollas
+  if (texto.includes("olla pequeña") || texto.includes("ollas pequeñas")) {
+    return "Las ollas pequeñas tienen un cargo de $12.";
+  }
+
+  if (
+    texto.includes("olla arrocera") ||
+    texto.includes("multifuncional") ||
+    texto.includes("olla multifuncional")
+  ) {
+    return "La olla arrocera o multifuncional tiene un cargo de $22.";
+  }
+
+  // Retractilado
+  if (texto.includes("retractilado")) {
+    return "Equipos con retractilado: empacados $35, sin empacar $50. El retractilado externo tiene cargo variable.";
+  }
+
+  // Inversores
+  if (texto.includes("6.5 kw")) {
+    return "Inversor 6.5 kW: costo del equipo $988, costo de envío $145, total $1,133.";
+  }
+
+  if (texto.includes("10 kw")) {
+    return "Inversor 10 kW: costo del equipo $1,254, costo de envío $178, total $1,432.";
+  }
+
+  if (texto.includes("12 kw")) {
+    return "Inversor 12 kW: costo del equipo $2,146, costo de envío $257, total $2,403.";
+  }
+
+  // Baterías
+  if (texto.includes("5 kilos") || texto.includes("5 kwh")) {
+    return "Batería 5 kilos, aproximado 5 kWh: costo del equipo $886, costo de envío $352, total $1,238.";
+  }
+
+  if (texto.includes("10 kilos") || texto.includes("10 kwh")) {
+    return "Batería 10 kilos, aproximado 10 kWh: costo del equipo $1,651, costo de envío $536, total $2,187.";
+  }
+
+  if (texto.includes("16 kilos") || texto.includes("16 kwh")) {
+    return "Batería 16 kilos, aproximado 16 kWh: costo del equipo $1,825, costo de envío $696, total $2,521.";
+  }
+
+  if (
+    texto.includes("tabla solar") ||
+    texto.includes("precios solar") ||
+    texto.includes("precio solar")
+  ) {
+    return `Tabla solar disponible:
+
+Inversores:
+- 6.5 kW: equipo $988, envío $145, total $1,133
+- 10 kW: equipo $1,254, envío $178, total $1,432
+- 12 kW: equipo $2,146, envío $257, total $2,403
+
+Baterías:
+- 5 kilos (≈5 kWh): equipo $886, envío $352, total $1,238
+- 10 kilos (≈10 kWh): equipo $1,651, envío $536, total $2,187
+- 16 kilos (≈16 kWh): equipo $1,825, envío $696, total $2,521`;
+  }
+
+  if (
+    texto.includes("tabla general") ||
+    texto.includes("precios generales") ||
+    texto.includes("general de precios")
+  ) {
+    return `Tabla general disponible:
+
+- Bicicleta niño sin empacar: $25
+- Bicicleta niño empacada: $15
+- Bicicleta adulto sin empacar: $45
+- Bicicleta adulto empacada: $25
+- Bicicleta eléctrica en caja: $35
+- Bicicleta eléctrica sin caja: $50
+- Colchones hasta 50 lb: $15
+- Colchones más de 50 lb: $40 total
+- Ollas pequeñas: $12
+- Olla arrocera o multifuncional: $22
+- Manejo general: $25
+- Equipos +200 lb: $45
+- Equipos con retractilado empacados: $35
+- Equipos con retractilado sin empacar: $50
+- Retractilado externo: cargo variable`;
+  }
+
+  return null;
+}
+
+// =====================================================
+// ENDPOINT PRINCIPAL DEL CHAT
+// =====================================================
+app.post("/chat", async (req, res) => {
+  try {
+    const userMessage = req.body.message;
+
+    if (!userMessage || typeof userMessage !== "string") {
+      return res.status(400).json({ error: "Falta el mensaje" });
     }
 
-    .wrap {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 22px;
+    // Detectar posible CPK
+    const posibleCPK = userMessage.replace(/\D/g, "").replace(/^0+/, "");
+
+    if (posibleCPK && CPK_DB[posibleCPK]) {
+      const item = CPK_DB[posibleCPK];
+
+      return res.json({
+        reply: `Estado: ${item.estado}\n\n${item.descripcion}`
+      });
     }
 
-    .hero {
-      background: linear-gradient(135deg, #ff8a00, #ff5e00);
-      color: #111;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 18px 50px rgba(0,0,0,.35);
-      margin-bottom: 20px;
+    // Respuestas rápidas locales para precios
+    const respuestaLocal = responderPreciosLocales(userMessage);
+    if (respuestaLocal) {
+      return res.json({ reply: respuestaLocal });
     }
 
-    .hero h1 {
-      margin: 0 0 10px;
-      font-size: 38px;
-      line-height: 1.1;
+    // Si parece CPK pero no existe
+    if (
+      /cpk/i.test(userMessage) ||
+      (posibleCPK && posibleCPK.length >= 5 && !CPK_DB[posibleCPK])
+    ) {
+      return res.json({
+        reply:
+          "En este momento ese número no aparece disponible en el sistema. Revise si lo escribió correctamente y vuelva a intentarlo."
+      });
     }
 
-    .hero p {
-      margin: 0;
-      font-size: 17px;
-      max-width: 900px;
-      font-weight: bold;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 20px;
-    }
-
-    .panel {
-      background: #171717;
-      border: 1px solid #2b2b2b;
-      border-radius: 24px;
-      box-shadow: 0 14px 40px rgba(0,0,0,.28);
-      overflow: hidden;
-    }
-
-    .chat-top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 18px 20px;
-      background: #111;
-      border-bottom: 1px solid #2c2c2c;
-    }
-
-    .dot {
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: #2cd46b;
-      box-shadow: 0 0 12px rgba(44,212,107,.7);
-      flex: 0 0 auto;
-    }
-
-    .chat-top strong {
-      display: block;
-      font-size: 18px;
-      color: #fff;
-    }
-
-    .chat-top span {
-      display: block;
-      margin-top: 3px;
-      color: #bcbcbc;
-      font-size: 13px;
-    }
-
-    .messages {
-      height: 520px;
-      overflow-y: auto;
-      padding: 18px;
-      background: linear-gradient(180deg, #171717 0%, #101010 100%);
-    }
-
-    .msg {
-      max-width: 84%;
-      margin-bottom: 14px;
-      padding: 14px 16px;
-      border-radius: 18px;
-      white-space: pre-wrap;
-      line-height: 1.5;
-      font-size: 15px;
-      word-wrap: break-word;
-    }
-
-    .msg.bot {
-      background: #232323;
-      border: 1px solid #313131;
-      color: #fff;
-      border-top-left-radius: 8px;
-    }
-
-    .msg.user {
-      background: #ff8a00;
-      color: #111;
-      margin-left: auto;
-      font-weight: bold;
-      border-top-right-radius: 8px;
-    }
-
-    .chat-input {
-      display: flex;
-      gap: 10px;
-      padding: 16px;
-      background: #111;
-      border-top: 1px solid #2b2b2b;
-    }
-
-    .chat-input input {
-      flex: 1;
-      height: 56px;
-      border: 1px solid #343434;
-      border-radius: 16px;
-      background: #1b1b1b;
-      color: white;
-      padding: 0 16px;
-      font-size: 16px;
-      outline: none;
-    }
-
-    .chat-input input::placeholder {
-      color: #9d9d9d;
-    }
-
-    .chat-input button {
-      border: none;
-      min-width: 140px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #ff9b21, #ff6b00);
-      color: #111;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      padding: 0 18px;
-    }
-
-    .chat-input button:hover {
-      opacity: .95;
-      transform: translateY(-1px);
-    }
-
-    .side {
-      padding: 20px;
-    }
-
-    .card {
-      background: #1e1e1e;
-      border: 1px solid #303030;
-      border-radius: 20px;
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-      color: #ff9c2f;
-      font-size: 20px;
-    }
-
-    .card p {
-      margin: 7px 0;
-      color: #efefef;
-      line-height: 1.5;
-      font-size: 15px;
-    }
-
-    .mini-title {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #b9b9b9;
-      margin-bottom: 10px;
-    }
-
-    .quick {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .quick button {
-      border: 1px solid #3a3a3a;
-      background: #202020;
-      color: #fff;
-      border-radius: 999px;
-      padding: 10px 14px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .quick button:hover {
-      border-color: #ff8a00;
-      color: #ff8a00;
-    }
-
-    .price {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid #2c2c2c;
-      font-size: 15px;
-    }
-
-    .price:last-child {
-      border-bottom: none;
-    }
-
-    .price strong {
-      color: #fff;
-    }
-
-    .price span {
-      color: #ffb257;
-      font-weight: bold;
-      text-align: right;
-    }
-
-    .footer-note {
-      text-align: center;
-      color: #9e9e9e;
-      font-size: 12px;
-      margin-top: 16px;
-      padding-bottom: 8px;
-    }
-
-    @media (max-width: 960px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .messages {
-        height: 460px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .hero h1 {
-        font-size: 30px;
-      }
-
-      .chat-input {
-        flex-direction: column;
-      }
-
-      .chat-input button {
-        height: 54px;
-      }
-
-      .msg {
-        max-width: 92%;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <section class="hero">
-      <h1>Chambatina Inteligencia</h1>
-      <p>
-        Atención automatizada para precios, cajas, equipos, compras por links, recogidas y consultas generales del servicio.
-      </p>
-    </section>
-
-    <div class="grid">
-      <section class="panel">
-        <div class="chat-top">
-          <div class="dot"></div>
-          <div>
-            <strong>Asistente Chambatina</strong>
-            <span>Conectado a la inteligencia artificial del servicio</span>
-          </div>
-        </div>
-
-        <div class="messages" id="messages">
-          <div class="msg bot">
-Hola. Soy el asistente de Chambatina.
-
-Puedo orientarte sobre:
-• precio por libra
-• recogida en puerta
-• cargos adicionales de equipos
-• compras por links de TikTok
-• precios de cajas
-• dudas generales del servicio
-
-Escríbeme tu pregunta.
-          </div>
-        </div>
-
-        <div class="chat-input">
-          <input
-            id="userInput"
-            type="text"
-            placeholder="Ejemplo: ¿Cuánto cuesta una caja de 16x16x16?"
-          />
-          <button onclick="sendMessage()">Enviar</button>
-        </div>
-      </section>
-
-      <aside class="panel side">
-        <div class="card">
-          <div class="mini-title">Tarifas visibles</div>
-          <h3>Precios Chambatina</h3>
-
-          <div class="price">
-            <strong>Libra general</strong>
-            <span>$1.99</span>
-          </div>
-
-          <div class="price">
-            <strong>Manejo, seguro, arancel y transporte</strong>
-            <span>$10</span>
-          </div>
-
-          <div class="price">
-            <strong>Recogida en puerta</strong>
-            <span>$2.30 por libra</span>
-          </div>
-
-          <div class="price">
-            <strong>Equipos</strong>
-            <span>$15 a $35 adicional</span>
-          </div>
-
-          <div class="price">
-            <strong>Equipos mayores de 200 lb</strong>
-            <span>$45 adicional</span>
-          </div>
-
-          <div class="price">
-            <strong>Compras por links de TikTok</strong>
-            <span>$1.80 por libra</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="mini-title">Cajas disponibles</div>
-          <h3>Medidas y capacidad</h3>
-
-          <div class="price">
-            <strong>Caja 12 x 12 x 12</strong>
-            <span>$45 · hasta 60 lb</span>
-          </div>
-
-          <div class="price">
-            <strong>Caja 15 x 15 x 15</strong>
-            <span>$65 · hasta 100 lb</span>
-          </div>
-
-          <div class="price">
-            <strong>Caja 16 x 16 x 16</strong>
-            <span>$85 · hasta 100 lb</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="mini-title">Preguntas rápidas</div>
-          <h3>Consultas frecuentes</h3>
-
-          <div class="quick">
-            <button onclick="quickAsk('¿Cuánto cuesta la libra general?')">Libra general</button>
-            <button onclick="quickAsk('¿Cuánto cuesta si compran por los links de TikTok?')">TikTok</button>
-            <button onclick="quickAsk('¿Cuánto cuesta una caja de 12x12x12?')">Caja 12x12x12</button>
-            <button onclick="quickAsk('¿Cuánto cuesta una caja de 15x15x15?')">Caja 15x15x15</button>
-            <button onclick="quickAsk('¿Cuánto cuesta una caja de 16x16x16?')">Caja 16x16x16</button>
-            <button onclick="quickAsk('¿Cuánto cobran adicional por equipos?')">Equipos</button>
-            <button onclick="quickAsk('¿Qué incluye el cargo de 10 dólares?')">Cargo de $10</button>
-            <button onclick="quickAsk('Explícame todos los precios de Chambatina')">Todos los precios</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="mini-title">Nota</div>
-          <h3>Atención automatizada</h3>
-          <p>
-            Este asistente responde consultas del servicio y orienta según la información configurada para Chambatina.
-          </p>
-        </div>
-      </aside>
-    </div>
-
-    <div class="footer-note">
-      Chambatina · sistema inteligente de atención
-    </div>
-  </div>
-
-  <script>
-    const API_URL = "https://TU-SERVIDOR.onrender.com/chat";
-
-    const messages = document.getElementById("messages");
-    const input = document.getElementById("userInput");
-
-    function addMessage(text, role) {
-      const div = document.createElement("div");
-      div.className = "msg " + role;
-      div.textContent = text;
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    function removeTyping() {
-      const typing = document.getElementById("typingMessage");
-      if (typing) typing.remove();
-    }
-
-    function showTyping() {
-      removeTyping();
-      const div = document.createElement("div");
-      div.className = "msg bot";
-      div.id = "typingMessage";
-      div.textContent = "Escribiendo...";
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    function quickAsk(text) {
-      input.value = text;
-      sendMessage();
-    }
-
-    function localFallback(question) {
-      const q = question.toLowerCase();
-
-      if (q.includes("tiktok")) {
-        return "Si compras por nuestros links de TikTok, la libra se trabaja a $1.80.";
-      }
-
-      if (q.includes("12x12")) {
-        return "La caja de 12x12x12 cuesta $45 y admite hasta 60 libras.";
-      }
-
-      if (q.includes("15x15")) {
-        return "La caja de 15x15x15 cuesta $65 y admite hasta 100 libras.";
-      }
-
-      if (q.includes("16x16")) {
-        return "La caja de 16x16x16 cuesta $85 y admite hasta 100 libras.";
-      }
-
-      if (q.includes("equipo") || q.includes("equipos")) {
-        return "Los equipos tienen un cargo adicional de $15 a $35. Si el equipo pasa de 200 libras, lleva $45 adicionales.";
-      }
-
-      if (q.includes("puerta") || q.includes("recogida")) {
-        return "Si recogemos en la puerta de su casa, la tarifa es de $2.30 por libra.";
-      }
-
-      if (q.includes("1.99") || q.includes("libra") || q.includes("precio")) {
-        return "La libra general es a $1.99, más $10 por manejo, seguro, arancel y transporte.";
-      }
-
-      return "Ahora mismo no pude conectar con el asistente, pero puedes preguntar por libra, cajas, recogida, compras por links o cargos de equipos.";
-    }
-
-    async function sendMessage() {
-      const question = input.value.trim();
-      if (!question) return;
-
-      addMessage(question, "user");
-      input.value = "";
-      showTyping();
-
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
+    // Consulta a OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
+Eres el asistente oficial de Chambatina.
+
+Tu función es ayudar a los clientes con:
+- Envíos
+- Cálculo de precios
+- Estados de paquetes
+- Equipos eléctricos
+- Información general
+
+Reglas:
+- No mencionar países
+- No inventar información
+- Responder claro, corto y profesional
+- Explicar precios paso a paso cuando lo pidan
+- Nunca mostrar información interna ni técnica del sistema
+
+Tarifas base:
+- $1.99 por libra
+- $2.30 por libra si recogemos en la puerta de su casa
+- $1.80 por libra si compra por nuestros links
+
+Cargos adicionales:
+- Equipos: de $15 a $35 adicionales
+- Equipos de más de 200 libras: $45 adicionales
+
+Cajas:
+- 12x12x12 = $45 hasta 60 libras
+- 15x15x15 = $65 hasta 100 libras
+- 16x16x16 = $85 hasta 100 libras
+
+Tabla general de precios:
+- Bicicleta niño sin empacar: $25
+- Bicicleta niño empacada: $15
+- Bicicleta adulto sin empacar: $45
+- Bicicleta adulto empacada: $25
+- Bicicleta eléctrica en caja: $35
+- Bicicleta eléctrica sin caja: $50
+- Colchones hasta 50 lb: $15
+- Colchones más de 50 lb: $40 total
+- Ollas pequeñas: $12
+- Olla arrocera o multifuncional: $22
+- Manejo general: $25
+- Equipos +200 lb: $45
+- Equipos con retractilado empacados: $35
+- Equipos con retractilado sin empacar: $50
+- Retractilado externo: cargo variable
+
+Tabla solar:
+Inversores:
+- 6.5 kW: equipo $988, envío $145, total $1,133
+- 10 kW: equipo $1,254, envío $178, total $1,432
+- 12 kW: equipo $2,146, envío $257, total $2,403
+
+Baterías:
+- 5 kilos (≈5 kWh): equipo $886, envío $352, total $1,238
+- 10 kilos (≈10 kWh): equipo $1,651, envío $536, total $2,187
+- 16 kilos (≈16 kWh): equipo $1,825, envío $696, total $2,521
+
+Estados logísticos:
+- EN AGENCIA = paquete recibido
+- CLASIFICADO = organizado por ruta
+- DESAGRUPE = separado del contenedor
+- DESPACHO = en tránsito
+- DISTRIBUCIÓN = en camino final
+- ENTREGADO = finalizado
+
+Tiempo estimado:
+- 18 a 30 días
+
+Si el cliente pregunta por un CPK y no aparece en el sistema, indícale con respeto que ese número no está disponible en este momento y que revise si lo escribió correctamente.
+`
           },
-          body: JSON.stringify({ message: question })
-        });
+          {
+            role: "user",
+            content: userMessage
+          }
+        ]
+      })
+    });
 
-        let data = null;
-        try {
-          data = await response.json();
-        } catch (e) {
-          data = null;
-        }
+    const data = await response.json();
 
-        removeTyping();
-
-        if (!response.ok) {
-          addMessage(localFallback(question), "bot");
-          return;
-        }
-
-        const reply = data && data.reply
-          ? data.reply
-          : localFallback(question);
-
-        addMessage(reply, "bot");
-      } catch (error) {
-        removeTyping();
-        addMessage(localFallback(question), "bot");
-      }
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error?.message || "Error con OpenAI"
+      });
     }
 
-    input.addEventListener("keydown", function(event) {
-      if (event.key === "Enter") {
-        sendMessage();
-      }
-    });
-  </script>
-</body>
-</html>
+    const reply = data?.choices?.[0]?.message?.content || "Sin respuesta";
+
+    return res.json({ reply });
+  } catch (error) {
+    console.error("Error en /chat:", error);
+    return res.status(500).json({ error: "Error en el servidor" });
+  }
+});
+
+// =====================================================
+// ENDPOINT DE PRUEBA
+// =====================================================
+app.get("/", (req, res) => {
+  res.send("Servidor Chambatina activo");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Servidor corriendo en puerto " + PORT);
+});
