@@ -12,10 +12,6 @@ app.get("/", (req, res) => {
 
 // =====================================================
 // const CPK_DB = {
-  "252685": {
-    fecha: "2026-02-27",
-    estado: "DESPACHADO",
-    descripcion: "Tu paquete ya fue despachado y continúa avanzando dentro del proceso logístico." DE DATOS DE CPK
 // AQUÍ SOLO CAMBIAS:
 // - fecha
 // - estado
