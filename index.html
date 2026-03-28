@@ -3,116 +3,252 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chambatina</title>
+  <title>Robot Chambatina</title>
   <style>
-    body{
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background:#111;
-      color:#fff;
-      margin:0;
-      padding:20px;
+      background: #0f0f0f;
+      color: #fff;
     }
-    .wrap{
-      max-width:900px;
-      margin:0 auto;
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px;
     }
-    .card{
-      background:#1b1b1b;
-      border-radius:16px;
-      padding:24px;
-      margin-bottom:20px;
-      box-shadow:0 8px 25px rgba(0,0,0,.35);
+
+    .top {
+      text-align: center;
+      margin-bottom: 20px;
     }
-    h1,h2{ color:orange; }
-    input, textarea{
-      width:100%;
-      box-sizing:border-box;
-      padding:14px;
-      border-radius:10px;
-      border:1px solid #444;
-      background:#0f0f0f;
-      color:#fff;
-      margin-top:10px;
-      margin-bottom:10px;
-      font-size:16px;
+
+    .top h1 {
+      margin: 0;
+      color: #ff9800;
+      font-size: 34px;
     }
-    button{
-      background:orange;
-      color:#111;
-      border:none;
-      border-radius:10px;
-      padding:12px 18px;
-      font-size:16px;
-      font-weight:bold;
-      cursor:pointer;
-      margin-right:10px;
+
+    .top p {
+      margin: 8px 0 0;
+      color: #d0d0d0;
+      font-size: 16px;
     }
-    #resultadoRastreo, #resultadoChat{
-      margin-top:15px;
-      background:#101010;
-      border:1px solid #333;
-      border-radius:10px;
-      padding:15px;
-      white-space:pre-line;
-      min-height:30px;
+
+    .card {
+      background: #1b1b1b;
+      border: 1px solid #2b2b2b;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+      margin-bottom: 24px;
+    }
+
+    .header {
+      background: linear-gradient(90deg, #ff9800, #ffb74d);
+      color: #111;
+      padding: 16px 18px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .content {
+      padding: 18px;
+      background: #121212;
+    }
+
+    .chat-box {
+      height: 420px;
+      overflow-y: auto;
+      padding: 18px;
+      background: #121212;
+      scroll-behavior: smooth;
+      border-bottom: 1px solid #2c2c2c;
+    }
+
+    .msg {
+      max-width: 82%;
+      padding: 14px 16px;
+      border-radius: 18px;
+      margin-bottom: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 16px;
+    }
+
+    .user {
+      margin-left: auto;
+      background: #ff9800;
+      color: #111;
+      border-bottom-right-radius: 6px;
+    }
+
+    .bot {
+      margin-right: auto;
+      background: #232323;
+      color: #fff;
+      border: 1px solid #333;
+      border-bottom-left-radius: 6px;
+    }
+
+    .system {
+      margin: 0 auto 14px;
+      background: #171717;
+      color: #bdbdbd;
+      border: 1px dashed #3a3a3a;
+      text-align: center;
+      max-width: 90%;
+    }
+
+    .typing {
+      opacity: 0.8;
+      font-style: italic;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    textarea, input {
+      flex: 1;
+      resize: none;
+      min-height: 56px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #3a3a3a;
+      background: #101010;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
+
+    button {
+      min-width: 150px;
+      border: none;
+      border-radius: 14px;
+      background: #ff9800;
+      color: #111;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 18px;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .quick-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .quick-btn {
+      background: #242424;
+      color: #fff;
+      border: 1px solid #383838;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #resultadoRastreo {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #101010;
+      border: 1px solid #333;
+      min-height: 50px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 700px) {
+      .wrap { padding: 14px; }
+      .chat-box { height: 360px; }
+      .input-row { flex-direction: column; }
+      button { min-height: 52px; }
+      .msg { max-width: 90%; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>Rastreador Chambatina</h1>
-      <input id="cpk" placeholder="Escribe tu CPK. Ejemplo: 260443" />
-      <button onclick="buscarRastreo()">Buscar paquete</button>
-      <div id="resultadoRastreo"></div>
+    <div class="top">
+      <h1>Robot Chambatina</h1>
+      <p>Asistente con chat y rastreo</p>
     </div>
 
     <div class="card">
-      <h2>Chat Chambatina</h2>
-      <textarea id="mensaje" rows="5" placeholder="Pregunta sobre precios, envíos, cajas, equipos o servicios"></textarea>
-      <button onclick="preguntarIA()">Preguntar</button>
-      <div id="resultadoChat"></div>
+      <div class="header">Chat inteligente</div>
+      <div id="chatBox" class="chat-box">
+        <div class="msg system">Bienvenido. Escriba su pregunta y pulse Enviar.</div>
+      </div>
+      <div class="content">
+        <div class="input-row">
+          <textarea id="mensaje" placeholder="Escriba aquí su mensaje..."></textarea>
+          <button id="btnEnviar" type="button">Enviar</button>
+        </div>
+
+        <div class="quick-row">
+          <button class="quick-btn" type="button" onclick="ponerPregunta('¿Cuál es el precio por libra?')">Precio por libra</button>
+          <button class="quick-btn" type="button" onclick="ponerPregunta('¿Qué cajas tienen disponibles?')">Cajas</button>
+          <button class="quick-btn" type="button" onclick="ponerPregunta('¿Cuánto demora el envío?')">Tiempo de entrega</button>
+          <button class="quick-btn" type="button" onclick="ponerPregunta('¿Qué equipos manejan?')">Equipos</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="header">Rastreo de paquete</div>
+      <div class="content">
+        <div class="input-row">
+          <input id="cpk" type="text" placeholder="Escribe tu CPK. Ejemplo: 260443" />
+          <button id="btnRastreo" type="button">Buscar</button>
+        </div>
+        <div id="resultadoRastreo">Escribe tu CPK y pulsa Buscar.</div>
+      </div>
     </div>
   </div>
 
   <script>
-    async function buscarRastreo() {
-      const cpk = document.getElementById("cpk").value.trim();
-      const box = document.getElementById("resultadoRastreo");
+    const chatBox = document.getElementById("chatBox");
+    const mensajeInput = document.getElementById("mensaje");
+    const btnEnviar = document.getElementById("btnEnviar");
+    const btnRastreo = document.getElementById("btnRastreo");
 
-      if (!cpk) {
-        box.textContent = "Escribe un CPK válido.";
-        return;
-      }
-
-      box.textContent = "Buscando...";
-
-      try {
-        const res = await fetch("/api/rastreo/" + encodeURIComponent(cpk));
-        const data = await res.json();
-
-        if (!data.ok) {
-          box.textContent = data.mensaje || "No se encontró el paquete.";
-          return;
-        }
-
-        box.textContent = "Estado: " + data.estado + "\n\n" + data.descripcion;
-      } catch (e) {
-        console.error(e);
-        box.textContent = "No fue posible conectar con el servidor.";
-      }
+    function agregarMensaje(texto, tipo) {
+      const div = document.createElement("div");
+      div.className = "msg " + tipo;
+      div.textContent = texto;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return div;
     }
 
-    async function preguntarIA() {
-      const mensaje = document.getElementById("mensaje").value.trim();
-      const box = document.getElementById("resultadoChat");
+    function ponerPregunta(texto) {
+      mensajeInput.value = texto;
+      mensajeInput.focus();
+    }
 
-      if (!mensaje) {
-        box.textContent = "Escribe una pregunta.";
-        return;
-      }
+    async function enviarMensaje() {
+      const mensaje = mensajeInput.value.trim();
+      if (!mensaje) return;
 
-      box.textContent = "Consultando...";
+      agregarMensaje(mensaje, "user");
+      mensajeInput.value = "";
+      btnEnviar.disabled = true;
+
+      const typing = agregarMensaje("Escribiendo respuesta...", "bot typing");
 
       try {
         const res = await fetch("/api/chat", {
@@ -124,18 +260,71 @@
         });
 
         const data = await res.json();
+        typing.remove();
 
-        if (!data.ok) {
-          box.textContent = data.mensaje || "No se pudo obtener respuesta.";
+        if (!res.ok || !data.ok) {
+          agregarMensaje(data?.mensaje || "Error del servidor.", "bot");
+          btnEnviar.disabled = false;
           return;
         }
 
-        box.textContent = data.respuesta;
-      } catch (e) {
-        console.error(e);
-        box.textContent = "No fue posible conectar con el servidor.";
+        agregarMensaje(data.respuesta || "No hubo respuesta.", "bot");
+      } catch (error) {
+        typing.remove();
+        agregarMensaje("No fue posible conectar con el servidor.", "bot");
+        console.error(error);
+      }
+
+      btnEnviar.disabled = false;
+      mensajeInput.focus();
+    }
+
+    async function buscarRastreo() {
+      const cpk = document.getElementById("cpk").value.trim();
+      const resultado = document.getElementById("resultadoRastreo");
+
+      if (!cpk) {
+        resultado.textContent = "Escribe un CPK válido.";
+        return;
+      }
+
+      resultado.textContent = "Buscando...";
+
+      try {
+        const res = await fetch("/api/rastreo/" + encodeURIComponent(cpk));
+        const data = await res.json();
+
+        if (!data.ok) {
+          resultado.textContent = data.mensaje || "No se encontró el paquete.";
+          return;
+        }
+
+        resultado.textContent =
+          "Estado: " + data.estado +
+          "\nDescripción: " + data.descripcion +
+          "\nFecha: " + data.fecha;
+      } catch (error) {
+        resultado.textContent = "No fue posible conectar con el servidor.";
+        console.error(error);
       }
     }
+
+    btnEnviar.addEventListener("click", enviarMensaje);
+    btnRastreo.addEventListener("click", buscarRastreo);
+
+    mensajeInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        enviarMensaje();
+      }
+    });
+
+    document.getElementById("cpk").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        buscarRastreo();
+      }
+    });
   </script>
 </body>
 </html>
