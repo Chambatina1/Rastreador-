@@ -1,29 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rastreador Chambatina</title>
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#0d0d0d;
+      color:#fff;
+      margin:0;
+      padding:0;
+    }
+    .wrap{
+      max-width:900px;
+      margin:40px auto;
+      padding:20px;
+    }
+    .card{
+      background:#1a1a1a;
+      border:1px solid #2a2a2a;
+      border-radius:18px;
+      padding:28px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      margin-bottom:24px;
+    }
+    h1,h2{
+      color:#ff9800;
+      margin-top:0;
+    }
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    input{
+      flex:1;
+      min-width:220px;
+      padding:15px;
+      border-radius:12px;
+      border:2px solid #2f5fd0;
+      background:#101010;
+      color:#fff;
+      font-size:16px;
+      outline:none;
+    }
+    button{
+      padding:15px 22px;
+      border:none;
+      border-radius:12px;
+      background:#ff9800;
+      color:#111;
+      font-weight:700;
+      cursor:pointer;
+      font-size:16px;
+    }
+    #resultado{
+      margin-top:18px;
+      padding:16px;
+      border-radius:12px;
+      background:#101010;
+      border:1px solid #2a2a2a;
+      min-height:28px;
+      white-space:pre-line;
+      font-size:17px;
+    }
+    .ok{ color:#7dff9a; }
+    .error{ color:#ff6b6b; }
+    .muted{ color:#bbb; }
+    p{
+      line-height:1.55;
+      margin:8px 0;
+    }
+  </style>
+</head>
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Rastreador Chambatina</h1>
 
-  <h1>Rastreo Chambatina</h1>
+      <div class="row">
+        <input id="cpk" type="text" placeholder="Ejemplo: 260443" />
+        <button onclick="buscar()">Buscar</button>
+      </div>
 
-  <!-- AQUÍ VA TU BLOQUE -->
-  <input id="cpk" placeholder="Escribe tu CPK" />
-  <button onclick="buscar()">Buscar</button>
+      <div id="resultado" class="muted">Escribe tu número y pulsa Buscar.</div>
+    </div>
 
-  <div id="resultado"></div>
+    <div class="card">
+      <h2>Información de Servicios</h2>
+      <p><strong>Precio por libra:</strong> $1.99</p>
+      <p><strong>Compras por nuestros links:</strong> $1.80 por libra</p>
+      <p><strong>Recogida en puerta:</strong> $2.30 por libra</p>
+      <p><strong>Fee / arancel:</strong> entre $15 y $35 según el equipo</p>
+      <p><strong>Cajas:</strong></p>
+      <p>12x12x12 hasta 60 lb → $45</p>
+      <p>15x15x15 hasta 100 lb → $65</p>
+      <p>16x16x16 hasta 100 lb → $85</p>
+      <p><strong>Equipos pesados:</strong></p>
+      <p>15 a 35 lb → fee adicional</p>
+      <p>Más de 200 lb → $45 adicional</p>
+      <p><strong>Tiempo estimado:</strong> 18 a 30 días una vez embarcado</p>
+      <p><strong>Productos:</strong> baterías, inversores, sistemas solares, equipos eléctricos y más.</p>
+    </div>
+  </div>
 
   <script>
-  async function buscar() {
-    const cpk = document.getElementById("cpk").value;
+    async function buscar() {
+      const input = document.getElementById("cpk");
+      const resultado = document.getElementById("resultado");
 
-    const res = await fetch(`/api/rastreo/${cpk}`);
-    const data = await res.json();
+      const cpk = (input.value || "").replace(/\D/g, "");
 
-    if (!data.ok) {
-      document.getElementById("resultado").innerText = data.mensaje;
-      return;
+      if (!cpk) {
+        resultado.className = "error";
+        resultado.textContent = "Escribe un número válido.";
+        return;
+      }
+
+      resultado.className = "muted";
+      resultado.textContent = "Buscando...";
+
+      try {
+        const url = "https://rastreador-tj5b.onrender.com/api/rastreo/" + cpk + "?t=" + Date.now();
+        const res = await fetch(url, {
+          method: "GET",
+          cache: "no-store"
+        });
+
+        if (!res.ok) {
+          resultado.className = "error";
+          resultado.textContent = "El servidor respondió con error " + res.status;
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Respuesta API:", data);
+
+        if (!data.ok) {
+          resultado.className = "error";
+          resultado.textContent = data.mensaje || "No se encontró el paquete.";
+          return;
+        }
+
+        resultado.className = "ok";
+        resultado.textContent = "Estado: " + data.estado + "\n\n" + data.descripcion;
+      } catch (e) {
+        console.error("Fallo fetch:", e);
+        resultado.className = "error";
+        resultado.textContent = "No hay conexión con el servidor.";
+      }
     }
 
-    document.getElementById("resultado").innerText =
-      `Estado: ${data.estado} - ${data.descripcion}`;
-  }
+    document.getElementById("cpk").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") buscar();
+    });
   </script>
-  <!-- FIN DEL BLOQUE -->
-
 </body>
+</html>
