@@ -11,34 +11,219 @@ app.get("/", (req, res) => {
 });
 
 // =====================================================
-// CHAMBATINA MIAMI	GEO MIA		CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	DIANARA CORREA SANCHEZ		94092744494	Ave Piti fajardo # Edificio 27 Apto 4 Rpto. Emilio Barcenas e/ 9 y 11, HOLGUIN, HOLGUIN	52065680	YISEL LOPEZ ALVAREZ			2.99	0	1	32	3.375	0.5	0	0		
-		CHAMBATINA MIAMI	GEO MIA		CPK-0260440	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	YURISLEIDI TAPIA ALVAREZ		92110940512	CALLE 16 # 112 E Rpto. PIEDRECITA e/ 13 y 15, CESPEDES, CAMAGUEY	56244435	YISEL LOPEZ ALVAREZ			2.99	0	1	26	3.375	0.5	0	0		
-		
-// CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0
+// BASE DE DATOS DE CPK
+// AQUÍ SOLO CAMBIAS:
+// - fecha
+// - estado
+// - descripcion
+//
+// Formato:
+// "NUMERO": {
+//   fecha: "YYYY-MM-DD",
+//   estado: "EN AGENCIA",
+//   descripcion: "Texto opcional"
+// }
 // =====================================================
-
 const CPK_DB = {
   "260443": {
+    fecha: "2026-03-26",
     estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido y ya está en agencia, listo para continuar avanzando dentro del proceso logístico."
+    descripcion: "Tu paquete fue recibido y ya está en agencia."
   },
 
   "260440": {
+    fecha: "2026-03-26",
     estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido y ya se encuentra en agencia, en espera de continuar su recorrido logístico."
+    descripcion: "Tu paquete fue recibido y ya se encuentra en agencia."
   },
 
   "259847": {
+    fecha: "2026-03-24",
     estado: "EN AGENCIA",
-    descripcion: "Tu paquete ya está en agencia y debidamente registrado para seguir avanzando en el proceso."
+    descripcion: "Tu paquete ya está en agencia y debidamente registrado."
   },
 
   "259844": {
+    fecha: "2026-03-24",
     estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido en agencia y está preparado para continuar con su siguiente fase logística."
+    descripcion: "Tu paquete fue recibido en agencia y está preparado para continuar."
   }
 };
 
+// =====================================================
+// FUNCIONES DE APOYO
+// =====================================================
+
+function parseDateLocal(dateStr) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function daysBetween(startDateStr) {
+  const start = parseDateLocal(startDateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffMs = today - start;
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+}
+
+function getEstimatedStage(days) {
+  if (days <= 2) {
+    return {
+      estado: "EN AGENCIA",
+      detalle: "Tu paquete fue recibido y se encuentra en la etapa inicial del proceso logístico."
+    };
+  }
+
+  if (days <= 5) {
+    return {
+      estado: "CLASIFICADO",
+      detalle: "Tu paquete ya fue organizado según su ruta y continúa avanzando dentro del proceso logístico."
+    };
+  }
+
+  if (days <= 8) {
+    return {
+      estado: "DESPACHO",
+      detalle: "Tu paquete continúa su recorrido interno y avanza hacia la siguiente fase logística."
+    };
+  }
+
+  if (days <= 12) {
+    return {
+      estado: "EMBARCADO",
+      detalle: "Tu paquete ya salió dentro del flujo principal del proceso y sigue avanzando."
+    };
+  }
+
+  if (days <= 18) {
+    return {
+      estado: "EN TRÁNSITO",
+      detalle: "Tu paquete se encuentra en tránsito dentro de su recorrido logístico estimado."
+    };
+  }
+
+  if (days <= 24) {
+    return {
+      estado: "CLASIFICADO PARA ENTREGA",
+      detalle: "Tu paquete ya está en una etapa avanzada y se encuentra acercándose a la fase final de distribución."
+    };
+  }
+
+  if (days <= 30) {
+    return {
+      estado: "DISTRIBUCIÓN",
+      detalle: "Tu paquete se encuentra en una fase final del proceso logístico y próximo a su entrega."
+    };
+  }
+
+  return {
+    estado: "PROCESO AVANZADO",
+    detalle: "Tu paquete ha superado el tiempo estimado inicial y continúa dentro del proceso logístico. Si deseas, puedes volver a consultar más adelante para ver una nueva orientación."
+  };
+}
+
+function normalizeStatus(status) {
+  return (status || "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function getPriority(status) {
+  const map = {
+    "EN AGENCIA": 1,
+    "CLASIFICADO": 2,
+    "DESAGRUPE": 3,
+    "DESPACHO": 4,
+    "EMBARCADO": 5,
+    "EN TRANSITO": 6,
+    "CLASIFICADO PARA ENTREGA": 7,
+    "DISTRIBUCION": 8,
+    "ENTREGADO": 9,
+    "PROCESO AVANZADO": 10
+  };
+
+  return map[normalizeStatus(status)] || 0;
+}
+
+function mergeRealAndEstimated(realStatus, estimatedStatus) {
+  const realPriority = getPriority(realStatus);
+  const estimatedPriority = getPriority(estimatedStatus);
+
+  if (!realStatus) return estimatedStatus;
+  if (realPriority >= estimatedPriority) return realStatus;
+  return estimatedStatus;
+}
+
+function getExplanationByStatus(status, customDescription, days) {
+  const normalized = normalizeStatus(status);
+
+  if (normalized === "ENTREGADO") {
+    return "Tu paquete figura como entregado correctamente.";
+  }
+
+  if (normalized === "EN AGENCIA") {
+    return customDescription || "Tu paquete fue recibido y está en agencia, listo para continuar su proceso.";
+  }
+
+  if (normalized === "CLASIFICADO") {
+    return "Tu paquete ya fue organizado según su ruta logística y sigue avanzando.";
+  }
+
+  if (normalized === "DESAGRUPE") {
+    return "Tu paquete se encuentra en una fase de separación y preparación para continuar el proceso.";
+  }
+
+  if (normalized === "DESPACHO") {
+    return "Tu paquete continúa avanzando dentro del proceso logístico y ya superó la etapa inicial.";
+  }
+
+  if (normalized === "EMBARCADO") {
+    return "Tu paquete ya fue embarcado y sigue avanzando en su recorrido logístico.";
+  }
+
+  if (normalized === "EN TRANSITO") {
+    return "Tu paquete se encuentra en tránsito y continúa moviéndose dentro del proceso estimado.";
+  }
+
+  if (normalized === "CLASIFICADO PARA ENTREGA") {
+    return "Tu paquete ya está en una etapa avanzada y acercándose a la fase final.";
+  }
+
+  if (normalized === "DISTRIBUCION") {
+    return "Tu paquete se encuentra en distribución y próximo a completar su recorrido.";
+  }
+
+  if (normalized === "PROCESO AVANZADO") {
+    return "Tu paquete ha superado la ventana inicial estimada y sigue dentro del proceso logístico.";
+  }
+
+  return customDescription || `Han transcurrido ${days} días desde el registro y el paquete continúa avanzando dentro del proceso logístico.`;
+}
+
+function buildCPKReply(cpkNumber, record) {
+  const days = daysBetween(record.fecha);
+  const estimated = getEstimatedStage(days);
+  const finalStatus = mergeRealAndEstimated(record.estado, estimated.estado);
+  const explanation = getExplanationByStatus(finalStatus, record.descripcion, days);
+
+  return [
+    `CPK: ${cpkNumber}`,
+    `Estado actual: ${finalStatus}`,
+    `Fecha de referencia: ${record.fecha}`,
+    `Días transcurridos: ${days}`,
+    ``,
+    explanation,
+    ``,
+    `Orientación automática: este estado se calcula con base en la fecha registrada y el avance lógico estimado del proceso.`
+  ].join("\n");
+}
+
+// =====================================================
+// CHAT
+// =====================================================
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
@@ -53,7 +238,7 @@ app.post("/chat", async (req, res) => {
       const item = CPK_DB[posibleCPK];
 
       return res.json({
-        reply: `Estado: ${item.estado}\n\n${item.descripcion}`
+        reply: buildCPKReply(posibleCPK, item)
       });
     }
 
@@ -104,12 +289,15 @@ EN AGENCIA = paquete recibido
 CLASIFICADO = organizado por ruta
 DESAGRUPE = separado del contenedor
 DESPACHO = en tránsito
+EMBARCADO = avance dentro del flujo principal
+EN TRÁNSITO = recorrido logístico en proceso
+CLASIFICADO PARA ENTREGA = fase avanzada
 DISTRIBUCIÓN = en camino final
 ENTREGADO = finalizado
 
 Tiempo estimado: 18 a 30 días
 
-Si el cliente pregunta por un CPK y no aparece en la base de datos, indícale con respeto que en este momento ese número no está disponible en el sistema y que revise si lo escribió correctamente.
+Si el cliente pregunta por un CPK y no aparece en el sistema, indícale con respeto que ese número no está disponible en este momento y que revise si lo escribió correctamente.
 `
           },
           {
