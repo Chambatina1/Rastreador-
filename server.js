@@ -1,176 +1,120 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Rastreador Chambatina</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0e0e0e;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
+const app = express();
 
-    .wrap {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
-    }
+app.use(cors());
+app.use(express.json());
 
-    .card {
-      background: #1a1a1a;
-      border-radius: 16px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    h1 {
-      text-align: center;
-      color: orange;
-    }
+const CPK_DB = {
+  "260443": {
+    fecha: "2026-03-26",
+    estado: "EN AGENCIA",
+    descripcion: "Tu paquete fue recibido y ya está en agencia."
+  }
+};
 
-    input {
-      width: 80%;
-      padding: 14px;
-      border-radius: 10px;
-      border: 2px solid #333;
-      background: #111;
-      color: #fff;
-      font-size: 16px;
-    }
+app.get("/api/rastreo/:cpk", (req, res) => {
+  const cpk = String(req.params.cpk || "").replace(/\D/g, "");
+  const data = CPK_DB[cpk];
 
-    button {
-      padding: 14px 20px;
-      border-radius: 10px;
-      border: none;
-      background: orange;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-
-    #resultado {
-      margin-top: 20px;
-      font-size: 18px;
-      padding: 15px;
-      background: #111;
-      border-radius: 10px;
-      border: 1px solid #333;
-    }
-
-    .ok {
-      color: #00ff88;
-    }
-
-    .error {
-      color: #ff4d4d;
-    }
-
-    .info h2 {
-      color: orange;
-    }
-
-    .info p {
-      margin: 6px 0;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="wrap">
-
-  <!-- BUSCADOR -->
-  <div class="card">
-    <h1>Rastreador Chambatina</h1>
-
-    <input id="cpk" placeholder="Ejemplo: 260443">
-    <button onclick="buscar()">Buscar</button>
-
-    <div id="resultado"></div>
-  </div>
-
-  <!-- INFORMACIÓN -->
-  <div class="card info">
-    <h2>Información de Servicios</h2>
-
-    <p>Precio por libra: $1.99</p>
-    <p>Compras por nuestros links: $1.80 por libra</p>
-    <p>Recogida en puerta: $2.30 por libra</p>
-    <p>Fee / arancel: entre $15 y $35 según el equipo</p>
-
-    <br>
-
-    <strong>Cajas:</strong>
-    <p>12x12x12 hasta 60 lb → $45</p>
-    <p>15x15x15 hasta 100 lb → $65</p>
-    <p>16x16x16 hasta 100 lb → $85</p>
-
-    <br>
-
-    <strong>Equipos pesados:</strong>
-    <p>15 a 35 lb → fee adicional</p>
-    <p>Más de 200 lb → $45 adicional</p>
-
-    <br>
-
-    <strong>Tiempo estimado:</strong>
-    <p>18 a 30 días una vez embarcado</p>
-
-    <br>
-
-    <strong>Productos:</strong>
-    <p>Baterías, inversores, sistemas solares y más</p>
-  </div>
-
-</div>
-
-<script>
-async function buscar() {
-  const cpk = document.getElementById("cpk").value.trim();
-  const resultado = document.getElementById("resultado");
-
-  if (!cpk) {
-    resultado.innerHTML = "<span class='error'>Escribe un número válido.</span>";
-    return;
+  if (!data) {
+    return res.json({
+      ok: false,
+      mensaje: "No se encontró el CPK"
+    });
   }
 
-  resultado.innerHTML = "Buscando...";
+  return res.json({
+    ok: true,
+    cpk,
+    estado: data.estado,
+    descripcion: data.descripcion
+  });
+});
 
+app.post("/api/chat", async (req, res) => {
   try {
-    const url = `https://rastreador-tj5b.onrender.com/api/rastreo/${encodeURIComponent(cpk)}`;
-    const res = await fetch(url);
+    const mensaje = req.body?.mensaje?.trim();
 
-    if (!res.ok) {
-      resultado.innerHTML = "<span class='error'>Error del servidor.</span>";
-      return;
+    if (!mensaje) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Falta el mensaje"
+      });
     }
 
-    const data = await res.json();
+    const promptSistema = `
+Eres el asistente de Chambatina.
+Responde en español, claro y profesional.
+Debes ayudar con:
+- precios por libra
+- cajas
+- tiempo estimado
+- equipos
+- rastreo básico
+Precios base:
+- Libra general: 1.99
+- Recogida en puerta: 2.30
+- Compras por links de TikTok: 1.80
+- Caja 12x12x12 hasta 60 lb: 45
+- Caja 15x15x15 hasta 100 lb: 65
+- Caja 16x16x16 hasta 100 lb: 85
+- Equipos de 15 a 35 tienen adicional
+- Equipos de más de 200 lb: adicional de 45
+`;
 
-    if (!data.ok) {
-      resultado.innerHTML = "<span class='error'>No se encontró el paquete.</span>";
-      return;
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: promptSistema },
+          { role: "user", content: mensaje }
+        ],
+        temperature: 0.4
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Error OpenAI:", data);
+      return res.status(500).json({
+        ok: false,
+        mensaje: "Error consultando la IA"
+      });
     }
 
-    resultado.innerHTML = `
-      <span class="ok">
-        Estado: ${data.estado}<br><br>
-        ${data.descripcion}
-      </span>
-    `;
+    const texto = data.choices?.[0]?.message?.content || "No hubo respuesta.";
 
-  } catch (err) {
-    resultado.innerHTML = "<span class='error'>No hay conexión con el servidor.</span>";
-    console.error(err);
+    return res.json({
+      ok: true,
+      respuesta: texto
+    });
+  } catch (error) {
+    console.error("Error en /api/chat:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
+    });
   }
-}
-</script>
+});
 
-</body>
-</html>
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log("Servidor corriendo en puerto", PORT);
+});
