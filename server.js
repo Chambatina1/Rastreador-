@@ -12,20 +12,19 @@ app.use(cors({
 app.use(express.json({ limit: "2mb" }));
 
 // Espacio interno para pegar información de rastreo sin organizar.
-// No es público. Puedes cortar y pegar aquí texto bruto cuando quieras.
-// Por ahora no rompe tu lógica actual; la base activa sigue siendo CPK_DB.
 const RAW_TRACKING_SOURCE = `
 PEGUE AQUÍ SU INFORMACIÓN DE RASTREO SIN ORGANIZAR
 Ejemplo:
-CHAMBATINA MIAMI	GEO MIA		CPK-0255140	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10915	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	42.7	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255137	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	34.9	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255136	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10917	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	19.6	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255135	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	JUEGO DE HERRAMIENTAS DE MANO	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	20	0.579	0	0	0	CPK-0260443 EN AGENCIA 2026-03-26 Tu paquete fue recibido...
+CHAMBATINA MIAMI	GEO MIA		CPK-0255140	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10915	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	42.7	0.579	0.5	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0255137	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	34.9	0.579	0.5	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0255136	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10917	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	19.6	0.579	0.5	0	0
+CHAMBATINA MIAMI	GEO MIA		CPK-0255135	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	JUEGO DE HERRAMIENTAS DE MANO	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	20	0.579	0	0	0
+CPK-0260443 EN AGENCIA 2026-03-26 Tu paquete fue recibido...
 CPK-0259844 EN AGENCIA 2026-03-24 En proceso interno...
 `;
 
-// Base activa de rastreo
+// Base manual fija
 const CPK_DB = {
   "260443": {
     fecha: "2026-03-26",
@@ -38,6 +37,143 @@ const CPK_DB = {
     descripcion: "Tu paquete fue recibido y se encuentra en proceso interno."
   }
 };
+
+function normalizarCPK(raw) {
+  const soloNumeros = String(raw || "").replace(/\D/g, "");
+  if (!soloNumeros) return "";
+  return soloNumeros.replace(/^0+/, "") || soloNumeros;
+}
+
+function descripcionPorEstado(estado) {
+  const e = String(estado || "").toUpperCase().trim();
+
+  if (e === "EN AGENCIA") {
+    return "Tu paquete fue recibido y ya está en agencia.";
+  }
+  if (e === "EN DISTRIBUCION" || e === "EN DISTRIBUCIÓN") {
+    return "Tu paquete se encuentra en distribución.";
+  }
+  if (e === "ENTREGADO") {
+    return "Tu paquete fue entregado.";
+  }
+  if (e === "EN ALMACEN" || e === "EN ALMACÉN") {
+    return "Tu paquete se encuentra en almacén.";
+  }
+  if (e === "DESPACHO") {
+    return "Tu paquete se encuentra en despacho.";
+  }
+  if (e === "CLASIFICADO") {
+    return "Tu paquete fue clasificado y continúa su proceso logístico.";
+  }
+  if (e === "ARRIBO") {
+    return "Tu paquete arribó y sigue su proceso logístico.";
+  }
+  if (e === "CANAL ROJO") {
+    return "Tu paquete está en revisión logística.";
+  }
+
+  return "Tu paquete se encuentra en proceso logístico.";
+}
+
+function extraerEstado(linea) {
+  const estadosOrdenados = [
+    "EN DISTRIBUCION",
+    "EN DISTRIBUCIÓN",
+    "EN AGENCIA",
+    "EN ALMACEN",
+    "EN ALMACÉN",
+    "CANAL ROJO",
+    "CLASIFICADO",
+    "DESPACHO",
+    "ENTREGADO",
+    "ARRIBO"
+  ];
+
+  const upper = String(linea || "").toUpperCase();
+
+  for (const estado of estadosOrdenados) {
+    if (upper.includes(estado)) {
+      return estado;
+    }
+  }
+
+  return "EN PROCESO";
+}
+
+function limpiarDescripcion(texto) {
+  return String(texto || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseRawTrackingSource(rawText) {
+  const result = {};
+  const lines = String(rawText || "")
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const upper = line.toUpperCase();
+
+    if (
+      upper.includes("PEGUE AQUÍ") ||
+      upper.includes("EJEMPLO:")
+    ) {
+      continue;
+    }
+
+    const cpkMatch = line.match(/CPK[-\s]?0*([0-9]{5,})/i);
+    if (!cpkMatch) continue;
+
+    const cpk = normalizarCPK(cpkMatch[1]);
+    if (!cpk) continue;
+
+    const fechaMatch = line.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+    const fecha = fechaMatch ? fechaMatch[1] : "";
+
+    const estado = extraerEstado(line);
+
+    let descripcion = "";
+
+    if (fecha) {
+      const partes = line.split(fecha);
+      descripcion = limpiarDescripcion(partes.slice(1).join(" "));
+    }
+
+    if (!descripcion) {
+      const estadoIndex = upper.indexOf(estado);
+      if (estadoIndex >= 0) {
+        descripcion = limpiarDescripcion(line.slice(estadoIndex + estado.length));
+      }
+    }
+
+    if (!descripcion) {
+      descripcion = descripcionPorEstado(estado);
+    }
+
+    result[cpk] = {
+      fecha,
+      estado,
+      descripcion
+    };
+  }
+
+  return result;
+}
+
+function buildTrackingDb() {
+  const rawParsed = parseRawTrackingSource(RAW_TRACKING_SOURCE);
+
+  return {
+    ...rawParsed,
+    ...CPK_DB
+  };
+}
+
+function getActiveTrackingDb() {
+  return buildTrackingDb();
+}
 
 const BUSINESS_CONTEXT = `
 Eres el asistente oficial de Chambatina.
@@ -111,13 +247,22 @@ COMPORTAMIENTO DEL CHAT
 `;
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true });
+  const rawParsed = parseRawTrackingSource(RAW_TRACKING_SOURCE);
+  const activeDb = getActiveTrackingDb();
+
+  res.json({
+    ok: true,
+    rastreosManuales: Object.keys(CPK_DB).length,
+    rastreosRaw: Object.keys(rawParsed).length,
+    rastreosActivos: Object.keys(activeDb).length
+  });
 });
 
 app.get("/api/rastreo/:cpk", (req, res) => {
   try {
-    const cpk = String(req.params.cpk || "").replace(/\D/g, "");
-    const data = CPK_DB[cpk];
+    const activeDb = getActiveTrackingDb();
+    const cpk = normalizarCPK(req.params.cpk || "");
+    const data = activeDb[cpk];
 
     if (!data) {
       return res.json({
@@ -129,9 +274,9 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     return res.json({
       ok: true,
       cpk,
-      fecha: data.fecha,
-      estado: data.estado,
-      descripcion: data.descripcion
+      fecha: data.fecha || "",
+      estado: data.estado || "EN PROCESO",
+      descripcion: data.descripcion || "Tu paquete se encuentra en proceso logístico."
     });
   } catch (error) {
     console.error("Error en /api/rastreo:", error);
