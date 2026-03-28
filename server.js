@@ -11,512 +11,205 @@ app.get("/", (req, res) => {
 });
 
 // =====================================================
-// 
-// AQUI PEGAS TUS CPK MANUALMENTE EN ESTE FORMATO
+// PEGA AQUI TU TEXTO BRUTO TAL COMO SALE DEL SISTEMA
+// PUEDES PEGARLO DESORGANIZADO
 // =====================================================
-const CPK_DB = {
-  "260443": {
-    fecha: "2026-03-26",
-    estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido y ya está en agencia."
-  },
-
-  "260440": {
-    fecha: "2026-03-26",
-    estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido y ya se encuentra en agencia."
-  },
-
-  "259847": {
-    fecha: "2026-03-24",
-    estado: "EN AGENCIA",
-    descripcion: "Tu paquete ya está en agencia y debidamente registrado."
-  },
-
-  "259844": {
-    fecha: "2026-03-24",
-    estado: "EN AGENCIA",
-    descripcion: "Tu paquete fue recibido en agencia y está preparado para continuar."
-  }
-};
+const RAW_DATA = `
+CHAMBATINA MIAMI	GEO MIA		CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	DIANARA CORREA SANCHEZ
+CHAMBATINA MIAMI	GEO MIA		CPK-0260440	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	YISEL LOPEZ ALVAREZ
+CHAMBATINA MIAMI	GEO MIA		CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-24	CLIENTE EJEMPLO
+CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-24	CLIENTE EJEMPLO 2
+`;
 
 // =====================================================
-// BASE DE DATOS DE PRECIOS CHAMBATINA
+// PRECIOS CHAMBATINA
 // =====================================================
 const PRECIOS = {
-  general: {
-    bicicletaNinoSinEmpacar: 25,
-    bicicletaNinoEmpacada: 15,
-    bicicletaAdultoSinEmpacar: 45,
-    bicicletaAdultoEmpacada: 25,
-    bicicletaElectricaEnCaja: 35,
-    bicicletaElectricaSinCaja: 50,
-    colchonHasta50: 15,
-    colchonMas50: 40,
-    ollasPequenas: 12,
-    ollaArroceraMultifuncional: 22,
-    manejoGeneral: 25,
-    equiposMas200: 45,
-    retractiladoEmpacado: 35,
-    retractiladoSinEmpacar: 50,
-    retractiladoExterno: "Cargo variable"
-  },
-
-  solar: {
-    inversores: {
-      "6.5kw": { equipo: 988, envio: 145, total: 1133 },
-      "10kw": { equipo: 1254, envio: 178, total: 1432 },
-      "12kw": { equipo: 2146, envio: 257, total: 2403 }
-    },
-    baterias: {
-      "5kwh": { equipo: 886, envio: 352, total: 1238 },
-      "10kwh": { equipo: 1651, envio: 536, total: 2187 },
-      "16kwh": { equipo: 1825, envio: 696, total: 2521 }
-    }
-  }
+  libraGeneral: 1.99,
+  libraPuertaCasa: 2.30,
+  libraTikTok: 1.80,
+  feeManejoSeguroArancelTransporte: 10,
+  equipos15a35: "15 a 35",
+  equiposMas200Lb: 45,
+  caja12: { medida: "12x12x12", maxLb: 60, precio: 45 },
+  caja15: { medida: "15x15x15", maxLb: 100, precio: 65 },
+  caja16: { medida: "16x16x16", maxLb: 100, precio: 85 }
 };
 
-// =====================================================
-// FUNCIONES DE APOYO
-// =====================================================
-function parseDateLocal(dateStr) {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
+function limpiarCodigo(valor = "") {
+  return String(valor).replace(/\D/g, "").replace(/^0+/, "");
 }
 
-function daysBetween(startDateStr) {
-  const start = parseDateLocal(startDateStr);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diffMs = today - start;
-  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+function extraerEstado(linea = "") {
+  const estados = [
+    "ENTREGADO",
+    "EN DISTRIBUCION",
+    "EN DISTRIBUCIÓN",
+    "DISTRIBUCION",
+    "DISTRIBUCIÓN",
+    "DESPACHO",
+    "DESAGRUPE",
+    "CLASIFICADO",
+    "EN AGENCIA",
+    "EN ALMACEN",
+    "EN ALMACÉN",
+    "ARRIBO",
+    "CANAL ROJO"
+  ];
+
+  const lineaUpper = linea.toUpperCase();
+
+  for (const estado of estados) {
+    if (lineaUpper.includes(estado)) return estado;
+  }
+
+  return "EN PROCESO";
 }
 
-function normalizeStatus(status) {
-  return (status || "")
-    .toUpperCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
+function extraerFecha(linea = "") {
+  const match = linea.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  return match ? match[1] : "";
 }
 
-function getEstimatedStage(days) {
-  if (days <= 2) {
-    return {
-      estado: "EN AGENCIA",
-      detalle: "Tu paquete fue recibido y se encuentra en la etapa inicial del proceso logístico."
+function generarDescripcion(estado) {
+  switch (estado) {
+    case "EN AGENCIA":
+      return "Tu paquete fue recibido y ya se encuentra en agencia.";
+    case "EN ALMACEN":
+    case "EN ALMACÉN":
+      return "Tu paquete se encuentra en almacén en proceso logístico.";
+    case "CLASIFICADO":
+      return "Tu paquete ya fue identificado y organizado para su ruta correspondiente.";
+    case "DESAGRUPE":
+      return "Tu paquete está siendo separado del contenedor para continuar el proceso.";
+    case "DESPACHO":
+      return "Tu paquete está saliendo del área aduanal para avanzar en la logística.";
+    case "EN DISTRIBUCION":
+    case "EN DISTRIBUCIÓN":
+    case "DISTRIBUCION":
+    case "DISTRIBUCIÓN":
+      return "Tu paquete está en distribución hacia su zona de destino.";
+    case "ARRIBO":
+      return "Tu paquete ya arribó y continúa el proceso interno.";
+    case "CANAL ROJO":
+      return "Tu paquete está en revisión logística especial antes de continuar.";
+    case "ENTREGADO":
+      return "Tu paquete fue entregado correctamente.";
+    default:
+      return "Tu paquete continúa en proceso logístico.";
+  }
+}
+
+function construirBaseDesdeTexto(rawText = "") {
+  const db = {};
+  const lineas = rawText
+    .split("\n")
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  for (const linea of lineas) {
+    const cpkMatch = linea.match(/CPK[-\s]*0*(\d+)/i);
+    if (!cpkMatch) continue;
+
+    const codigo = limpiarCodigo(cpkMatch[1]);
+    if (!codigo) continue;
+
+    const estado = extraerEstado(linea);
+    const fecha = extraerFecha(linea);
+    const descripcion = generarDescripcion(estado);
+
+    db[codigo] = {
+      fecha,
+      estado,
+      descripcion
     };
   }
 
-  if (days <= 5) {
-    return {
-      estado: "CLASIFICADO",
-      detalle: "Tu paquete ya fue organizado según su ruta y continúa avanzando dentro del proceso logístico."
-    };
-  }
-
-  if (days <= 8) {
-    return {
-      estado: "DESPACHO",
-      detalle: "Tu paquete continúa su recorrido interno y avanza hacia la siguiente fase logística."
-    };
-  }
-
-  if (days <= 12) {
-    return {
-      estado: "EMBARCADO",
-      detalle: "Tu paquete ya salió dentro del flujo principal del proceso y sigue avanzando."
-    };
-  }
-
-  if (days <= 18) {
-    return {
-      estado: "EN TRANSITO",
-      detalle: "Tu paquete se encuentra en tránsito dentro de su recorrido logístico estimado."
-    };
-  }
-
-  if (days <= 24) {
-    return {
-      estado: "CLASIFICADO PARA ENTREGA",
-      detalle: "Tu paquete ya está en una etapa avanzada y acercándose a la fase final de distribución."
-    };
-  }
-
-  if (days <= 30) {
-    return {
-      estado: "DISTRIBUCION",
-      detalle: "Tu paquete se encuentra en una fase final del proceso logístico y próximo a su entrega."
-    };
-  }
-
-  return {
-    estado: "PROCESO AVANZADO",
-    detalle: "Tu paquete ha superado el tiempo estimado inicial y continúa dentro del proceso logístico."
-  };
+  return db;
 }
 
-function getPriority(status) {
-  const map = {
-    "EN AGENCIA": 1,
-    "CLASIFICADO": 2,
-    "DESAGRUPE": 3,
-    "DESPACHO": 4,
-    "DESPACHADO": 5,
-    "EMBARCADO": 6,
-    "EN TRANSITO": 7,
-    "CLASIFICADO PARA ENTREGA": 8,
-    "DISTRIBUCION": 9,
-    "EN ALMACEN": 9,
-    "ENTREGADO": 10,
-    "DEVUELTO": 10,
-    "PROCESO AVANZADO": 11
-  };
-
-  const normalized = normalizeStatus(status);
-
-  if (normalized.startsWith("EN DISTRIBUCION")) return 9;
-  if (normalized.startsWith("EN TRANSITO")) return 7;
-  if (normalized.startsWith("EN ALMACEN")) return 9;
-
-  return map[normalized] || 0;
+function diasTranscurridos(fechaStr) {
+  if (!fechaStr) return 0;
+  const inicio = new Date(fechaStr + "T00:00:00");
+  const hoy = new Date();
+  const ms = hoy - inicio;
+  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
 }
 
-function mergeRealAndEstimated(realStatus, estimatedStatus) {
-  const realPriority = getPriority(realStatus);
-  const estimatedPriority = getPriority(estimatedStatus);
+function mensajePorEstadoYTiempo(estado, dias) {
+  if (estado === "ENTREGADO") {
+    return "Entrega finalizada. Si desea, puede grabar un video de su experiencia con Chambatina.";
+  }
 
-  if (!realStatus) return estimatedStatus;
-  if (realPriority >= estimatedPriority) return realStatus;
-  return estimatedStatus;
+  if (estado === "EN AGENCIA") {
+    if (dias <= 3) return "Su paquete fue recibido y está iniciando el proceso logístico.";
+    if (dias <= 6) return "Su paquete continúa en agencia, siendo preparado para los siguientes movimientos.";
+    if (dias <= 9) return "Su paquete sigue avanzando en el flujo interno de organización.";
+    return "Su paquete permanece en proceso y continúa su curso logístico normal.";
+  }
+
+  if (estado === "CLASIFICADO") {
+    if (dias <= 3) return "Su paquete ya fue clasificado por ruta y destino.";
+    if (dias <= 6) return "La clasificación fue realizada y continúa el paso siguiente de logística.";
+    return "Su paquete sigue su avance luego de ser clasificado.";
+  }
+
+  if (estado === "DESAGRUPE") {
+    if (dias <= 3) return "Su paquete está siendo separado del contenedor para continuar.";
+    if (dias <= 6) return "El proceso de desagrupación sigue avanzando con normalidad.";
+    return "Su paquete continúa luego del proceso de separación logística.";
+  }
+
+  if (estado === "DESPACHO") {
+    if (dias <= 3) return "Su paquete está en salida desde el área correspondiente.";
+    if (dias <= 6) return "El despacho continúa avanzando dentro del proceso.";
+    return "Su paquete sigue su curso luego del despacho.";
+  }
+
+  if (
+    estado === "EN DISTRIBUCION" ||
+    estado === "EN DISTRIBUCIÓN" ||
+    estado === "DISTRIBUCION" ||
+    estado === "DISTRIBUCIÓN"
+  ) {
+    if (dias <= 3) return "Su paquete está siendo movido hacia el área de entrega.";
+    if (dias <= 6) return "La distribución continúa según la logística de la zona.";
+    return "Su paquete sigue en la etapa final de distribución.";
+  }
+
+  return "Su paquete continúa en proceso logístico.";
 }
 
-function getExplanationByStatus(status, customDescription, days) {
-  const normalized = normalizeStatus(status);
+app.get("/api/rastreo/:codigo", (req, res) => {
+  const DB = construirBaseDesdeTexto(RAW_DATA);
+  const codigo = limpiarCodigo(req.params.codigo);
+  const paquete = DB[codigo];
 
-  if (normalized === "ENTREGADO") {
-    return "Tu paquete figura como entregado correctamente.";
-  }
-
-  if (normalized === "DEVUELTO") {
-    return "Tu paquete figura como devuelto en el sistema.";
-  }
-
-  if (normalized === "EN AGENCIA") {
-    return customDescription || "Tu paquete fue recibido y está en agencia, listo para continuar su proceso.";
-  }
-
-  if (normalized === "CLASIFICADO") {
-    return "Tu paquete ya fue organizado según su ruta logística y sigue avanzando.";
-  }
-
-  if (normalized === "DESAGRUPE") {
-    return "Tu paquete se encuentra en una fase de separación y preparación para continuar el proceso.";
-  }
-
-  if (normalized === "DESPACHO" || normalized === "DESPACHADO") {
-    return "Tu paquete ya fue despachado y continúa avanzando dentro del proceso logístico.";
-  }
-
-  if (normalized === "EMBARCADO") {
-    return "Tu paquete ya fue embarcado y sigue avanzando en su recorrido logístico.";
-  }
-
-  if (normalized.startsWith("EN TRANSITO")) {
-    return "Tu paquete se encuentra en tránsito y continúa moviéndose dentro del proceso estimado.";
-  }
-
-  if (normalized.startsWith("EN ALMACEN")) {
-    return "Tu paquete se encuentra en almacén dentro de una etapa avanzada del proceso logístico.";
-  }
-
-  if (normalized.startsWith("EN DISTRIBUCION") || normalized === "DISTRIBUCION") {
-    return "Tu paquete se encuentra en distribución y próximo a completar su recorrido.";
-  }
-
-  if (normalized === "CLASIFICADO PARA ENTREGA") {
-    return "Tu paquete ya está en una etapa avanzada y acercándose a la fase final.";
-  }
-
-  if (normalized === "PROCESO AVANZADO") {
-    return "Tu paquete ha superado la ventana inicial estimada y sigue dentro del proceso logístico.";
-  }
-
-  return customDescription || `Han transcurrido ${days} días desde el registro y el paquete continúa avanzando dentro del proceso logístico.`;
-}
-
-function buildCPKReply(cpkNumber, record) {
-  const days = daysBetween(record.fecha);
-  const estimated = getEstimatedStage(days);
-  const finalStatus = mergeRealAndEstimated(record.estado, estimated.estado);
-  const explanation = getExplanationByStatus(finalStatus, record.descripcion, days);
-
-  return [
-    `CPK: ${cpkNumber}`,
-    `Estado actual: ${finalStatus}`,
-    `Fecha de referencia: ${record.fecha}`,
-    `Días transcurridos: ${days}`,
-    ``,
-    explanation,
-    ``,
-    `Avance lógico estimado del proceso.`
-  ].join("\n");
-}
-
-function buildGeneralPriceReply() {
-  return [
-    "Tabla general de precios Chambatina:",
-    "",
-    `Bicicleta niño sin empacar: $${PRECIOS.general.bicicletaNinoSinEmpacar}`,
-    `Bicicleta niño empacada: $${PRECIOS.general.bicicletaNinoEmpacada}`,
-    `Bicicleta adulto sin empacar: $${PRECIOS.general.bicicletaAdultoSinEmpacar}`,
-    `Bicicleta adulto empacada: $${PRECIOS.general.bicicletaAdultoEmpacada}`,
-    `Bicicleta eléctrica en caja: $${PRECIOS.general.bicicletaElectricaEnCaja}`,
-    `Bicicleta eléctrica sin caja: $${PRECIOS.general.bicicletaElectricaSinCaja}`,
-    `Colchones hasta 50 lb: $${PRECIOS.general.colchonHasta50}`,
-    `Colchones más de 50 lb: $${PRECIOS.general.colchonMas50} total`,
-    `Ollas pequeñas: $${PRECIOS.general.ollasPequenas}`,
-    `Olla arrocera / multifuncional: $${PRECIOS.general.ollaArroceraMultifuncional}`,
-    `Manejo general: $${PRECIOS.general.manejoGeneral}`,
-    `Equipos +200 lb: $${PRECIOS.general.equiposMas200}`,
-    `Equipos con retractilado empacados: $${PRECIOS.general.retractiladoEmpacado}`,
-    `Equipos con retractilado sin empacar: $${PRECIOS.general.retractiladoSinEmpacar}`,
-    `Retractilado externo: ${PRECIOS.general.retractiladoExterno}`
-  ].join("\n");
-}
-
-function buildSolarReply() {
-  return [
-    "Tabla de precios solar Chambatina:",
-    "",
-    "Inversores:",
-    `6.5 kW → Equipo: $${PRECIOS.solar.inversores["6.5kw"].equipo} | Envío: $${PRECIOS.solar.inversores["6.5kw"].envio} | Total: $${PRECIOS.solar.inversores["6.5kw"].total}`,
-    `10 kW → Equipo: $${PRECIOS.solar.inversores["10kw"].equipo} | Envío: $${PRECIOS.solar.inversores["10kw"].envio} | Total: $${PRECIOS.solar.inversores["10kw"].total}`,
-    `12 kW → Equipo: $${PRECIOS.solar.inversores["12kw"].equipo} | Envío: $${PRECIOS.solar.inversores["12kw"].envio} | Total: $${PRECIOS.solar.inversores["12kw"].total}`,
-    "",
-    "Baterías:",
-    `5 kilos (≈5 kWh) → Equipo: $${PRECIOS.solar.baterias["5kwh"].equipo} | Envío: $${PRECIOS.solar.baterias["5kwh"].envio} | Total: $${PRECIOS.solar.baterias["5kwh"].total}`,
-    `10 kilos (≈10 kWh) → Equipo: $${PRECIOS.solar.baterias["10kwh"].equipo} | Envío: $${PRECIOS.solar.baterias["10kwh"].envio} | Total: $${PRECIOS.solar.baterias["10kwh"].total}`,
-    `16 kilos (≈16 kWh) → Equipo: $${PRECIOS.solar.baterias["16kwh"].equipo} | Envío: $${PRECIOS.solar.baterias["16kwh"].envio} | Total: $${PRECIOS.solar.baterias["16kwh"].total}`
-  ].join("\n");
-}
-
-// =====================================================
-// CHAT
-// =====================================================
-app.post("/chat", async (req, res) => {
-  try {
-    const userMessage = req.body.message;
-
-    if (!userMessage || typeof userMessage !== "string") {
-      return res.status(400).json({ error: "Falta el mensaje" });
-    }
-
-    const texto = userMessage.toLowerCase();
-    const posibleCPK = userMessage.replace(/\D/g, "").replace(/^0+/, "");
-
-    // CONSULTA CPK
-    if (CPK_DB[posibleCPK]) {
-      const item = CPK_DB[posibleCPK];
-
-      return res.json({
-        reply: buildCPKReply(posibleCPK, item)
-      });
-    }
-
-    // PRECIOS GENERALES
-    if (
-      texto.includes("tabla general") ||
-      texto.includes("precios generales") ||
-      (texto.includes("precio") && texto.includes("general"))
-    ) {
-      return res.json({ reply: buildGeneralPriceReply() });
-    }
-
-    if (texto.includes("bicicleta")) {
-      return res.json({
-        reply: [
-          "Precios de bicicletas:",
-          `Niño sin empacar: $${PRECIOS.general.bicicletaNinoSinEmpacar}`,
-          `Niño empacada: $${PRECIOS.general.bicicletaNinoEmpacada}`,
-          `Adulto sin empacar: $${PRECIOS.general.bicicletaAdultoSinEmpacar}`,
-          `Adulto empacada: $${PRECIOS.general.bicicletaAdultoEmpacada}`,
-          `Eléctrica en caja: $${PRECIOS.general.bicicletaElectricaEnCaja}`,
-          `Eléctrica sin caja: $${PRECIOS.general.bicicletaElectricaSinCaja}`
-        ].join("\n")
-      });
-    }
-
-    if (texto.includes("colchon")) {
-      return res.json({
-        reply: [
-          "Precios de colchones:",
-          `Hasta 50 lb: $${PRECIOS.general.colchonHasta50}`,
-          `Más de 50 lb: $${PRECIOS.general.colchonMas50} total`
-        ].join("\n")
-      });
-    }
-
-    if (texto.includes("olla")) {
-      return res.json({
-        reply: [
-          "Precios de ollas:",
-          `Ollas pequeñas: $${PRECIOS.general.ollasPequenas}`,
-          `Olla arrocera / multifuncional: $${PRECIOS.general.ollaArroceraMultifuncional}`
-        ].join("\n")
-      });
-    }
-
-    if (texto.includes("retractilado")) {
-      return res.json({
-        reply: [
-          "Precios de retractilado:",
-          `Equipos empacados: $${PRECIOS.general.retractiladoEmpacado}`,
-          `Equipos sin empacar: $${PRECIOS.general.retractiladoSinEmpacar}`,
-          `Retractilado externo: ${PRECIOS.general.retractiladoExterno}`
-        ].join("\n")
-      });
-    }
-
-    if (texto.includes("manejo general")) {
-      return res.json({
-        reply: `Manejo general: $${PRECIOS.general.manejoGeneral}`
-      });
-    }
-
-    if (texto.includes("+200") || texto.includes("200 lb")) {
-      return res.json({
-        reply: `Equipos de más de 200 lb: $${PRECIOS.general.equiposMas200}`
-      });
-    }
-
-    // PRECIOS SOLARES
-    if (
-      texto.includes("tabla solar") ||
-      texto.includes("precios solar") ||
-      texto.includes("solar")
-    ) {
-      return res.json({ reply: buildSolarReply() });
-    }
-
-    if (texto.includes("inversor 6.5") || texto.includes("6.5 kw")) {
-      const p = PRECIOS.solar.inversores["6.5kw"];
-      return res.json({
-        reply: `Inversor 6.5 kW → Equipo: $${p.equipo} | Envío: $${p.envio} | Total: $${p.total}`
-      });
-    }
-
-    if (texto.includes("inversor 10") || texto.includes("10 kw")) {
-      const p = PRECIOS.solar.inversores["10kw"];
-      return res.json({
-        reply: `Inversor 10 kW → Equipo: $${p.equipo} | Envío: $${p.envio} | Total: $${p.total}`
-      });
-    }
-
-    if (texto.includes("inversor 12") || texto.includes("12 kw")) {
-      const p = PRECIOS.solar.inversores["12kw"];
-      return res.json({
-        reply: `Inversor 12 kW → Equipo: $${p.equipo} | Envío: $${p.envio} | Total: $${p.total}`
-      });
-    }
-
-    if (texto.includes("bateria 5") || texto.includes("5 kwh") || texto.includes("5 kilos")) {
-      const p = PRECIOS.solar.baterias["5kwh"];
-      return res.json({
-        reply: `Batería 5 kilos (≈5 kWh) → Equipo: $${p.equipo} | Envío: $${p.envio} | Total: $${p.total}`
-      });
-    }
-
-    if (texto.includes("bateria 10") || texto.includes("10 kwh") || texto.includes("10 kilos")) {
-      const p = PRECIOS.solar.baterias["10kwh"];
-      return res.json({
-        reply: `Batería 10 kilos (≈10 kWh) → Equipo: $${p.equipo} | Envío: $${p.envio} | Total: $${p.total}`
-      });
-    }
-
-    if (texto.includes("bateria 16") || texto.includes("16 kwh") || texto.includes("16 kilos")) {
-      const p = PRECIOS.solar.baterias["16kwh"];
-      return res.json({
-        reply: `Batería 16 kilos (≈16 kWh) → Equipo: $${p.equipo} | Envío: $${p.envio} | Total: $${p.total}`
-      });
-    }
-
-    // FALLBACK OPENAI
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `
-Eres el asistente oficial de Chambatina.
-
-Tu función es ayudar a los clientes con:
-- Envíos
-- Rastreo de paquetes
-- Cálculo de precios
-- Equipos eléctricos
-- Precios solares
-- Información general
-
-Reglas:
-- No mencionar países
-- No inventar información
-- Explicar precios paso a paso
-- Responder claro y profesional
-- Dar seguridad al cliente
-
-Precios por libra:
-$1.99 por libra
-$2.30 si recogemos en la puerta de su casa
-$1.80 si compra por nuestros links
-
-Cargos adicionales:
-Equipos: de $15 a $35 adicionales
-Equipos de más de 200 libras: $45 adicionales
-
-Cajas:
-12x12x12 = $45 hasta 60 libras
-15x15x15 = $65 hasta 100 libras
-16x16x16 = $85 hasta 100 libras
-
-Tiempo estimado: 18 a 30 días
-
-Si el cliente pregunta por un CPK y no aparece en el sistema, indícale con respeto que ese número no está disponible en este momento y que revise si lo escribió correctamente.
-`
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
-        ]
-      })
+  if (!paquete) {
+    return res.json({
+      ok: false,
+      mensaje: "No encontramos ese código en este momento. Revíselo y vuelva a intentarlo."
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error?.message || "Error con OpenAI"
-      });
-    }
-
-    const reply = data?.choices?.[0]?.message?.content || "Sin respuesta";
-
-    res.json({ reply });
-  } catch (error) {
-    console.error("Error en /chat:", error);
-    res.status(500).json({ error: "Error en el servidor" });
   }
+
+  const dias = diasTranscurridos(paquete.fecha);
+  const explicacion = mensajePorEstadoYTiempo(paquete.estado, dias);
+
+  return res.json({
+    ok: true,
+    codigo,
+    fecha: paquete.fecha,
+    estado: paquete.estado,
+    descripcion: paquete.descripcion,
+    explicacion
+  });
+});
+
+app.get("/api/precios", (req, res) => {
+  res.json(PRECIOS);
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
