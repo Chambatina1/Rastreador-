@@ -3,75 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rastreador Chambatina</title>
+  <title>Chambatina | Rastreo y Precios</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #fff7ef, #ffe8d1);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #fff7ef, #ffe2c4);
       color: #222;
-      padding: 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #111, #2c2c2c);
+      color: #fff;
+      text-align: center;
+      padding: 50px 20px 40px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 42px;
+    }
+
+    .hero p {
+      margin: 12px auto 0;
+      max-width: 760px;
+      font-size: 18px;
+      line-height: 1.6;
+      color: #f3f3f3;
     }
 
     .contenedor {
-      width: 100%;
-      max-width: 760px;
-      background: #ffffff;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 18px 50px;
+    }
+
+    .tarjeta {
+      background: #fff;
       border-radius: 22px;
-      padding: 30px;
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
-      border: 2px solid #f2f2f2;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.10);
+      border: 1px solid #f2f2f2;
     }
 
-    .encabezado {
-      text-align: center;
-      margin-bottom: 26px;
-    }
-
-    .encabezado h1 {
-      margin: 0;
-      font-size: 34px;
+    .tarjeta h2 {
+      margin-top: 0;
+      margin-bottom: 14px;
+      font-size: 28px;
       color: #111;
     }
 
-    .encabezado p {
-      margin: 10px 0 0;
-      font-size: 16px;
-      color: #666;
-    }
-
-    .caja-busqueda {
+    .rastreo-box {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 24px;
+      margin-bottom: 14px;
     }
 
-    .caja-busqueda input {
+    .rastreo-box input {
       flex: 1;
       min-width: 240px;
-      padding: 16px 18px;
-      font-size: 17px;
+      padding: 16px;
       border: 2px solid #ddd;
       border-radius: 14px;
+      font-size: 17px;
       outline: none;
-      transition: 0.2s ease;
     }
 
-    .caja-busqueda input:focus {
+    .rastreo-box input:focus {
       border-color: #ff7a00;
-      box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.12);
+      box-shadow: 0 0 0 4px rgba(255,122,0,0.12);
     }
 
-    .caja-busqueda button {
+    .rastreo-box button {
       padding: 16px 24px;
       border: none;
       border-radius: 14px;
@@ -80,116 +87,243 @@
       font-size: 17px;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.2s ease;
     }
 
-    .caja-busqueda button:hover {
+    .rastreo-box button:hover {
       background: #e56700;
-      transform: translateY(-1px);
     }
 
     .resultado {
       display: none;
+      margin-top: 12px;
       background: #fffaf5;
       border-left: 6px solid #ff7a00;
       border-radius: 16px;
-      padding: 22px;
-      box-shadow: inset 0 0 0 1px #ffe1c2;
+      padding: 18px;
+      white-space: pre-line;
+      font-size: 17px;
+      line-height: 1.6;
     }
 
     .resultado.mostrar {
       display: block;
     }
 
-    .estado {
-      font-size: 24px;
-      font-weight: bold;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .precio-card {
+      background: linear-gradient(180deg, #fff, #fff8f2);
+      border: 1px solid #ffe2c4;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .precio-card h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
       color: #111;
-      margin-bottom: 12px;
     }
 
-    .detalle {
+    .precio-valor {
+      font-size: 30px;
+      font-weight: bold;
+      color: #ff7a00;
+      margin-bottom: 8px;
+    }
+
+    .precio-card p {
+      margin: 0;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .lista {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 1.8;
       font-size: 17px;
-      line-height: 1.6;
       color: #444;
-      white-space: pre-line;
     }
 
-    .estado-ok {
-      color: #0a7a2f;
+    .nota {
+      margin-top: 14px;
+      background: #fff8ef;
+      border: 1px solid #ffe3c1;
+      border-radius: 14px;
+      padding: 14px;
+      color: #666;
+      line-height: 1.6;
     }
 
-    .estado-alerta {
-      color: #d35400;
+    .faq-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
     }
 
-    .pie {
-      margin-top: 24px;
+    .faq-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+      color: #111;
+    }
+
+    .footer {
       text-align: center;
-      font-size: 14px;
-      color: #777;
+      color: #666;
+      font-size: 15px;
+      padding: 0 20px 35px;
     }
 
-    @media (max-width: 640px) {
-      .contenedor {
-        padding: 22px;
-      }
-
-      .encabezado h1 {
-        font-size: 28px;
-      }
-
-      .caja-busqueda {
-        flex-direction: column;
-      }
-
-      .caja-busqueda button {
-        width: 100%;
-      }
+    @media (max-width: 700px) {
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .tarjeta { padding: 18px; }
+      .tarjeta h2 { font-size: 24px; }
+      .rastreo-box { flex-direction: column; }
+      .rastreo-box button { width: 100%; }
     }
   </style>
 </head>
 <body>
+
+  <section class="hero">
+    <h1>Chambatina</h1>
+    <p>Rastree su paquete y consulte nuestros precios de envío desde una sola página.</p>
+  </section>
+
   <div class="contenedor">
-    <div class="encabezado">
-      <h1>Rastreador Chambatina</h1>
-      <p>Escriba su número CPK para consultar el estado de su paquete</p>
+
+    <div class="tarjeta">
+      <h2>Rastreo de paquetería</h2>
+
+      <div class="rastreo-box">
+        <input id="msg" type="text" placeholder="Escriba su CPK. Ejemplo: 0260443 o CPK-0260443">
+        <button onclick="enviar()">Buscar paquete</button>
+      </div>
+
+      <div id="resultado" class="resultado"></div>
+
+      <div class="nota">
+        Puede escribir el número con o sin letras. Ejemplo: <strong>0260443</strong> o <strong>CPK-0260443</strong>.
+      </div>
     </div>
 
-    <div class="caja-busqueda">
-      <input id="msg" type="text" placeholder="Ejemplo: 0260443" />
-      <button onclick="enviar()">Buscar</button>
+    <div class="tarjeta">
+      <h2>Precios por libra</h2>
+      <div class="grid">
+        <div class="precio-card">
+          <h3>Tarifa general</h3>
+          <div class="precio-valor">$1.99/lb</div>
+          <p>Más manejo, seguro, arancel y transporte según corresponda.</p>
+        </div>
+
+        <div class="precio-card">
+          <h3>Recogida en la puerta</h3>
+          <div class="precio-valor">$2.30/lb</div>
+          <p>Cuando recogemos directamente en la puerta de su casa.</p>
+        </div>
+
+        <div class="precio-card">
+          <h3>Compra por nuestros links</h3>
+          <div class="precio-valor">$1.80/lb</div>
+          <p>Tarifa preferencial si compra por nuestros enlaces recomendados.</p>
+        </div>
+      </div>
     </div>
 
-    <div id="resultado" class="resultado">
-      <div id="estado" class="estado"></div>
-      <div id="detalle" class="detalle"></div>
+    <div class="tarjeta">
+      <h2>Cargos adicionales</h2>
+      <ul class="lista">
+        <li>Equipos eléctricos: <strong>$15 a $35 adicionales</strong>.</li>
+        <li>Equipos de más de 200 libras: <strong>$45 adicionales</strong>.</li>
+      </ul>
     </div>
 
-    <div class="pie">
-      Chambatina · Seguimiento informativo de paquetería
+    <div class="tarjeta">
+      <h2>Precios de cajas</h2>
+      <div class="grid">
+        <div class="precio-card">
+          <h3>Caja 12 x 12 x 12</h3>
+          <div class="precio-valor">$45</div>
+          <p>Hasta 60 libras.</p>
+        </div>
+
+        <div class="precio-card">
+          <h3>Caja 15 x 15 x 15</h3>
+          <div class="precio-valor">$65</div>
+          <p>Hasta 100 libras.</p>
+        </div>
+
+        <div class="precio-card">
+          <h3>Caja 16 x 16 x 16</h3>
+          <div class="precio-valor">$85</div>
+          <p>Hasta 100 libras.</p>
+        </div>
+      </div>
     </div>
+
+    <div class="tarjeta">
+      <h2>Información útil</h2>
+
+      <div class="faq-item">
+        <strong>Tiempo estimado</strong>
+        El tiempo estimado suele ser de 18 a 30 días, según el movimiento logístico.
+      </div>
+
+      <div class="faq-item">
+        <strong>EN AGENCIA</strong>
+        El paquete fue recibido y está dentro del proceso logístico.
+      </div>
+
+      <div class="faq-item">
+        <strong>CLASIFICADO</strong>
+        El paquete fue organizado por ruta, provincia o destino.
+      </div>
+
+      <div class="faq-item">
+        <strong>DESAGRUPE</strong>
+        El paquete está siendo separado del contenedor para continuar el proceso.
+      </div>
+
+      <div class="faq-item">
+        <strong>DESPACHO</strong>
+        El paquete se encuentra avanzando en tránsito dentro del proceso.
+      </div>
+
+      <div class="faq-item">
+        <strong>DISTRIBUCIÓN</strong>
+        El paquete va en camino hacia su fase final de entrega.
+      </div>
+
+      <div class="faq-item" style="border-bottom:none;">
+        <strong>ENTREGADO</strong>
+        El proceso finalizó y el paquete ya fue entregado.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Chambatina · Rastreo y precios informativos
   </div>
 
   <script>
     async function enviar() {
       const mensaje = document.getElementById("msg").value.trim();
       const resultado = document.getElementById("resultado");
-      const estado = document.getElementById("estado");
-      const detalle = document.getElementById("detalle");
 
       if (!mensaje) {
         resultado.classList.add("mostrar");
-        estado.className = "estado estado-alerta";
-        estado.textContent = "Dato requerido";
-        detalle.textContent = "Por favor, escriba un número CPK para realizar la búsqueda.";
+        resultado.innerText = "Por favor, escriba un número CPK para consultar su paquete.";
         return;
       }
 
       resultado.classList.add("mostrar");
-      estado.className = "estado estado-alerta";
-      estado.textContent = "Consultando...";
-      detalle.textContent = "Espere un momento mientras revisamos su información.";
+      resultado.innerText = "Consultando información...";
 
       try {
         const res = await fetch("https://rastreador-tj5b.onrender.com/chat", {
@@ -202,23 +336,18 @@
 
         const data = await res.json();
 
-        const texto = data.reply || data.error || "No se recibió respuesta del servidor.";
-
-        if (texto.toUpperCase().includes("ENTREGADO")) {
-          estado.className = "estado estado-ok";
+        if (data.reply) {
+          resultado.innerText = data.reply;
+        } else if (data.error) {
+          resultado.innerText = data.error;
         } else {
-          estado.className = "estado estado-alerta";
+          resultado.innerText = "No se recibió una respuesta válida del servidor.";
         }
-
-        estado.textContent = "Resultado de la búsqueda";
-        detalle.textContent = texto;
-
       } catch (error) {
-        estado.className = "estado estado-alerta";
-        estado.textContent = "Error de conexión";
-        detalle.textContent = "No fue posible conectar con el servidor en este momento.";
+        resultado.innerText = "No fue posible conectar con el servidor en este momento.";
       }
     }
   </script>
+
 </body>
 </html>
