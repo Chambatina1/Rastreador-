@@ -1,103 +1,141 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rastreador Chambatina</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chambatina</title>
   <style>
     body{
       font-family: Arial, sans-serif;
       background:#111;
       color:#fff;
       margin:0;
-      padding:40px 20px;
+      padding:20px;
     }
-    .box{
-      max-width:800px;
+    .wrap{
+      max-width:900px;
       margin:0 auto;
+    }
+    .card{
       background:#1b1b1b;
       border-radius:16px;
-      padding:25px;
+      padding:24px;
+      margin-bottom:20px;
+      box-shadow:0 8px 25px rgba(0,0,0,.35);
     }
-    h1{
-      text-align:center;
-      color:orange;
-    }
-    .fila{
-      display:flex;
-      gap:10px;
-      margin-top:20px;
-    }
-    input{
-      flex:1;
+    h1,h2{ color:orange; }
+    input, textarea{
+      width:100%;
+      box-sizing:border-box;
       padding:14px;
-      font-size:16px;
       border-radius:10px;
       border:1px solid #444;
       background:#0f0f0f;
-      color:white;
+      color:#fff;
+      margin-top:10px;
+      margin-bottom:10px;
+      font-size:16px;
     }
     button{
-      padding:14px 20px;
-      font-size:16px;
-      font-weight:bold;
+      background:orange;
+      color:#111;
       border:none;
       border-radius:10px;
-      background:orange;
-      color:black;
+      padding:12px 18px;
+      font-size:16px;
+      font-weight:bold;
       cursor:pointer;
+      margin-right:10px;
     }
-    #resultado{
-      margin-top:20px;
-      padding:16px;
-      border-radius:10px;
+    #resultadoRastreo, #resultadoChat{
+      margin-top:15px;
       background:#101010;
       border:1px solid #333;
-      min-height:28px;
+      border-radius:10px;
+      padding:15px;
       white-space:pre-line;
+      min-height:30px;
     }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Rastreador Chambatina</h1>
-
-    <div class="fila">
-      <input id="cpk" type="text" placeholder="Ejemplo: 260443">
-      <button type="button" id="btnBuscar">Buscar</button>
+  <div class="wrap">
+    <div class="card">
+      <h1>Rastreador Chambatina</h1>
+      <input id="cpk" placeholder="Escribe tu CPK. Ejemplo: 260443" />
+      <button onclick="buscarRastreo()">Buscar paquete</button>
+      <div id="resultadoRastreo"></div>
     </div>
 
-    <div id="resultado">Escribe tu número y pulsa Buscar.</div>
+    <div class="card">
+      <h2>Chat Chambatina</h2>
+      <textarea id="mensaje" rows="5" placeholder="Pregunta sobre precios, envíos, cajas, equipos o servicios"></textarea>
+      <button onclick="preguntarIA()">Preguntar</button>
+      <div id="resultadoChat"></div>
+    </div>
   </div>
 
   <script>
-    document.getElementById("btnBuscar").addEventListener("click", async function () {
-      const cpk = document.getElementById("cpk").value.trim().replace(/\D/g, "");
-      const resultado = document.getElementById("resultado");
-
-      resultado.textContent = "Botón funcionando...";
+    async function buscarRastreo() {
+      const cpk = document.getElementById("cpk").value.trim();
+      const box = document.getElementById("resultadoRastreo");
 
       if (!cpk) {
-        resultado.textContent = "Escribe un número válido.";
+        box.textContent = "Escribe un CPK válido.";
         return;
       }
 
+      box.textContent = "Buscando...";
+
       try {
-        const url = "https://rastreador-tj5b.onrender.com/api/rastreo/" + cpk;
-        const res = await fetch(url);
+        const res = await fetch("/api/rastreo/" + encodeURIComponent(cpk));
         const data = await res.json();
 
         if (!data.ok) {
-          resultado.textContent = data.mensaje || "No se encontró el paquete.";
+          box.textContent = data.mensaje || "No se encontró el paquete.";
           return;
         }
 
-        resultado.textContent = "Estado: " + data.estado + "\n\n" + data.descripcion;
+        box.textContent = "Estado: " + data.estado + "\n\n" + data.descripcion;
       } catch (e) {
-        resultado.textContent = "Error de conexión.";
         console.error(e);
+        box.textContent = "No fue posible conectar con el servidor.";
       }
-    });
+    }
+
+    async function preguntarIA() {
+      const mensaje = document.getElementById("mensaje").value.trim();
+      const box = document.getElementById("resultadoChat");
+
+      if (!mensaje) {
+        box.textContent = "Escribe una pregunta.";
+        return;
+      }
+
+      box.textContent = "Consultando...";
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ mensaje })
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) {
+          box.textContent = data.mensaje || "No se pudo obtener respuesta.";
+          return;
+        }
+
+        box.textContent = data.respuesta;
+      } catch (e) {
+        console.error(e);
+        box.textContent = "No fue posible conectar con el servidor.";
+      }
+    }
   </script>
 </body>
 </html>
