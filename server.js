@@ -1,221 +1,188 @@
-import express from "express";
-import cors from "cors";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rastreador Chambatina</title>
 
-const app = express();
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
 
-app.use(cors());
-app.use(express.json());
+.wrap {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 20px;
+}
 
-app.get("/", (req, res) => {
-  res.send("Servidor Chambatina activo");
-});
+.card {
+  background: #1b1b1b;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+}
 
-// =====================================================
-// PEGA AQUI TU TEXTO BRUTO TAL COMO SALE DEL SISTEMA
-// PUEDES PEGARLO DESORGANIZADO
-// =====================================================
-const RAW_DATA = `
-CHAMBATINA MIAMI	GEO MIA		CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	DIANARA CORREA SANCHEZ
-CHAMBATINA MIAMI	GEO MIA		CPK-0243024	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	GANCHO PARA REMOLQUE	10344	2026-02-02	RAFAEL ANTONIO NIETO MACHINTACHE		88110631224	CALLE RAMON PAZ # 15 Rpto. MASO, BARTOLOME MASO, GRANMA	52069189	JOSE NIETO			0	0	1	16	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0243013	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10344	2026-02-02	MARIA TERESA ROJAS GONZALEZ		70112204811	CALLE VIRTUDES # 15 e/ VELEZ CAVIEDES Y OSMANI ARENADO, PINAR DEL RIO, PINAR DEL RIO	55916464	PEDRO DIAZ PAEZ			2.99	0	1	7	0.072	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242994	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10346	2026-02-02	ENEYDA MUÑOZ MONTERREY		61112722470	CALLE 30 FINAL Rpto. JOSE ANTONIO ECHEVARRIA, BAHIA HONDA, ARTEMISA	59750809	LEONIDES MERGAREJO			0	0	1	54	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242993	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10345	2026-02-02	ENEYDA MUÑOZ MONTERREY		61112722470	CALLE 30 FINAL Rpto. JOSE ANTONIO ECHEVARRIA, BAHIA HONDA, ARTEMISA	59750809	LEONIDES MERGAREJO			0	0	1	70	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242860	ENTREGADO	Sí	066(CPK-298)	DENEB/(BSIU 9724046)/(CWPS26145982)	ENVIO	MISCELANEAS	10412	2026-02-02	CARIDAD GONZALEZ CONTINO		62102505312	CALLE ENTRONQUE CENTRAL MANUEL SANGUILY, LA PALMA, PINAR DEL RIO	54883756	ADRIAN CALERO			2.99	0	1	33.7	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242849	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10345	2026-02-02	ANELIS PORRAS MUÑOZ		80101700933	CALLE 30 FINAL Rpto. JOSE ANTONIO ECHEVARRIA, BAHIA HONDA, ARTEMISA	59750809	LEONIDES MERGAREJO			0	0	1	35	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242848	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10345	2026-02-02	ANELIS PORRAS MUÑOZ		80101700933	CALLE 30 FINAL Rpto. JOSE ANTONIO ECHEVARRIA, BAHIA HONDA, ARTEMISACHAMBATINA MIAMI	GEO MIA		CPK-0260440	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	YISEL LOPEZ ALVAREZ
-CHAMBATINA MIAMI	GEO MIA		CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-24	CLIENTE EJEMPLO
-CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-24	CLIENTE EJEMPLO 2
+input {
+  width: 70%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+}
+
+button {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: orange;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.result {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #222;
+}
+
+.estado {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.ok { color: #00ff88; }
+.warn { color: orange; }
+.error { color: red; }
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+  <div class="card">
+    <h1>Rastreador Chambatina</h1>
+    <p>Ingrese su número CPK</p>
+
+    <input id="codigo" placeholder="Ej: 260443">
+    <button onclick="buscar()">Buscar</button>
+
+    <div id="resultado" class="result"></div>
+  </div>
+</div>
+
+<script>
+
+// ===============================
+// 🔒 BASE DE DATOS PRIVADA
+// (PEGA AQUÍ SIN ORDEN, COMO VIENE)
+// ===============================
+
+const DATA = `
+CPK-0260443 EN AGENCIA 2026-03-26
+CPK-0260440 EN AGENCIA 2026-03-26
+CPK-0259847 CLASIFICADO 2026-03-24
+CPK-0259557 DESPACHO 2026-03-23
 `;
 
-// =====================================================
-// PRECIOS CHAMBATINA
-// =====================================================
-const PRECIOS = {
-  libraGeneral: 1.99,
-  libraPuertaCasa: 2.30,
-  libraTikTok: 1.80,
-  feeManejoSeguroArancelTransporte: 10,
-  equipos15a35: "15 a 35",
-  equiposMas200Lb: 45,
-  caja12: { medida: "12x12x12", maxLb: 60, precio: 45 },
-  caja15: { medida: "15x15x15", maxLb: 100, precio: 65 },
-  caja16: { medida: "16x16x16", maxLb: 100, precio: 85 }
-};
+// ===============================
+// 🔧 PROCESADOR AUTOMÁTICO
+// ===============================
 
-function limpiarCodigo(valor = "") {
-  return String(valor).replace(/\D/g, "").replace(/^0+/, "");
-}
-
-function extraerEstado(linea = "") {
-  const estados = [
-    "ENTREGADO",
-    "EN DISTRIBUCION",
-    "EN DISTRIBUCIÓN",
-    "DISTRIBUCION",
-    "DISTRIBUCIÓN",
-    "DESPACHO",
-    "DESAGRUPE",
-    "CLASIFICADO",
-    "EN AGENCIA",
-    "EN ALMACEN",
-    "EN ALMACÉN",
-    "ARRIBO",
-    "CANAL ROJO"
-  ];
-
-  const lineaUpper = linea.toUpperCase();
-
-  for (const estado of estados) {
-    if (lineaUpper.includes(estado)) return estado;
-  }
-
-  return "EN PROCESO";
-}
-
-function extraerFecha(linea = "") {
-  const match = linea.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-  return match ? match[1] : "";
-}
-
-function generarDescripcion(estado) {
-  switch (estado) {
-    case "EN AGENCIA":
-      return "Tu paquete fue recibido y ya se encuentra en agencia.";
-    case "EN ALMACEN":
-    case "EN ALMACÉN":
-      return "Tu paquete se encuentra en almacén en proceso logístico.";
-    case "CLASIFICADO":
-      return "Tu paquete ya fue identificado y organizado para su ruta correspondiente.";
-    case "DESAGRUPE":
-      return "Tu paquete está siendo separado del contenedor para continuar el proceso.";
-    case "DESPACHO":
-      return "Tu paquete está saliendo del área aduanal para avanzar en la logística.";
-    case "EN DISTRIBUCION":
-    case "EN DISTRIBUCIÓN":
-    case "DISTRIBUCION":
-    case "DISTRIBUCIÓN":
-      return "Tu paquete está en distribución hacia su zona de destino.";
-    case "ARRIBO":
-      return "Tu paquete ya arribó y continúa el proceso interno.";
-    case "CANAL ROJO":
-      return "Tu paquete está en revisión logística especial antes de continuar.";
-    case "ENTREGADO":
-      return "Tu paquete fue entregado correctamente.";
-    default:
-      return "Tu paquete continúa en proceso logístico.";
-  }
-}
-
-function construirBaseDesdeTexto(rawText = "") {
+function parseData(text) {
   const db = {};
-  const lineas = rawText
-    .split("\n")
-    .map(l => l.trim())
-    .filter(Boolean);
+  const lines = text.split("\n");
 
-  for (const linea of lineas) {
-    const cpkMatch = linea.match(/CPK[-\s]*0*(\d+)/i);
-    if (!cpkMatch) continue;
+  lines.forEach(line => {
+    const clean = line.trim();
+    if (!clean) return;
 
-    const codigo = limpiarCodigo(cpkMatch[1]);
-    if (!codigo) continue;
+    const numero = clean.match(/\d+/);
+    if (!numero) return;
 
-    const estado = extraerEstado(linea);
-    const fecha = extraerFecha(linea);
-    const descripcion = generarDescripcion(estado);
+    const estadoMatch = clean.match(/EN AGENCIA|CLASIFICADO|DESPACHO|DESAGRUPE|DISTRIBUCION|ENTREGADO/i);
 
-    db[codigo] = {
-      fecha,
-      estado,
-      descripcion
+    db[numero[0]] = {
+      estado: estadoMatch ? estadoMatch[0].toUpperCase() : "PROCESANDO",
+      raw: clean
     };
-  }
+  });
 
   return db;
 }
 
-function diasTranscurridos(fechaStr) {
-  if (!fechaStr) return 0;
-  const inicio = new Date(fechaStr + "T00:00:00");
-  const hoy = new Date();
-  const ms = hoy - inicio;
-  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
-}
+const DB = parseData(DATA);
 
-function mensajePorEstadoYTiempo(estado, dias) {
-  if (estado === "ENTREGADO") {
-    return "Entrega finalizada. Si desea, puede grabar un video de su experiencia con Chambatina.";
+// ===============================
+// 🚀 BUSCADOR
+// ===============================
+
+function buscar() {
+  const codigo = document.getElementById("codigo").value.trim();
+  const resultado = document.getElementById("resultado");
+
+  if (!codigo) {
+    resultado.innerHTML = "<div class='error'>Ingrese un código válido</div>";
+    return;
   }
 
+  const data = DB[codigo];
+
+  if (!data) {
+    resultado.innerHTML = "<div class='error'>No encontrado</div>";
+    return;
+  }
+
+  const mensaje = generarMensaje(data.estado);
+
+  resultado.innerHTML = `
+    <div class="estado ok">${data.estado}</div>
+    <div>${mensaje}</div>
+  `;
+}
+
+// ===============================
+// 🧠 MENSAJES INTELIGENTES
+// ===============================
+
+function generarMensaje(estado) {
+
   if (estado === "EN AGENCIA") {
-    if (dias <= 3) return "Su paquete fue recibido y está iniciando el proceso logístico.";
-    if (dias <= 6) return "Su paquete continúa en agencia, siendo preparado para los siguientes movimientos.";
-    if (dias <= 9) return "Su paquete sigue avanzando en el flujo interno de organización.";
-    return "Su paquete permanece en proceso y continúa su curso logístico normal.";
+    return "Tu paquete fue recibido y se encuentra en nuestras instalaciones.";
   }
 
   if (estado === "CLASIFICADO") {
-    if (dias <= 3) return "Su paquete ya fue clasificado por ruta y destino.";
-    if (dias <= 6) return "La clasificación fue realizada y continúa el paso siguiente de logística.";
-    return "Su paquete sigue su avance luego de ser clasificado.";
-  }
-
-  if (estado === "DESAGRUPE") {
-    if (dias <= 3) return "Su paquete está siendo separado del contenedor para continuar.";
-    if (dias <= 6) return "El proceso de desagrupación sigue avanzando con normalidad.";
-    return "Su paquete continúa luego del proceso de separación logística.";
+    return "Tu paquete fue organizado por destino y está listo para su próximo movimiento.";
   }
 
   if (estado === "DESPACHO") {
-    if (dias <= 3) return "Su paquete está en salida desde el área correspondiente.";
-    if (dias <= 6) return "El despacho continúa avanzando dentro del proceso.";
-    return "Su paquete sigue su curso luego del despacho.";
+    return "Tu paquete está saliendo del proceso logístico.";
   }
 
-  if (
-    estado === "EN DISTRIBUCION" ||
-    estado === "EN DISTRIBUCIÓN" ||
-    estado === "DISTRIBUCION" ||
-    estado === "DISTRIBUCIÓN"
-  ) {
-    if (dias <= 3) return "Su paquete está siendo movido hacia el área de entrega.";
-    if (dias <= 6) return "La distribución continúa según la logística de la zona.";
-    return "Su paquete sigue en la etapa final de distribución.";
+  if (estado === "DESAGRUPE") {
+    return "Tu paquete está siendo separado del contenedor.";
   }
 
-  return "Su paquete continúa en proceso logístico.";
+  if (estado === "DISTRIBUCION") {
+    return "Tu paquete está en ruta final.";
+  }
+
+  if (estado === "ENTREGADO") {
+    return "Entrega completada.";
+  }
+
+  return "Tu paquete está en proceso.";
 }
 
-app.get("/api/rastreo/:codigo", (req, res) => {
-  const DB = construirBaseDesdeTexto(RAW_DATA);
-  const codigo = limpiarCodigo(req.params.codigo);
-  const paquete = DB[codigo];
+</script>
 
-  if (!paquete) {
-    return res.json({
-      ok: false,
-      mensaje: "No encontramos ese código en este momento. Revíselo y vuelva a intentarlo."
-    });
-  }
-
-  const dias = diasTranscurridos(paquete.fecha);
-  const explicacion = mensajePorEstadoYTiempo(paquete.estado, dias);
-
-  return res.json({
-    ok: true,
-    codigo,
-    fecha: paquete.fecha,
-    estado: paquete.estado,
-    descripcion: paquete.descripcion,
-    explicacion
-  });
-});
-
-app.get("/api/precios", (req, res) => {
-  res.json(PRECIOS);
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+</body>
+</html>
