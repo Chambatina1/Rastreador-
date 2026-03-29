@@ -494,6 +494,46 @@ CARGOS Y MANEJO
 - Equipos con retractilado sin empacar: 50 dólares.
 - Retractilado externo: cargo variable.
 
+TEAM CHAMBARI
+
+-El equipo de Chambari está conformado por profesionales altamente capacitados en energía renovable, electrónica y sistemas técnicos, con experiencia tanto en Estados Unidos como en el Caribe.
+
+ADDIEL HERNÁNDEZ
+Director del Área de Electrónica
+-Conocido como A2D, nombre que identifica a su compañía, es ingeniero electrónico con una sólida trayectoria técnica. Ha realizado numerosos estudios especializados en Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
+-Instala kits solares en distintos entornos, destacándose por su precisión, liderazgo técnico y capacidad para resolver proyectos complejos en tiempos eficientes. Natural de Granma, Cuba, protagonizó una travesía completa por la isla en moto eléctrica, reflejando su compromiso con la energía limpia. También es reconocido por su participación crítica en el desarrollo técnico de proyectos avanzados.
+
+RAMÓN PICHARDO
+Director de Proyecto
+-Graduado con Título de Oro en Estomatología, complementó su formación con estudios universitarios en telecomunicaciones y posgrado en Estados Unidos. Posee una combinación poco común de formación académica y experiencia técnica aplicada.
+-Se especializa en la implementación de sistemas solares, destacándose por su precisión, profesionalismo y capacidad para integrar soluciones eficientes tanto en entornos domésticos como comerciales.
+
+IVÁN PÉREZ
+Director Ejecutivo
+-Ingeniero Eléctrico con más de 18 años de experiencia en el sector de energías renovables. Cuenta con una Maestría en Energía Eólica y un amplio dominio en diseño, instalación y optimización de sistemas energéticos.
+-Ha liderado múltiples proyectos de alta complejidad, destacándose por su capacidad organizativa, ejecución técnica y enfoque en soluciones seguras, estables y eficientes.
+
+LEO CARBALLO
+Director de Innovaciones
+-Especialista en energía renovable con una destacada capacidad analítica. Se enfoca en la resolución de problemas complejos en electrónica y sistemas de energía limpia.
+-Es una pieza clave en la optimización de sistemas solares, aportando soluciones inteligentes, eficientes y técnicamente sólidas en cada proyecto.
+
+MIEMBROS ADICIONALES DEL EQUIPO
+
+JORSY LARROBURO
+-Informático especializado en energía, enfocado en la integración de tecnología y sistemas inteligentes aplicados a soluciones energéticas.
+
+INOCENCIO SÁEZ (JEY)
+-Electricista en Orlando, con nivel Master en electricidad. Especialista en instalaciones eléctricas avanzadas, aportando experiencia práctica y soluciones confiables en campo.
+
+INFLUENCERS Y EXPERTOS DIGITALES
+
+YUNIER CORONADO
+-Especialista en energía e influencer en TikTok, con amplia experiencia en equipos energéticos. Se destaca por su constante interacción con la audiencia, ofreciendo información práctica, análisis reales y retroalimentación directa de los clientes.
+
+ALMEIDA
+-Especialista en energía e influencer en TikTok, reconocido por compartir contenido educativo y experiencias reales con equipos energéticos. Su conexión con la audiencia permite entender necesidades reales del mercado y mejorar continuamente las soluciones ofrecidas.
+
 EQUIPOS DISPONIBLES EN OFICINA
 INVERSORES
 - 6.5 kW: costo equipo 988, envío 145, total 1133.
@@ -529,53 +569,6 @@ OFICINA
 - Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112.
 - Teléfono Geo: 786-942-6904.
 - Teléfono Adriana: 786-784-6421.
-TEAM CHAMBARI
-
-El equipo de Chambari está conformado por profesionales altamente capacitados en energía renovable, electrónica y sistemas técnicos, con experiencia tanto en Estados Unidos como en el Caribe.
-
-ADDIEL HERNÁNDEZ
--Director del Área de Electrónica
-
--Conocido como A2D, nombre que identifica a su compañía, es ingeniero electrónico con una sólida trayectoria técnica. Ha realizado numerosos estudios especializados en Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
-
--Instala kits solares en distintos entornos, destacándose por su precisión, liderazgo técnico y capacidad para resolver proyectos complejos en tiempos eficientes. Natural de Granma, Cuba, protagonizó una travesía completa por la isla en moto eléctrica, reflejando su compromiso con la energía limpia. También es reconocido por su participación crítica en el desarrollo técnico de proyectos avanzados.
-
-RAMÓN PICHARDO
--Director de Proyecto
-
--Graduado con Título de Oro en Estomatología, complementó su formación con estudios universitarios en telecomunicaciones y posgrado en Estados Unidos. Posee una combinación poco común de formación académica y experiencia técnica aplicada.
-
--Se especializa en la implementación de sistemas solares, destacándose por su precisión, profesionalismo y capacidad para integrar soluciones eficientes tanto en entornos domésticos como comerciales.
-
-IVÁN PÉREZ
--Director Ejecutivo
-
--Ingeniero Eléctrico con más de 18 años de experiencia en el sector de energías renovables. Cuenta con una Maestría en Energía Eólica y un amplio dominio en diseño, instalación y optimización de sistemas energéticos.
-
--Ha liderado múltiples proyectos de alta complejidad, destacándose por su capacidad organizativa, ejecución técnica y enfoque en soluciones seguras, estables y eficientes.
-
-LEO CARBALLO
--Director de Innovaciones
-
--Especialista en energía renovable con una destacada capacidad analítica. Se enfoca en la resolución de problemas complejos en electrónica y sistemas de energía limpia.
-
--Es una pieza clave en la optimización de sistemas solares, aportando soluciones inteligentes, eficientes y técnicamente sólidas en cada proyecto.
-
-MIEMBROS ADICIONALES DEL EQUIPO
-
-JORSY LARROBURO
--Informático especializado en energía, enfocado en la integración de tecnología y sistemas inteligentes aplicados a soluciones energéticas.
-
-INOCENCIO SÁEZ (JEY)
--Electricista en Orlando, con nivel Master en electricidad. Especialista en instalaciones eléctricas avanzadas, aportando experiencia práctica y soluciones confiables en campo.
-
-INFLUENCERS Y EXPERTOS DIGITALES
-
-YUNIER CORONADO
--Especialista en energía e influencer en TikTok, con amplia experiencia en equipos energéticos. Se destaca por su constante interacción con la audiencia, ofreciendo información práctica, análisis reales y retroalimentación directa de los clientes.
-
-ALMEIDA
--Especialista en energía e influencer en TikTok, reconocido por compartir contenido educativo y experiencias reales con equipos energéticos. Su conexión con la audiencia permite entender necesidades reales del mercado y mejorar continuamente las soluciones ofrecidas.
 
 PROCESO DE COMPRA POR TIKTOK O AMAZON
 - El cliente compra el producto por el link de Tiktok que le brinda la oficina.
