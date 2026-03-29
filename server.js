@@ -520,6 +520,7 @@ PROCESO DE COMPRA POR TIKTOK O AMAZON
 
 COMPORTAMIENTO DEL CHAT
 - Si preguntan por precios, responde con cifras concretas.
+- Si preguntan por precio llevando los productos a la oficina siempre es a 1.99 la libra a la casa es a 2.30 la libra.
 - Si preguntan por equipos disponibles, menciona primero los inversores y baterías de oficina.
 - Si preguntan por la oficina, da dirección y teléfonos.
 - Si preguntan cómo funciona TikTok o Amazon, explica el proceso anterior con claridad.
