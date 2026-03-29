@@ -471,6 +471,16 @@ INFORMACIÓN GENERAL DEL NEGOCIO
 - Si compran por nuestros links de TikTok: 1.80 por libra.
 - Tiempo de entrega: de 18 a 30 días hábiles.
 
+HISTORIA DE CHAMBATINA
+
+-Chambatina es un nombre creado en honor a los abuelos del fundador, Manuel Muñoz. “Chamba”, como era conocido, fue un campesino trabajador, disciplinado y respetado por su entrega al trabajo. Por su parte, Agustina López, llamada “Tina”, fue una mujer caracterizada por su dulzura, valores humanos y dedicación a su familia.
+
+-De esta unión nace el nombre Chambatina, como símbolo de esfuerzo, humildad y vocación de servicio. Una herencia familiar basada en el respeto al prójimo, la responsabilidad y el compromiso con ayudar a los demás.
+
+-Chambatina es hoy una empresa logística enfocada en la energía renovable y el traslado eficiente de mercancía desde el punto A hasta el punto B. Opera recibiendo paquetes desde todos los estados y realizando recogidas físicas en la Florida, ofreciendo soluciones prácticas, organizadas y confiables para sus clientes.
+
+-Su crecimiento se basa en principios claros: trabajo constante, servicio real y adaptación a las necesidades actuales del mercado energético y logístico.
+
 CAJAS
 - 12x12x12 hasta 60 libras: 45 dólares.
 - 15x15x15 hasta 100 libras: 65 dólares.
