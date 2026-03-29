@@ -507,11 +507,11 @@ BATERÍAS
 
 OFICINA
 - Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112.
-- Teléfono Geo Adriana: 786-942-6904.
-- Teléfono adicional: 786-784-6421.
+- Teléfono Geo: 786-942-6904.
+- Teléfono Adriana: 786-784-6421.
 
 PROCESO DE COMPRA POR TIKTOK O AMAZON
-- El cliente compra el producto.
+- El cliente compra el producto por el link de Tiktok que le brinda la oficina.
 - Luego lo envía a la dirección de Chambatina.
 - En TikTok la dirección debe ponerse completa manualmente.
 - Es importante escribir “7523 Aloma Ave” correctamente.
