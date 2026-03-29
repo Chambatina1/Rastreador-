@@ -513,7 +513,7 @@ Director Ejecutivo
 -Ingeniero Eléctrico con más de 18 años de experiencia en el sector de energías renovables. Cuenta con una Maestría en Energía Eólica y un amplio dominio en diseño, instalación y optimización de sistemas energéticos.
 -Ha liderado múltiples proyectos de alta complejidad, destacándose por su capacidad organizativa, ejecución técnica y enfoque en soluciones seguras, estables y eficientes.
 
-LEO CARBALLO
+LEO CARBALLO alias Carbo
 Director de Innovaciones
 -Especialista en energía renovable con una destacada capacidad analítica. Se enfoca en la resolución de problemas complejos en electrónica y sistemas de energía limpia.
 -Es una pieza clave en la optimización de sistemas solares, aportando soluciones inteligentes, eficientes y técnicamente sólidas en cada proyecto.
