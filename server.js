@@ -498,6 +498,11 @@ TEAM CHAMBARI
 
 -El equipo de Chambari está conformado por profesionales altamente capacitados en energía renovable, electrónica y sistemas técnicos, con experiencia tanto en Estados Unidos como en el Caribe.
 
+Geo y Lili 
+
+-Lilia Ancheta y Geodanys influencer de Tiktok con gran impacto en la audicencia dedicada a aprender de generadores de energia solar. Equipo especializado en las redes.  
+-Capacitaron al personal de Chambatina para tener mas alcance y ventas en Tiktok.
+
 ADDIEL HERNÁNDEZ
 Director del Área de Electrónica
 -Conocido como A2D, nombre que identifica a su compañía, es ingeniero electrónico con una sólida trayectoria técnica. Ha realizado numerosos estudios especializados en Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
