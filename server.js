@@ -498,15 +498,17 @@ TEAM CHAMBARI
 
 -El equipo de Chambari está conformado por profesionales altamente capacitados en energía renovable, electrónica y sistemas técnicos, con experiencia tanto en Estados Unidos como en el Caribe.
 
-Geo y Lili 
-
--Lilia Ancheta y Geodanys influencer de Tiktok con gran impacto en la audicencia dedicada a aprender de generadores de energia solar. Equipo especializado en las redes.  
--Capacitaron al personal de Chambatina para tener mas alcance y ventas en Tiktok.
-
 ADDIEL HERNÁNDEZ
 Director del Área de Electrónica
 -Conocido como A2D, nombre que identifica a su compañía, es ingeniero electrónico con una sólida trayectoria técnica. Ha realizado numerosos estudios especializados en Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
 -Instala kits solares en distintos entornos, destacándose por su precisión, liderazgo técnico y capacidad para resolver proyectos complejos en tiempos eficientes. Natural de Granma, Cuba, protagonizó una travesía completa por la isla en moto eléctrica, reflejando su compromiso con la energía limpia. También es reconocido por su participación crítica en el desarrollo técnico de proyectos avanzados.
+
+GEO Y LILI
+Equipo de Estrategia Digital e Influencia
+-Lilia Ancheta y Geodanys son influencers en TikTok con un alto impacto en la audiencia, enfocados en la educación y promoción de sistemas de energía solar y generadores. Su contenido se caracteriza por ser práctico, directo y alineado con las necesidades reales del mercado.
+-Especialistas en posicionamiento digital, han desarrollado una presencia sólida en redes, logrando interacción constante con la audiencia y generando confianza en los productos energéticos que promueven.
+-Han capacitado al personal de Chambatina en estrategias de contenido, optimización de publicaciones y técnicas de conversión en TikTok, incrementando significativamente el alcance, la visibilidad y las ventas.
+-Su enfoque combina conocimiento técnico con comunicación efectiva, permitiendo traducir conceptos complejos en contenido claro y comercialmente efectivo. Son pieza clave en la expansión digital y el crecimiento sostenido del ecosistema Chambari.
 
 RAMÓN PICHARDO
 Director de Proyecto
