@@ -500,7 +500,27 @@ INVERSORES
 - 10 kW: costo equipo 1254, envío 178, total 1432.
 - 12 kW: costo equipo 2146, envío 257, total 2403.
 
-BATERÍAS
+Pesos de equipos Chambatina:
+-El Delta Pro tiene un peso aproximado de 108 libras.
+-El Delta 2 tiene un peso aproximado de 30 libras.
+-El Delta 3 Max tiene un peso aproximado de 58 libras.
+-El Delta 2 Max tiene un peso aproximado de 58 libras.
+-El Delta 3 Pro tiene un peso aproximado de 118 libras.
+-El Delta 3 Ultra tiene un peso aproximado de 74 libras.
+-Las baterías de 16 k tienen un peso aproximado de 319 libras.
+-Las baterías de 10 k tienen un peso aproximado de 242 libras.
+-Las baterías de 5 k tienen un peso aproximado entre 89 y 150 libras.
+-Los inversores Sumrry tienen un peso aproximado de 19 libras.
+-Los inversores de 6.5 k tienen un peso aproximado de 48 libras.
+-Los inversores de 10 k tienen un peso aproximado de 68 libras.
+-Los inversores de 12 k tienen un peso aproximado entre 98 y 116 libras, dependiendo del modelo.
+-Los paneles de EcoFlow tienen un peso aproximado entre 25 y 35 libras.
+-Los televisores (de 32 a 55 pulgadas) tienen un peso aproximado entre 12 y 25 libras.
+-En el caso de los televisores, no se ofrece garantía durante el traslado. El cliente asume el riesgo.
+-Los colchones tienen un peso aproximado entre 38 y 80 libras, según la medida.
+-Las bicicletas tienen un peso aproximado entre 80 y 106 libras.
+-Los refrigeradores tienen un peso aproximado desde 86 hasta 350 libras.
+-Las lavadoras y secadoras tienen un peso aproximado desde 75 hasta 290 libras.BATERÍAS
 - 5 kilos, aproximadamente 5 kWh: costo equipo 886, envío 352, total 1238.
 - 10 kilos, aproximadamente 10 kWh: costo equipo 1651, envío 536, total 2187.
 - 16 kilos, aproximadamente 16 kWh: costo equipo 1825, envío 696, total 2521.
