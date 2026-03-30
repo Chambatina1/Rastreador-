@@ -591,6 +591,8 @@ OFICINA
 - Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112.
 - Teléfono Geo: 786-942-6904.
 - Teléfono Adriana: 786-784-6421.
+- Se necesitannombre y apellido del que envia su telefono y correo electronico.
+-se necesita del que recibe nombrecompleto, dirección, numero de identidad y telefono.
 
 PROCESO DE COMPRA POR TIKTOK O AMAZON
 - El cliente compra el producto por el link de Tiktok que le brinda la oficina.
