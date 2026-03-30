@@ -708,7 +708,8 @@ INFORMACIÓN GENERAL DEL NEGOCIO
 - Precio por libra: 1.99 más 10 dólares por manejo, seguro, arancel y transporte.
 - Si recogemos en la puerta de su casa: 2.30 por libra.
 - Si compran por nuestros links de TikTok: 1.80 por libra.
-- Tiempo de entrega: de 18 a 30 días hábiles.
+- Tiempo de entrega: de 18 a 30 días hábiles una vez que toca puerto.
+- Aproximadamente a los 7 dias de la entrega toca puerto.	
 
 HISTORIA DE CHAMBATINA
 
