@@ -325,97 +325,233 @@ function normalizarCPK(raw) {
   return soloNumeros.replace(/^0+/, "") || soloNumeros;
 }
 
-function calcularDiasTranscurridos(fechaTexto) {
+function calcularDiasHabiles(fechaTexto) {
   if (!fechaTexto) return 0;
 
   const hoy = new Date();
-  const fecha = new Date(fechaTexto + "T00:00:00");
+  const inicio = new Date(fechaTexto + "T00:00:00");
 
-  if (isNaN(fecha.getTime())) return 0;
+  if (isNaN(inicio.getTime())) return 0;
 
-  const diffMs = hoy - fecha;
-  const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  let dias = 0;
+  const cursor = new Date(inicio);
+
+  while (cursor <= hoy) {
+    const dia = cursor.getDay();
+    if (dia !== 0 && dia !== 6) {
+      dias++;
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
 
   return dias < 0 ? 0 : dias;
 }
 
-function descripcionPorEstado(estado, diasTranscurridos = 0) {
-  const e = String(estado || "").toUpperCase().trim();
+function estadoSimuladoPorDiasHabiles(dias) {
+  if (dias <= 3) return "EN AGENCIA";
+  if (dias <= 6) return "CLASIFICADO";
+  if (dias <= 9) return "EMBARCADO";
+  if (dias <= 12) return "ARRIBO";
+  if (dias <= 15) return "DESPACHO";
+  if (dias <= 18) return "EN ALMACEN";
+  if (dias <= 21) return "EN TRANSITO";
+  if (dias <= 24) return "PROXIMO A DISTRIBUCION";
+  if (dias <= 30) return "EN DISTRIBUCION";
+  return "CONTACTAR SOPORTE";
+}
 
-  if (diasTranscurridos > 50) {
+function normalizarEstadoInterno(estadoRaw) {
+  const e = String(estadoRaw || "").toUpperCase().trim();
+
+  if (!e) return "EN PROCESO";
+
+  if (e === "ENTREGADO") return "EN DISTRIBUCION";
+  if (e === "CANAL ROJO") return "RETORNO A ALMACEN";
+  if (e === "DESPACHADO") return "DESPACHO";
+  if (e === "EN DISTRIBUCIÓN") return "EN DISTRIBUCION";
+  if (e === "EN ALMACÉN") return "EN ALMACEN";
+  if (e === "PRÓXIMO A DISTRIBUCIÓN") return "PROXIMO A DISTRIBUCION";
+
+  if (e.startsWith("EN TRANSITO")) return e.replace("Á", "A");
+  if (e.startsWith("EN TRÁNSITO")) return e.replace("Á", "A");
+
+  return e;
+}
+
+function resolverEstadoVisible(estadoReal, fechaTexto) {
+  const dias = calcularDiasHabiles(fechaTexto);
+  const real = normalizarEstadoInterno(estadoReal);
+
+  if (dias > 30) {
+    return "CONTACTAR SOPORTE";
+  }
+
+  if (
+    real === "RETORNO A ALMACEN" ||
+    real === "EN DISTRIBUCION" ||
+    real === "PROXIMO A DISTRIBUCION" ||
+    real.startsWith("EN TRANSITO")
+  ) {
+    return real;
+  }
+
+  if (
+    real === "EN AGENCIA" ||
+    real === "CLASIFICADO" ||
+    real === "EMBARCADO" ||
+    real === "ARRIBO" ||
+    real === "DESPACHO" ||
+    real === "EN ALMACEN"
+  ) {
+    const simulado = estadoSimuladoPorDiasHabiles(dias);
+    const orden = [
+      "EN AGENCIA",
+      "CLASIFICADO",
+      "EMBARCADO",
+      "ARRIBO",
+      "DESPACHO",
+      "EN ALMACEN",
+      "EN TRANSITO",
+      "PROXIMO A DISTRIBUCION",
+      "EN DISTRIBUCION",
+      "CONTACTAR SOPORTE"
+    ];
+
+    const idxReal = orden.indexOf(real);
+    const idxSimulado = orden.indexOf(simulado);
+
+    return idxSimulado > idxReal ? simulado : real;
+  }
+
+  return estadoSimuladoPorDiasHabiles(dias);
+}
+
+function descripcionPorEstado(estado, diasHabiles = 0) {
+  const e = normalizarEstadoInterno(estado);
+
+  if (e === "CONTACTAR SOPORTE" || diasHabiles > 30) {
     return "Tu paquete presenta una demora mayor a la habitual. Por favor, contacta con soporte para revisar tu caso.";
   }
 
-  if (e === "ENTREGADO") {
-    return "Tu paquete continúa en una fase final del proceso logístico.";
+  if (e === "RETORNO A ALMACEN") {
+    return "Tu paquete fue redirigido al almacén central por solicitud de transitoria para revisión adicional.";
   }
 
   if (e === "EN AGENCIA") {
     return "Tu paquete fue recibido y ya está en agencia.";
   }
 
-  if (e === "EN DISTRIBUCION" || e === "EN DISTRIBUCIÓN") {
-    return "Tu paquete se encuentra en distribución.";
-  }
-
-  if (e === "PROXIMO A DISTRIBUCION" || e === "PRÓXIMO A DISTRIBUCIÓN") {
-    return "Tu paquete está próximo a distribución.";
-  }
-
-  if (e === "EN ALMACEN" || e === "EN ALMACÉN") {
-    return "Tu paquete se encuentra en almacén.";
-  }
-
-  if (e === "RETORNO A ALMACEN" || e === "RETORNO A ALMACÉN") {
-    return "Tu paquete fue redirigido al almacén central para una revisión adicional solicitada por control logístico. Este proceso garantiza que todo continúe correctamente hacia su destino.";
-  }
-
-  if (e === "DESPACHO") {
-    return "Tu paquete se encuentra en despacho.";
-  }
-
   if (e === "CLASIFICADO") {
     return "Tu paquete fue clasificado y continúa su proceso logístico.";
+  }
+
+  if (e === "EMBARCADO") {
+    return "Tu paquete ya fue embarcado y continúa avanzando dentro del recorrido logístico.";
   }
 
   if (e === "ARRIBO") {
     return "Tu paquete arribó y sigue su proceso logístico.";
   }
 
+  if (e === "DESPACHO") {
+    return "Tu paquete se encuentra en despacho.";
+  }
+
+  if (e === "EN ALMACEN") {
+    return "Tu paquete se encuentra en almacén.";
+  }
+
+  if (e.startsWith("EN TRANSITO")) {
+    return "Tu paquete se encuentra en tránsito hacia su siguiente fase logística.";
+  }
+
+  if (e === "PROXIMO A DISTRIBUCION") {
+    return "Tu paquete está próximo a distribución.";
+  }
+
+  if (e === "EN DISTRIBUCION") {
+    return "Tu paquete se encuentra en distribución.";
+  }
+
   return "Tu paquete se encuentra en proceso logístico.";
+}
+
+function detalleOptimistaCada3Dias(diasHabiles, estado) {
+  const e = normalizarEstadoInterno(estado);
+
+  if (diasHabiles > 30 || e === "CONTACTAR SOPORTE") {
+    return "El tiempo supera el rango habitual de 18 a 30 días hábiles. Te recomendamos contactar con soporte para una revisión personalizada.";
+  }
+
+  if (e === "RETORNO A ALMACEN") {
+    if (diasHabiles <= 3) return "Tu paquete regresó al almacén central para una revisión adicional. Este control ayuda a que continúe correctamente.";
+    if (diasHabiles <= 6) return "Tu paquete sigue bajo revisión adicional en almacén central. Este paso forma parte del control logístico.";
+    if (diasHabiles <= 9) return "Tu paquete continúa en revisión y luego retomará su avance dentro del flujo normal.";
+    return "Tu paquete se mantiene en control adicional para asegurar que siga su ruta de la mejor manera posible.";
+  }
+
+  if (diasHabiles <= 3) {
+    return "Tu paquete inició correctamente su proceso logístico. Esta es la etapa de recepción y organización inicial.";
+  }
+  if (diasHabiles <= 6) {
+    return "Tu paquete continúa avanzando y ya pasó por una fase de clasificación para ordenar mejor su recorrido.";
+  }
+  if (diasHabiles <= 9) {
+    return "Tu paquete sigue progresando y actualmente se encuentra dentro de una fase de salida y embarque logístico.";
+  }
+  if (diasHabiles <= 12) {
+    return "Tu paquete continúa su ruta y ya muestra señales de arribo dentro del proceso logístico general.";
+  }
+  if (diasHabiles <= 15) {
+    return "Tu paquete sigue avanzando y se encuentra en una fase de despacho, cada vez más cerca de su siguiente movimiento.";
+  }
+  if (diasHabiles <= 18) {
+    return "Tu paquete continúa su recorrido de forma favorable. Ahora pasa por control y organización en almacén.";
+  }
+  if (diasHabiles <= 21) {
+    return "Tu paquete se mantiene en tránsito dentro del flujo logístico y sigue avanzando hacia destino.";
+  }
+  if (diasHabiles <= 24) {
+    return "Tu paquete está entrando en una etapa muy avanzada del proceso y se acerca a distribución.";
+  }
+  if (diasHabiles <= 27) {
+    return "Tu paquete continúa en tramo final del recorrido logístico. El proceso sigue caminando de manera favorable.";
+  }
+  return "Tu paquete ya se encuentra en la fase final del proceso logístico, dentro del rango habitual estimado.";
 }
 
 function extraerEstado(linea) {
   const upper = String(linea || "").toUpperCase();
 
-  // Nunca devolver ENTREGADO al cliente
-  if (upper.includes("ENTREGADO")) {
-    return "EN DISTRIBUCION";
-  }
-
-  // CANAL ROJO se traduce a una fase más comprensible
   if (upper.includes("CANAL ROJO")) {
     return "RETORNO A ALMACEN";
   }
 
+  if (upper.includes("ENTREGADO")) {
+    return "EN DISTRIBUCION";
+  }
+
   const estadosOrdenados = [
+    "RETORNO A ALMACEN",
     "PRÓXIMO A DISTRIBUCIÓN",
     "PROXIMO A DISTRIBUCION",
     "EN DISTRIBUCIÓN",
     "EN DISTRIBUCION",
+    "EN TRANSITO",
+    "EN TRÁNSITO",
     "EN AGENCIA",
     "EN ALMACÉN",
     "EN ALMACEN",
-    "RETORNO A ALMACÉN",
-    "RETORNO A ALMACEN",
     "CLASIFICADO",
-    "DESPACHO",
-    "ARRIBO"
+    "EMBARCADO",
+    "ARRIBO",
+    "DESPACHADO",
+    "DESPACHO"
   ];
 
   for (const estado of estadosOrdenados) {
     if (upper.includes(estado)) {
-      return estado;
+      return normalizarEstadoInterno(estado);
     }
   }
 
@@ -454,15 +590,9 @@ function parseRawTrackingSource(rawText) {
     const fechaMatch = line.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
     const fecha = fechaMatch ? fechaMatch[1] : "";
 
-    let estado = extraerEstado(line);
-
-    if (estado === "ENTREGADO") {
-      estado = "EN DISTRIBUCION";
-    }
-
-    if (estado === "CANAL ROJO") {
-      estado = "RETORNO A ALMACEN";
-    }
+    const estadoExtraido = extraerEstado(line);
+    const estadoVisible = resolverEstadoVisible(estadoExtraido, fecha);
+    const diasHabiles = calcularDiasHabiles(fecha);
 
     let descripcion = "";
 
@@ -472,21 +602,12 @@ function parseRawTrackingSource(rawText) {
     }
 
     if (!descripcion) {
-      const estadoIndex = upper.indexOf(estado);
-      if (estadoIndex >= 0) {
-        descripcion = limpiarDescripcion(line.slice(estadoIndex + estado.length));
-      }
-    }
-
-    const dias = calcularDiasTranscurridos(fecha);
-
-    if (!descripcion) {
-      descripcion = descripcionPorEstado(estado, dias);
+      descripcion = descripcionPorEstado(estadoVisible, diasHabiles);
     }
 
     result[cpk] = {
       fecha,
-      estado,
+      estado: estadoVisible,
       descripcion
     };
   }
@@ -500,22 +621,13 @@ function buildTrackingDb() {
 
   for (const [cpk, item] of Object.entries(CPK_DB)) {
     const fecha = item.fecha || "";
-    const dias = calcularDiasTranscurridos(fecha);
-
-    let estado = String(item.estado || "").toUpperCase().trim();
-
-    if (estado === "ENTREGADO") {
-      estado = dias > 50 ? "CONTACTAR SOPORTE" : "EN DISTRIBUCION";
-    }
-
-    if (estado === "CANAL ROJO") {
-      estado = "RETORNO A ALMACEN";
-    }
+    const diasHabiles = calcularDiasHabiles(fecha);
+    const estadoVisible = resolverEstadoVisible(item.estado, fecha);
 
     baseNormalizada[cpk] = {
       ...item,
-      estado,
-      descripcion: item.descripcion || descripcionPorEstado(estado, dias)
+      estado: estadoVisible,
+      descripcion: item.descripcion || descripcionPorEstado(estadoVisible, diasHabiles)
     };
   }
 
@@ -529,7 +641,62 @@ function getActiveTrackingDb() {
   return buildTrackingDb();
 }
 
-const BUSINESS_CONTEXT = `Usa siempre una lógica de seguimiento optimista, explicativa y profesional. Cada tres días debe percibirse avance logístico o una explicación clara del proceso. Nunca mostrar la palabra ENTREGADO al cliente en esta lógica. Si el envío supera 50 días, indicar de forma respetuosa que contacte con soporte para revisión. Cuando internamente aparezca CANAL ROJO, mostrar al cliente RETORNO A ALMACEN CENTRAL POR SOLICITUD DE TRANSITORIA PARA REVISION ADICIONAL. Mantener siempre un tono esperanzador, claro y tranquilizador.`;
+function resolverSeguimiento(cpkRaw) {
+  const db = getActiveTrackingDb();
+  const cpk = normalizarCPK(cpkRaw);
+
+  if (!cpk) {
+    return {
+      ok: false,
+      mensaje: "Debes escribir un número CPK válido."
+    };
+  }
+
+  const item = db[cpk];
+
+  if (!item) {
+    return {
+      ok: false,
+      mensaje: "No encontramos información para ese CPK. Verifica el número y vuelve a intentarlo."
+    };
+  }
+
+  const diasHabiles = calcularDiasHabiles(item.fecha);
+  const estadoVisible = resolverEstadoVisible(item.estado, item.fecha);
+
+  return {
+    ok: true,
+    cpk,
+    fecha: item.fecha || "",
+    diasHabiles,
+    rangoEstimado: "18 a 30 días hábiles",
+    estado: estadoVisible,
+    descripcion: descripcionPorEstado(estadoVisible, diasHabiles),
+    detalle: detalleOptimistaCada3Dias(diasHabiles, estadoVisible)
+  };
+}
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    ok: true,
+    mensaje: "Servidor activo"
+  });
+});
+
+app.get("/api/rastreo/:cpk", (req, res) => {
+  const resultado = resolverSeguimiento(req.params.cpk);
+  res.json(resultado);
+});
+
+app.get("/", (req, res) => {
+  res.send("API de rastreo Chambatina activa.");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
 Eres el asistente oficial de Chambatina.
 
 Responde siempre en español claro, profesional, útil y directo.
