@@ -305,7 +305,6 @@ CHAMBATINA MIAMI	GEO MIA		CPK-0255135	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(B
 CPK-0260443 EN AGENCIA 2026-03-26 Tu paquete fue recibido...
 CPK-0259844 EN AGENCIA 2026-03-24 En proceso interno...
 `;
-
 // Base manual fija
 const CPK_DB = {
   "260443": {
@@ -326,52 +325,93 @@ function normalizarCPK(raw) {
   return soloNumeros.replace(/^0+/, "") || soloNumeros;
 }
 
-function descripcionPorEstado(estado) {
+function calcularDiasTranscurridos(fechaTexto) {
+  if (!fechaTexto) return 0;
+
+  const hoy = new Date();
+  const fecha = new Date(fechaTexto + "T00:00:00");
+
+  if (isNaN(fecha.getTime())) return 0;
+
+  const diffMs = hoy - fecha;
+  const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  return dias < 0 ? 0 : dias;
+}
+
+function descripcionPorEstado(estado, diasTranscurridos = 0) {
   const e = String(estado || "").toUpperCase().trim();
+
+  if (diasTranscurridos > 50) {
+    return "Tu paquete presenta una demora mayor a la habitual. Por favor, contacta con soporte para revisar tu caso.";
+  }
+
+  if (e === "ENTREGADO") {
+    return "Tu paquete continúa en una fase final del proceso logístico.";
+  }
 
   if (e === "EN AGENCIA") {
     return "Tu paquete fue recibido y ya está en agencia.";
   }
+
   if (e === "EN DISTRIBUCION" || e === "EN DISTRIBUCIÓN") {
     return "Tu paquete se encuentra en distribución.";
   }
-  if (e === "ENTREGADO") {
-    return "Tu paquete fue entregado.";
+
+  if (e === "PROXIMO A DISTRIBUCION" || e === "PRÓXIMO A DISTRIBUCIÓN") {
+    return "Tu paquete está próximo a distribución.";
   }
+
   if (e === "EN ALMACEN" || e === "EN ALMACÉN") {
     return "Tu paquete se encuentra en almacén.";
   }
+
+  if (e === "RETORNO A ALMACEN" || e === "RETORNO A ALMACÉN") {
+    return "Tu paquete fue redirigido al almacén central para una revisión adicional solicitada por control logístico. Este proceso garantiza que todo continúe correctamente hacia su destino.";
+  }
+
   if (e === "DESPACHO") {
     return "Tu paquete se encuentra en despacho.";
   }
+
   if (e === "CLASIFICADO") {
     return "Tu paquete fue clasificado y continúa su proceso logístico.";
   }
+
   if (e === "ARRIBO") {
     return "Tu paquete arribó y sigue su proceso logístico.";
-  }
-  if (e === "CANAL ROJO") {
-    return "Tu paquete está en revisión logística.";
   }
 
   return "Tu paquete se encuentra en proceso logístico.";
 }
 
 function extraerEstado(linea) {
+  const upper = String(linea || "").toUpperCase();
+
+  // Nunca devolver ENTREGADO al cliente
+  if (upper.includes("ENTREGADO")) {
+    return "EN DISTRIBUCION";
+  }
+
+  // CANAL ROJO se traduce a una fase más comprensible
+  if (upper.includes("CANAL ROJO")) {
+    return "RETORNO A ALMACEN";
+  }
+
   const estadosOrdenados = [
-    "EN DISTRIBUCION",
+    "PRÓXIMO A DISTRIBUCIÓN",
+    "PROXIMO A DISTRIBUCION",
     "EN DISTRIBUCIÓN",
+    "EN DISTRIBUCION",
     "EN AGENCIA",
-    "EN ALMACEN",
     "EN ALMACÉN",
-    "CANAL ROJO",
+    "EN ALMACEN",
+    "RETORNO A ALMACÉN",
+    "RETORNO A ALMACEN",
     "CLASIFICADO",
     "DESPACHO",
-    "ENTREGADO",
     "ARRIBO"
   ];
-
-  const upper = String(linea || "").toUpperCase();
 
   for (const estado of estadosOrdenados) {
     if (upper.includes(estado)) {
@@ -414,7 +454,15 @@ function parseRawTrackingSource(rawText) {
     const fechaMatch = line.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
     const fecha = fechaMatch ? fechaMatch[1] : "";
 
-    const estado = extraerEstado(line);
+    let estado = extraerEstado(line);
+
+    if (estado === "ENTREGADO") {
+      estado = "EN DISTRIBUCION";
+    }
+
+    if (estado === "CANAL ROJO") {
+      estado = "RETORNO A ALMACEN";
+    }
 
     let descripcion = "";
 
@@ -430,8 +478,10 @@ function parseRawTrackingSource(rawText) {
       }
     }
 
+    const dias = calcularDiasTranscurridos(fecha);
+
     if (!descripcion) {
-      descripcion = descripcionPorEstado(estado);
+      descripcion = descripcionPorEstado(estado, dias);
     }
 
     result[cpk] = {
@@ -446,10 +496,32 @@ function parseRawTrackingSource(rawText) {
 
 function buildTrackingDb() {
   const rawParsed = parseRawTrackingSource(RAW_TRACKING_SOURCE);
+  const baseNormalizada = {};
+
+  for (const [cpk, item] of Object.entries(CPK_DB)) {
+    const fecha = item.fecha || "";
+    const dias = calcularDiasTranscurridos(fecha);
+
+    let estado = String(item.estado || "").toUpperCase().trim();
+
+    if (estado === "ENTREGADO") {
+      estado = dias > 50 ? "CONTACTAR SOPORTE" : "EN DISTRIBUCION";
+    }
+
+    if (estado === "CANAL ROJO") {
+      estado = "RETORNO A ALMACEN";
+    }
+
+    baseNormalizada[cpk] = {
+      ...item,
+      estado,
+      descripcion: item.descripcion || descripcionPorEstado(estado, dias)
+    };
+  }
 
   return {
     ...rawParsed,
-    ...CPK_DB
+    ...baseNormalizada
   };
 }
 
@@ -457,7 +529,7 @@ function getActiveTrackingDb() {
   return buildTrackingDb();
 }
 
-const BUSINESS_CONTEXT = `
+const BUSINESS_CONTEXT = `Usa siempre una lógica de seguimiento optimista, explicativa y profesional. Cada tres días debe percibirse avance logístico o una explicación clara del proceso. Nunca mostrar la palabra ENTREGADO al cliente en esta lógica. Si el envío supera 50 días, indicar de forma respetuosa que contacte con soporte para revisión. Cuando internamente aparezca CANAL ROJO, mostrar al cliente RETORNO A ALMACEN CENTRAL POR SOLICITUD DE TRANSITORIA PARA REVISION ADICIONAL. Mantener siempre un tono esperanzador, claro y tranquilizador.`;
 Eres el asistente oficial de Chambatina.
 
 Responde siempre en español claro, profesional, útil y directo.
