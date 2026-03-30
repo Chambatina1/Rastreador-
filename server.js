@@ -848,7 +848,8 @@ COMPORTAMIENTO DEL CHAT
 - Si preguntan por la oficina, da dirección y teléfonos.
 - Si preguntan cómo funciona TikTok o Amazon, explica el proceso anterior con claridad.
 - Si preguntan por rastreo específico, indícales que usen el CPK.
-- Si preguntan por tiempo de entrega, responde: 18 a 30 días hábiles.
+- Si preguntan por tiempo de entrega, responde: 18 a 30 días hábiles, una vez que toca puerto.
+- Toca puerto aproximadamente en un término de 7 dias luego de la entrega. 	
 - Mantén tono serio, comercial y ordenado.
 `;
 
