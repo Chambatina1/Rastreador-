@@ -6,65 +6,71 @@
   <title>Robot Chambatina</title>
   <style>
     :root{
-      --bg:#0b141a;
-      --panel:#111b21;
-      --panel-2:#202c33;
-      --line:rgba(255,255,255,.08);
+      --bg:#071018;
+      --panel:#0f1b22;
+      --panel-2:#1c2a33;
+      --line:rgba(255,255,255,.07);
       --text:#e9edef;
-      --muted:#8696a0;
+      --muted:#98a6ad;
       --accent:#f59e0b;
-      --accent-2:#ffb833;
-      --bubble-bot:#202c33;
+      --accent-2:#ffb726;
+      --bubble-bot:#23343e;
       --bubble-user:#f59e0b;
-      --input:#2a3942;
-      --white:#ffffff;
-      --shadow:0 16px 40px rgba(0,0,0,.35);
-      --radius:22px;
+      --input:#31434e;
+      --shadow:0 16px 38px rgba(0,0,0,.32);
+      --radius:20px;
     }
 
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
     body{
       margin:0;
       font-family:Arial,sans-serif;
-      background:linear-gradient(180deg,#081017 0%, #0b141a 100%);
+      background:
+        radial-gradient(circle at top, rgba(245,158,11,.05), transparent 24%),
+        linear-gradient(180deg, #061018 0%, #09131a 100%);
       color:var(--text);
     }
 
     .page{
-      min-height:100vh;
-      padding:14px 10px 100px;
-      max-width:780px;
+      max-width:760px;
       margin:0 auto;
+      padding:10px 10px 90px;
     }
 
     .topbar{
       position:sticky;
       top:0;
       z-index:50;
-      background:rgba(17,27,33,.92);
+      background:rgba(14,24,31,.95);
       backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--line);
-      border-radius:0 0 22px 22px;
-      padding:12px 14px;
-      margin-bottom:12px;
+      border:1px solid var(--line);
+      border-top:none;
+      border-radius:0 0 18px 18px;
+      padding:10px 12px;
       box-shadow:var(--shadow);
+      margin-bottom:10px;
     }
 
     .topbar-inner{
       display:flex;
       align-items:center;
-      gap:12px;
+      gap:10px;
     }
 
     .avatar{
-      width:52px;
-      height:52px;
-      border-radius:16px;
+      width:42px;
+      height:42px;
       object-fit:contain;
-      background:transparent;
-      filter:drop-shadow(0 8px 20px rgba(0,0,0,.28));
+      border-radius:14px;
       flex-shrink:0;
+      filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));
     }
 
     .topbar-text{
@@ -73,94 +79,99 @@
 
     .title{
       margin:0;
-      font-size:22px;
+      font-size:17px;
+      line-height:1.1;
       font-weight:800;
-      color:var(--white);
+      color:#fff;
     }
 
     .subtitle{
-      margin-top:4px;
+      margin-top:3px;
+      font-size:11px;
       color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
+      line-height:1.25;
     }
 
     .layout{
       display:grid;
-      gap:12px;
+      gap:10px;
     }
 
     .card{
-      background:var(--panel);
+      background:rgba(15,27,34,.96);
       border:1px solid var(--line);
-      border-radius:24px;
+      border-radius:18px;
       overflow:hidden;
       box-shadow:var(--shadow);
     }
 
     .card-header{
+      background:var(--panel-2);
+      padding:12px 14px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      background:var(--panel-2);
-      padding:14px 16px;
+      gap:8px;
       border-bottom:1px solid var(--line);
     }
 
     .card-title{
       margin:0;
-      font-size:17px;
+      font-size:15px;
       font-weight:800;
-      color:var(--white);
+      color:#fff;
     }
 
     .card-note{
-      font-size:12px;
-      color:var(--muted);
+      font-size:11px;
       font-weight:700;
+      color:var(--muted);
+      white-space:nowrap;
     }
 
     .card-body{
-      padding:14px;
+      padding:10px;
     }
 
     #chatBox{
       background:
-        radial-gradient(circle at top right, rgba(245,158,11,.06), transparent 28%),
-        #0f171d;
+        radial-gradient(circle at top right, rgba(245,158,11,.05), transparent 28%),
+        #0b1620;
       border:1px solid var(--line);
-      border-radius:20px;
-      min-height:360px;
-      max-height:460px;
+      border-radius:16px;
+      min-height:185px;
+      max-height:260px;
       overflow-y:auto;
-      padding:14px;
-      margin-bottom:12px;
+      padding:10px;
+      margin-bottom:10px;
     }
 
-    #chatBox::-webkit-scrollbar{width:8px}
+    #chatBox::-webkit-scrollbar{
+      width:7px;
+    }
+
     #chatBox::-webkit-scrollbar-thumb{
-      background:#31424c;
+      background:#344754;
       border-radius:999px;
     }
 
     .msg{
-      max-width:84%;
-      padding:12px 14px;
-      border-radius:16px;
-      margin:8px 0;
-      line-height:1.45;
-      font-size:15px;
+      max-width:90%;
+      padding:10px 12px;
+      border-radius:14px;
+      margin:7px 0;
+      line-height:1.38;
+      font-size:14px;
       white-space:pre-wrap;
       word-break:break-word;
-      box-shadow:0 6px 14px rgba(0,0,0,.14);
+      box-shadow:0 5px 12px rgba(0,0,0,.14);
     }
 
     .bot{
       margin-right:auto;
       background:var(--bubble-bot);
       color:var(--text);
-      border-top-left-radius:6px;
+      border-top-left-radius:5px;
     }
 
     .user{
@@ -168,122 +179,132 @@
       background:var(--bubble-user);
       color:#111;
       font-weight:700;
-      border-top-right-radius:6px;
+      border-top-right-radius:5px;
     }
 
-    .composer{
+    .composer,
+    .track-wrap{
       display:grid;
       grid-template-columns:1fr auto;
-      gap:10px;
+      gap:8px;
       align-items:center;
     }
 
     .input{
       width:100%;
-      background:var(--input);
-      color:var(--white);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:18px;
-      padding:15px 16px;
-      font-size:16px;
+      min-height:48px;
+      height:48px;
+      border:none;
       outline:none;
+      border-radius:14px;
+      background:var(--input);
+      color:#fff;
+      padding:12px 14px;
+      font-size:15px;
+      border:1px solid rgba(255,255,255,.05);
     }
 
     .input::placeholder{
-      color:#a7b4bb;
+      color:#b3bec4;
     }
 
     .input:focus{
-      border-color:rgba(245,158,11,.55);
-      box-shadow:0 0 0 4px rgba(245,158,11,.08);
+      box-shadow:0 0 0 3px rgba(245,158,11,.10);
+      border-color:rgba(245,158,11,.35);
     }
 
     .send-btn{
-      width:54px;
-      height:54px;
+      width:48px;
+      height:48px;
       border:none;
-      border-radius:18px;
+      border-radius:14px;
       background:linear-gradient(180deg,var(--accent-2),var(--accent));
       color:#111;
-      font-size:20px;
+      font-size:18px;
       font-weight:900;
       cursor:pointer;
-      box-shadow:0 10px 22px rgba(245,158,11,.2);
+      box-shadow:0 10px 20px rgba(245,158,11,.18);
       flex-shrink:0;
     }
 
-    .send-btn:disabled{
-      opacity:.6;
+    .track-btn{
+      min-width:92px;
+      height:48px;
+      border:none;
+      border-radius:14px;
+      background:linear-gradient(180deg,var(--accent-2),var(--accent));
+      color:#111;
+      font-size:15px;
+      font-weight:800;
+      padding:0 14px;
+      cursor:pointer;
+      box-shadow:0 10px 20px rgba(245,158,11,.18);
+      flex-shrink:0;
+    }
+
+    .send-btn:disabled,
+    .track-btn:disabled{
+      opacity:.65;
       cursor:not-allowed;
     }
 
     .helper{
-      margin-top:10px;
+      margin-top:8px;
+      font-size:11px;
       color:var(--muted);
-      font-size:12px;
-      line-height:1.4;
-    }
-
-    .track-wrap{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:10px;
-      align-items:center;
-    }
-
-    .track-btn{
-      min-width:105px;
-      height:54px;
-      border:none;
-      border-radius:18px;
-      background:linear-gradient(180deg,var(--accent-2),var(--accent));
-      color:#111;
-      font-size:16px;
-      font-weight:800;
-      cursor:pointer;
-      box-shadow:0 10px 22px rgba(245,158,11,.2);
+      line-height:1.35;
     }
 
     .result-box{
-      margin-top:12px;
-      background:#0f171d;
+      margin-top:10px;
+      background:#0b1620;
       border:1px solid var(--line);
-      border-radius:18px;
-      padding:16px;
-      min-height:110px;
-      font-size:15px;
-      line-height:1.55;
-      color:var(--text);
+      border-radius:14px;
+      padding:12px;
+      min-height:92px;
+      font-size:14px;
+      line-height:1.45;
       white-space:pre-wrap;
+      color:var(--text);
     }
 
     .estado{
       color:var(--accent);
-      font-size:22px;
+      font-size:18px;
       font-weight:900;
-      margin-bottom:8px;
-      letter-spacing:-.3px;
+      margin-bottom:6px;
+    }
+
+    .footer-note{
+      text-align:center;
+      color:var(--muted);
+      font-size:11px;
+      margin-top:10px;
+      padding-bottom:4px;
     }
 
     .float-wrap{
       position:fixed;
-      right:14px;
-      bottom:14px;
+      right:10px;
+      bottom:10px;
       z-index:9999;
       display:flex;
       flex-direction:column;
       align-items:flex-end;
-      gap:8px;
+      gap:6px;
     }
 
     .float-tip{
-      background:rgba(255,255,255,.96);
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(6px);
       color:#111;
-      padding:9px 12px;
-      border-radius:14px;
-      font-size:13px;
+      padding:7px 10px;
+      border-radius:12px;
+      font-size:11px;
       font-weight:800;
-      box-shadow:0 12px 24px rgba(0,0,0,.22);
+      box-shadow:0 10px 20px rgba(0,0,0,.22);
+      max-width:120px;
+      text-align:center;
       transition:opacity .25s ease, transform .25s ease;
     }
 
@@ -294,27 +315,27 @@
     }
 
     .float-bot{
-      width:68px;
-      height:68px;
+      width:54px;
+      height:54px;
       border:none;
       background:transparent;
       padding:0;
       cursor:pointer;
-      border-radius:20px;
+      border-radius:16px;
       transition:transform .2s ease;
     }
 
     .float-bot:hover{
-      transform:translateY(-3px) scale(1.03);
+      transform:translateY(-2px) scale(1.03);
     }
 
     .float-bot img{
       width:100%;
       height:100%;
       object-fit:contain;
-      border-radius:20px;
-      filter:drop-shadow(0 12px 24px rgba(0,0,0,.34));
       display:block;
+      border-radius:16px;
+      filter:drop-shadow(0 12px 20px rgba(0,0,0,.34));
     }
 
     @keyframes pulse{
@@ -327,80 +348,105 @@
       animation:pulse 2.2s infinite;
     }
 
-    .footer-note{
-      text-align:center;
-      color:var(--muted);
-      font-size:12px;
-      margin-top:14px;
-      padding-bottom:12px;
-    }
-
-    @media (max-width:640px){
+    @media (min-width: 641px){
       .page{
-        padding:10px 8px 95px;
+        padding:14px 14px 95px;
       }
 
       .topbar{
-        padding:10px 12px;
-        border-radius:0 0 18px 18px;
+        padding:12px 14px;
+        border-radius:0 0 22px 22px;
+        margin-bottom:12px;
       }
 
       .avatar{
-        width:46px;
-        height:46px;
-        border-radius:14px;
+        width:52px;
+        height:52px;
+        border-radius:16px;
       }
 
       .title{
-        font-size:19px;
+        font-size:20px;
       }
 
       .subtitle{
-        font-size:12px;
+        font-size:13px;
       }
 
       .card{
-        border-radius:18px;
+        border-radius:22px;
       }
 
       .card-header{
-        padding:12px 14px;
+        padding:14px 16px;
       }
 
       .card-title{
-        font-size:16px;
+        font-size:18px;
+      }
+
+      .card-note{
+        font-size:12px;
       }
 
       .card-body{
-        padding:12px;
+        padding:14px;
       }
 
       #chatBox{
-        min-height:320px;
-        max-height:420px;
-        border-radius:16px;
+        min-height:260px;
+        max-height:360px;
         padding:12px;
+        border-radius:18px;
       }
 
       .msg{
-        font-size:14px;
-        padding:11px 13px;
-      }
-
-      .input{
-        padding:14px 14px;
         font-size:15px;
+        padding:11px 13px;
         border-radius:16px;
       }
 
-      .send-btn,
-      .track-btn{
-        height:50px;
+      .input{
+        min-height:52px;
+        height:52px;
+        font-size:16px;
         border-radius:16px;
       }
 
       .send-btn{
-        width:50px;
+        width:52px;
+        height:52px;
+        border-radius:16px;
+        font-size:19px;
+      }
+
+      .track-btn{
+        min-width:110px;
+        height:52px;
+        border-radius:16px;
+        font-size:16px;
+      }
+
+      .result-box{
+        min-height:110px;
+        padding:14px;
+        font-size:15px;
+        border-radius:16px;
+      }
+
+      .estado{
+        font-size:22px;
+      }
+
+      .float-wrap{
+        right:14px;
+        bottom:14px;
+      }
+
+      .float-tip{
+        font-size:12px;
+        padding:8px 12px;
+        max-width:140px;
       }
 
       .float-bot{
@@ -408,8 +454,8 @@
         height:62px;
       }
 
-      .float-tip{
-        font-size:12px;
+      .float-bot img{
+        border-radius:18px;
       }
     }
   </style>
@@ -432,6 +478,7 @@
           <h2 class="card-title">Chat</h2>
           <div class="card-note">Consulta directa</div>
         </div>
+
         <div class="card-body">
           <div id="chatBox">
             <div class="msg bot">Bienvenido. Escriba su pregunta y pulse enviar.</div>
@@ -457,6 +504,7 @@
           <h2 class="card-title">Rastreo</h2>
           <div class="card-note">Buscar por CPK</div>
         </div>
+
         <div class="card-body">
           <div class="track-wrap">
             <input
@@ -633,108 +681,7 @@
 
     setTimeout(() => {
       chambitaTip.classList.add("hide");
-    }, 6000);
+    }, 5000);
   </script>
-<!-- BOT FLOTANTE WHATSAPP STYLE -->
-<style>
-#botFloat {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-/* burbuja mensaje */
-#botBubble {
-  background: white;
-  color: #111;
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-}
-
-/* botón redondo */
-#botBtn {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(180deg,#25D366,#1ebe5d);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
-  transition: transform 0.2s ease;
-}
-
-#botBtn:hover {
-  transform: scale(1.05);
-}
-
-/* imagen */
-#botBtn img {
-  width: 80%;
-  height: 80%;
-  object-fit: contain;
-}
-
-/* animación */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
-}
-
-.pulse {
-  animation: pulse 2s infinite;
-}
-
-/* mobile */
-@media (max-width:600px){
-  #botBtn{
-    width:60px;
-    height:60px;
-  }
-}
-</style>
-
-<div id="botFloat">
-  <div id="botBubble">¿Dónde está tu paquete?</div>
-
-  <button id="botBtn" class="pulse">
-    <img src="/Rastreador-/public/robot.png">
-  </button>
-</div>
-
-<script>
-const btn = document.getElementById("botBtn");
-const bubble = document.getElementById("botBubble");
-
-btn.onclick = function () {
-  document.getElementById("chatBox").scrollIntoView({
-    behavior: "smooth"
-  });
-
-  document.getElementById("mensaje").focus();
-
-  bubble.style.display = "none";
-  btn.classList.remove("pulse");
-};
-
-// ocultar mensaje después de 5s
-setTimeout(()=>{
-  bubble.style.display = "none";
-}, 5000);
-</script>
-
-<!-- FIN BOT -->
 </body>
 </html>
