@@ -344,5 +344,60 @@
     btnEnviar.addEventListener("click", enviarMensaje);
     btnBuscarCPK.addEventListener("click", buscarCPK);
   </script>
+<!-- BOT CHAMBATINA -->
+
+<style>
+#chambita-bot {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  width: 90px;
+  height: 90px;
+  z-index: 9999;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+
+#chambita-bot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.18));
+}
+
+#chambita-bot:hover {
+  transform: scale(1.05) translateY(-4px);
+}
+
+#chambita-text {
+  position: fixed;
+  bottom: 120px;
+  right: 28px;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  font-family: Arial;
+}
+</style>
+
+<div id="chambita-text">Pregúntame</div>
+
+<div id="chambita-bot" onclick="abrirChat()">
+  <img src="/robot.png" alt="Chambatina Bot">
+</div>
+
+<script>
+function abrirChat() {
+  const chat = document.querySelector('#chat-container'); // ajusta si tu chat tiene otro id
+  if (chat) {
+    chat.style.display = 'block';
+  }
+}
+</script>
+
+<!-- FIN BOT -->
 </body>
 </html>
