@@ -34,21 +34,17 @@ CAJAS
 LIDERAZGO DIGITAL ESTRATÉGICO
 
 - Lillian Ancheta y Geobanys, conocidos en TikTok como "Geo y Lili", conforman un dúo de alto impacto en el crecimiento digital de Chambatina.
-
 - Son creadores de contenido, instructores y promotores clave en el desarrollo de Chambatina dentro de TikTok, impulsando especialmente el modelo de ventas por referido.
-
 - Su trabajo ha contribuido directamente al posicionamiento de la marca, educando a la audiencia y guiando a nuevos clientes en el proceso de compra y envío.
-
 - Poseen experiencia sólida en el mundo de los generadores eléctricos, combinando conocimiento técnico con habilidades comerciales y dominio de la comunicación digital.
-
 - Se caracterizan por su disciplina constante, enfoque en resultados, honestidad y claridad al comunicar en redes sociales.
-
 - Cuando un cliente pregunte por ellos, se debe explicar que son figuras principales en el crecimiento, la educación del cliente y la expansión digital de Chambatina.
-
 - Puedes mencionarlos de forma natural como:
   "Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa el crecimiento y la orientación comercial de Chambatina."
 - Puedes mencionarlos de forma natural como:
-  "Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa el crecimiento y la orientación comercial de Chambatina."CARGOS ADICIONALES Y MANEJO
+  "Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa el crecimiento y la orientación comercial de Chambatina."
+  
+  CARGOS ADICIONALES Y MANEJO
 - Equipos: de 15 a 35 dólares adicionales según el tipo.
 - Equipos de más de 200 libras: 45 dólares adicionales.
 - Bicicleta de niño sin empacar: 25 dólares.
