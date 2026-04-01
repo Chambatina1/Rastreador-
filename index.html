@@ -25,13 +25,14 @@ body{
 }
 
 .logo img{
-  width:90px;
-  height:90px;
+  width:120px;
+  height:auto;
+  display:block;
+  margin:0 auto 10px;
   border-radius:50%;
+  box-shadow:0 8px 20px rgba(0,0,0,0.15);
   background:#fff;
-  padding:4px;
-  box-shadow:0 10px 25px rgba(0,0,0,.1);
-  object-fit:contain;
+  padding:6px;
 }
 
 h1{
@@ -159,8 +160,7 @@ button:hover{
   }
 
   .logo img{
-    width:74px;
-    height:74px;
+    width:96px;
   }
 
   h1{
@@ -203,16 +203,7 @@ button:hover{
 <div class="container">
 
   <div class="logo">
-    <img src="./public/chambita.png" alt="Chambita" style="
-      width:120px;
-      height:auto;
-      display:block;
-      margin:0 auto 10px;
-      border-radius:50%;
-      box-shadow:0 8px 20px rgba(0,0,0,0.15);
-      background:white;
-      padding:6px;
-    ">
+    <img src="./public/chambita.png" alt="Chambita">
   </div>
 
   <h1>Chambatina</h1>
@@ -223,7 +214,7 @@ button:hover{
   <div class="box">
 
     <div class="chat-header">
-      <img src="chambita.png" alt="Chambita" class="chat-avatar">
+      <img src="./public/chambita.png" alt="Chambita" class="chat-avatar">
       <div class="chat-header-text">
         <h3>Chambita</h3>
         <p>Asistente virtual</p>
@@ -324,14 +315,5 @@ input.addEventListener("keydown",function(e){
   }
 });
 </script>
-<img src="./public/chambita.png" alt="Chambita" style="
-  width:140px;
-  height:auto;
-  display:block;
-  margin:0 auto 12px;
-  background:white;
-  border-radius:18px;
-  padding:6px;
-">
 </body>
- 
+</html> 
