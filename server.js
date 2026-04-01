@@ -152,19 +152,11 @@ function primerNombre(nombreCompleto) {
   return limpio ? limpio.split(" ")[0] : "";
 }
 
-function primerNoVacio(arr, startIndex) {
-  for (let i = startIndex; i < arr.length; i++) {
-    const valor = limpiarTexto(arr[i]);
-    if (valor) return valor;
-  }
-  return "";
-}
-
+// CORREGIDO: en tu estructura real primero viene consignatario y después embarcador
 function extraerDatosPersonalesDesdeCampos(campos, fechaIndex) {
-  const embarcador = primerNoVacio(campos, fechaIndex + 1);
+  const valores = [];
 
-  let consignatario = "";
-  for (let i = fechaIndex + 2; i < campos.length; i++) {
+  for (let i = fechaIndex + 1; i < campos.length; i++) {
     const actual = limpiarTexto(campos[i]);
     if (!actual) continue;
 
@@ -173,14 +165,15 @@ function extraerDatosPersonalesDesdeCampos(campos, fechaIndex) {
     const pareceTelefono = /^\d{6,}$/.test(actual);
     const pareceDireccion = /#|CALLE|AVE|AVENIDA|Rpto|REPARTO|e\/|INTERIOR|LA HABANA|PINAR|MATANZAS|SANTIAGO|HOLGUIN|CAMAGUEY/i.test(actual);
 
-    if (actual === embarcador) continue;
     if (esNumero || pareceFecha || pareceTelefono || pareceDireccion) continue;
 
-    consignatario = actual;
-    break;
+    valores.push(actual);
   }
 
-  return { embarcador, consignatario };
+  return {
+    consignatario: valores[0] || "",
+    embarcador: valores[1] || ""
+  };
 }
 
 // ================= ETAPAS =================
@@ -321,7 +314,8 @@ function parseTrackingSource(rawText) {
 
     const fecha = extraerFecha(line);
 
-    const campos = line.split("\t");
+    // MÁS TOLERANTE: acepta tabs o varios espacios
+    const campos = line.split(/\s{2,}|\t/);
     const fechaIndex = campos.findIndex(c => limpiarTexto(c) === fecha);
 
     const { embarcador, consignatario } = fechaIndex >= 0
