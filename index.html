@@ -154,6 +154,12 @@ button:hover{
   opacity:.95;
 }
 
+button:disabled,
+input:disabled{
+  opacity:.75;
+  cursor:not-allowed;
+}
+
 @media (max-width:600px){
   .container{
     padding:14px 10px 40px;
@@ -228,8 +234,8 @@ button:hover{
         </div>
       </div>
 
-      <input id="mensaje" placeholder="Ej: 123456 o ¿precio de envío?" />
-      <button onclick="procesar()">Enviar</button>
+      <input id="mensaje" placeholder="Ej: 1234567 o ¿precio de envío?" />
+      <button id="btnEnviar" onclick="procesar()">Enviar</button>
     </div>
 
   </div>
@@ -241,6 +247,9 @@ const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
 const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("mensaje");
+const btnEnviar = document.getElementById("btnEnviar");
+
+let procesando = false;
 
 function addMessage(texto, tipo){
   const div = document.createElement("div");
@@ -250,22 +259,41 @@ function addMessage(texto, tipo){
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+function normalizarNumero(texto){
+  return String(texto || "").replace(/\D/g,"");
+}
+
+// Solo considerar rastreo si parece realmente un CPK
 function esCPK(texto){
-  const limpio = texto.replace(/\D/g,"");
-  return limpio.length >= 4 && limpio.length <= 10;
+  const limpio = normalizarNumero(texto);
+  return limpio.length >= 6 && limpio.length <= 10;
+}
+
+function setProcesando(valor){
+  procesando = valor;
+  input.disabled = valor;
+  btnEnviar.disabled = valor;
 }
 
 async function procesar(){
+  if(procesando) return;
+
   const mensaje = input.value.trim();
   if(!mensaje) return;
 
   addMessage(mensaje,"user");
   input.value = "";
+  setProcesando(true);
 
-  if(esCPK(mensaje)){
-    buscarCPK(mensaje);
-  }else{
-    enviarChat(mensaje);
+  try{
+    if(esCPK(mensaje)){
+      await buscarCPK(mensaje);
+    }else{
+      await enviarChat(mensaje);
+    }
+  }finally{
+    setProcesando(false);
+    input.focus();
   }
 }
 
@@ -278,42 +306,49 @@ async function enviarChat(mensaje){
     });
 
     const data = await res.json();
-    addMessage(data.respuesta || "Sin respuesta","bot");
+
+    if(!res.ok || !data.ok){
+      addMessage(data.mensaje || "No se pudo procesar la pregunta.","bot");
+      return;
+    }
+
+    addMessage(data.respuesta || "Sin respuesta.","bot");
+
   }catch(e){
-    addMessage("No se pudo conectar","bot");
+    addMessage("No se pudo conectar con el asistente.","bot");
   }
 }
 
 async function buscarCPK(codigo){
-  const cpk = codigo.replace(/\D/g,"");
+  const cpk = normalizarNumero(codigo);
 
   try{
     const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
     const data = await res.json();
 
-    if(!data.ok){
-      addMessage("No se encontró el paquete","bot");
+    if(!res.ok || !data.ok){
+      addMessage(data.mensaje || "No se encontró el paquete.","bot");
       return;
     }
 
     addMessage(
-      "Estado: " + data.estado +
-      "\nFecha: " + (data.fecha || "") +
-      "\n" + (data.descripcion || ""),
+      (data.saludo || ("Hola, tu mercancía se encuentra en: " + data.estado + ".")) +
+      "\n\nFecha: " + (data.fecha || "No disponible") +
+      "\n\nDescripción:\n" + (data.descripcion || "Sin descripción disponible."),
       "bot"
     );
 
   }catch(e){
-    addMessage("Error al buscar el paquete","bot");
+    addMessage("Error al buscar el paquete.","bot");
   }
 }
 
 input.addEventListener("keydown",function(e){
-  if(e.key==="Enter"){
+  if(e.key === "Enter"){
     e.preventDefault();
     procesar();
   }
 });
 </script>
 </body>
-</html> 
+</html>
