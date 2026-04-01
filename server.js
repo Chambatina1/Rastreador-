@@ -13,21 +13,64 @@ app.use(express.json({ limit: "2mb" }));
 
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
-Eres el asistente oficial de Chambatina.
+Eres el asistente oficial de Chambatina y Team Chambari.
 
 Responde siempre en español claro, profesional, útil y directo.
 No inventes precios, condiciones ni políticas.
+Si no sabes algo con certeza, dilo con honestidad.
 
-INFORMACIÓN GENERAL:
-- Precio por libra general: 1.99 más costos de manejo según el tipo de carga.
-- Recogida en puerta: 2.30 por libra.
-- Compras por links de TikTok: 1.80 por libra.
-- Tiempo estimado: de 18 a 30 días hábiles una vez que toca puerto.
+INFORMACIÓN GENERAL
+- Precio por libra general: 1.99 más 10 dólares por manejo, seguro, arancel y transporte.
+- Si recogemos en la puerta de la casa: 2.30 por libra.
+- Si compran por nuestros links de TikTok: 1.80 por libra.
+- Tiempo estimado: 18 a 30 días hábiles una vez que toca puerto.
+- Aproximadamente a los 7 días de la entrega toca puerto.
+
+CAJAS
+- Caja 12x12x12 pulgadas hasta 60 libras: 45 dólares.
+- Caja 15x15x15 pulgadas hasta 100 libras: 65 dólares.
+- Caja 16x16x16 pulgadas hasta 100 libras: 85 dólares.
+
+CARGOS ADICIONALES Y MANEJO
+- Equipos: de 15 a 35 dólares adicionales según el tipo.
+- Equipos de más de 200 libras: 45 dólares adicionales.
+- Bicicleta de niño sin empacar: 25 dólares.
+- Bicicleta de niño empacada: 15 dólares.
+- Bicicleta de adulto sin empacar: 45 dólares.
+- Bicicleta de adulto empacada: 25 dólares.
+- Bicicleta eléctrica en caja: 35 dólares.
+- Bicicleta eléctrica sin caja: 50 dólares.
+- Colchones hasta 50 libras: 15 dólares.
+- Colchones de más de 50 libras: 40 dólares total.
+- Ollas pequeñas: 12 dólares.
+- Olla arrocera o multifuncional: 22 dólares.
+- Equipos con retractilado empacados: 35 dólares.
+- Equipos con retractilado sin empacar: 50 dólares.
+- Retractilado externo: cargo variable.
+
+OFICINA
+- Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112.
+- Teléfono Geo: 786-942-6904.
+- Teléfono Adriana: 786-784-6421.
+
+PROCESO DE COMPRA POR TIKTOK O AMAZON
+- El cliente compra por el link que le brinda la oficina.
+- Luego envía el producto a la dirección de Chambatina.
+- Debe escribir correctamente: 7523 Aloma Ave, Suite 112.
+- No debe usar “Aloma Pine” si TikTok lo sugiere por error.
+
+REGLAS DE RESPUESTA
+- Si preguntan por precio llevando productos a la oficina, responder 1.99 por libra más 10 dólares por manejo, seguro, arancel y transporte.
+- Si preguntan por recogida en casa, responder 2.30 por libra.
+- Si preguntan por compras mediante links de TikTok, responder 1.80 por libra.
+- Si preguntan por tiempos, responder 18 a 30 días hábiles una vez que toca puerto.
+- Si preguntan por rastreo, indicar que pueden consultar con su CPK.
+- Si preguntan por pesos, cajas o cargos de equipos, usar exactamente las cifras anteriores.
+- Mantén un tono comercial, ordenado, serio y humano.
 `;
 
 // ================= BASE MANUAL =================
-// PEGA AQUÍ LAS LÍNEAS COMPLETAS DE SOLVECARGO O TU SISTEMA.
-// Puedes pegar miles de líneas si quieres.
+// PEGA AQUÍ TUS LÍNEAS COMPLETAS DESDE TU SISTEMA
 const RAW_TRACKING_SOURCE = `
 CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
 CHAMBATINA MIAMI	GEO MIA		CPK-0253092	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA 12	10917	2026-03-01	ANNIA LUISA CARABALLO BELLO		83032106338	CALLE AGRAMONTE # 162 INTERIOR Rpto. ROSARIO e/ GUINERA y SIMON BOLIVAR, ARROYO NARANJO, LA HABANA	53245456	MARIA ELENA RODRIGUEZ			0	0	1	37	1	219.32	0	0
@@ -39,7 +82,9 @@ function limpiarTexto(texto) {
 }
 
 function normalizarCPK(cpk) {
-  return String(cpk || "").replace(/\D/g, "");
+  return String(cpk || "")
+    .replace(/\D/g, "")
+    .replace(/^0+/, "");
 }
 
 function parseFecha(fechaTexto) {
@@ -48,8 +93,20 @@ function parseFecha(fechaTexto) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function formatearFecha(fechaTexto) {
-  return fechaTexto || "";
+function fechaToYYYYMMDD(fecha) {
+  if (!fecha) return "";
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, "0");
+  const d = String(fecha.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function sumarDiasNaturales(fechaTexto, dias) {
+  const base = parseFecha(fechaTexto);
+  if (!base) return null;
+  const nueva = new Date(base);
+  nueva.setDate(nueva.getDate() + dias);
+  return nueva;
 }
 
 function diasNaturalesEntre(fechaInicio, fechaFin = new Date()) {
@@ -64,8 +121,8 @@ function diasNaturalesEntre(fechaInicio, fechaFin = new Date()) {
   return dias < 0 ? 0 : dias;
 }
 
-function diasHabilesEntre(fechaInicio, fechaFin = new Date()) {
-  const start = parseFecha(fechaInicio);
+function diasHabilesEntre(fechaInicioTexto, fechaFin = new Date()) {
+  const start = parseFecha(fechaInicioTexto);
   if (!start) return 0;
 
   const end = new Date(fechaFin);
@@ -78,29 +135,11 @@ function diasHabilesEntre(fechaInicio, fechaFin = new Date()) {
 
   while (cursor <= end) {
     const day = cursor.getDay();
-    if (day !== 0 && day !== 6) {
-      count++;
-    }
+    if (day !== 0 && day !== 6) count++;
     cursor.setDate(cursor.getDate() + 1);
   }
 
   return count;
-}
-
-function sumarDiasNaturales(fechaTexto, dias) {
-  const base = parseFecha(fechaTexto);
-  if (!base) return null;
-  const nueva = new Date(base);
-  nueva.setDate(nueva.getDate() + dias);
-  return nueva;
-}
-
-function fechaToYYYYMMDD(fecha) {
-  if (!fecha) return "";
-  const y = fecha.getFullYear();
-  const m = String(fecha.getMonth() + 1).padStart(2, "0");
-  const d = String(fecha.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function extraerFecha(linea) {
@@ -108,17 +147,20 @@ function extraerFecha(linea) {
   return match ? match[1] : "";
 }
 
-function primerNoVacio(array, startIndex) {
-  for (let i = startIndex; i < array.length; i++) {
-    const v = limpiarTexto(array[i]);
-    if (v) return v;
+function primerNombre(nombreCompleto) {
+  const limpio = limpiarTexto(nombreCompleto);
+  return limpio ? limpio.split(" ")[0] : "";
+}
+
+function primerNoVacio(arr, startIndex) {
+  for (let i = startIndex; i < arr.length; i++) {
+    const valor = limpiarTexto(arr[i]);
+    if (valor) return valor;
   }
   return "";
 }
 
 function extraerDatosPersonalesDesdeCampos(campos, fechaIndex) {
-  // En tus líneas, normalmente:
-  // [fecha] [embarcador] [vacío] [id] [dirección] [teléfono] [consignatario] ...
   const embarcador = primerNoVacio(campos, fechaIndex + 1);
 
   let consignatario = "";
@@ -138,22 +180,19 @@ function extraerDatosPersonalesDesdeCampos(campos, fechaIndex) {
     break;
   }
 
-  return {
-    embarcador,
-    consignatario
-  };
+  return { embarcador, consignatario };
 }
 
-// ================= LÓGICA DE ETAPAS =================
+// ================= ETAPAS =================
 const ETAPAS = {
   EN_AGENCIA: "EN AGENCIA",
-  TRASLADO_A_NAVIERA: "TRASLADO A NAVIERA",
+  TRASLADO_NAVIERA: "TRASLADO A NAVIERA",
   EN_CONTENEDOR: "EN CONTENEDOR",
-  SALIDA_A_PUERTO: "SALIDA A PUERTO",
+  SALIDA_PUERTO: "SALIDA A PUERTO",
   ARRIBO: "ARRIBO",
   DESAGRUPE_ADUANA: "DESAGRUPE ADUANA",
   CLASIFICACION: "CLASIFICACIÓN",
-  TRASLADO_A_PROVINCIA: "TRASLADO A LOS ALMACENES CABEZADAS DE PROVINCIA",
+  ALMACEN_PROVINCIA: "TRASLADO A LOS ALMACENES CABEZADAS DE PROVINCIA",
   PREPARANDO_DISTRIBUCION: "PREPARÁNDOSE PARA DISTRIBUCIÓN",
   DISTRIBUCION: "DISTRIBUCIÓN",
   ULTIMA_MILLA: "ÚLTIMA MILLA",
@@ -165,96 +204,72 @@ const ETAPAS = {
 function descripcionPorEstado(estado) {
   switch (estado) {
     case ETAPAS.EN_AGENCIA:
-      return "Tu mercancía fue recibida en nuestra agencia. En esta etapa se valida la entrada del envío, se organiza la información del CPK y se prepara la carga para comenzar el flujo logístico.";
-
-    case ETAPAS.TRASLADO_A_NAVIERA:
+      return "Tu mercancía fue recibida en nuestra agencia. En esta etapa se valida la entrada del envío, se organiza el CPK y se prepara la carga para comenzar el flujo logístico.";
+    case ETAPAS.TRASLADO_NAVIERA:
       return "Tu mercancía salió de la agencia y está siendo trasladada hacia la naviera. Este paso conecta la recepción inicial con el proceso de embarque marítimo.";
-
     case ETAPAS.EN_CONTENEDOR:
-      return "Tu mercancía ya fue ubicada dentro del contenedor. Esto indica que avanzó correctamente dentro del proceso de consolidación de carga previo a su salida.";
-
-    case ETAPAS.SALIDA_A_PUERTO:
+      return "Tu mercancía ya fue ubicada dentro del contenedor. Esto indica que avanzó correctamente dentro del proceso de consolidación previo a su salida.";
+    case ETAPAS.SALIDA_PUERTO:
       return "Tu mercancía va saliendo hacia puerto como parte del trayecto previo al arribo. Esta fase forma parte del avance normal dentro de la operación logística.";
-
     case ETAPAS.ARRIBO:
       return "Tu mercancía ya arribó. A partir de esta etapa comienza el conteo principal del proceso en días hábiles dentro del flujo interno posterior al puerto.";
-
     case ETAPAS.DESAGRUPE_ADUANA:
       return "Tu mercancía se encuentra en desagrupe y revisión aduanal. Aquí la carga se separa del contenedor y se realizan controles normales del proceso logístico.";
-
     case ETAPAS.CLASIFICACION:
       return "Tu mercancía está en proceso de clasificación. En esta fase se organiza según destino, provincia y ruta para continuar hacia la siguiente etapa.";
-
-    case ETAPAS.TRASLADO_A_PROVINCIA:
+    case ETAPAS.ALMACEN_PROVINCIA:
       return "Tu mercancía está siendo trasladada a los almacenes cabezadas de provincia. Este paso acerca la carga a la zona final donde será preparada para su entrega.";
-
     case ETAPAS.PREPARANDO_DISTRIBUCION:
       return "Tu mercancía ya se encuentra en almacén y está preparándose para distribución. Aquí se organiza la salida hacia el reparto territorial correspondiente.";
-
     case ETAPAS.DISTRIBUCION:
       return "Tu mercancía ya está en distribución. Esto significa que entró en el proceso activo de entrega dentro del territorio.";
-
     case ETAPAS.ULTIMA_MILLA:
       return "Tu mercancía se encuentra en última milla. Esta es una de las fases más cercanas a la entrega final al destinatario.";
-
     case ETAPAS.CONTINUACION_DISTRIBUCION:
       return "Tu mercancía continúa en jornada de distribución. Esto puede ocurrir cuando la ruta de entrega sigue avanzando en días sucesivos dentro del proceso final.";
-
     case ETAPAS.ENTREGADO:
       return "Tu mercancía ya fue entregada satisfactoriamente. Gracias por confiar en Chambatina.";
-
     default:
       return "Tu mercancía continúa avanzando dentro del proceso logístico.";
   }
 }
 
-function normalizarEstadoDesdeTexto(estadoRaw) {
-  const e = limpiarTexto(estadoRaw).toUpperCase();
+function normalizarEstadoDesdeTexto(texto) {
+  const e = limpiarTexto(texto).toUpperCase();
 
   if (!e) return "";
 
   if (e.includes("ENTREGADO")) return ETAPAS.ENTREGADO;
+  if (e.includes("ULTIMA MILLA") || e.includes("ÚLTIMA MILLA")) return ETAPAS.ULTIMA_MILLA;
   if (e.includes("CONTINUACIÓN") && e.includes("DISTRIBU")) return ETAPAS.CONTINUACION_DISTRIBUCION;
   if (e.includes("CONTINUACION") && e.includes("DISTRIBU")) return ETAPAS.CONTINUACION_DISTRIBUCION;
-  if (e.includes("ÚLTIMA MILLA")) return ETAPAS.ULTIMA_MILLA;
-  if (e.includes("ULTIMA MILLA")) return ETAPAS.ULTIMA_MILLA;
   if (e.includes("PREPAR") && e.includes("DISTRIBU")) return ETAPAS.PREPARANDO_DISTRIBUCION;
-  if (e.includes("CABEZADAS DE PROVINCIA")) return ETAPAS.TRASLADO_A_PROVINCIA;
-  if (e.includes("TRASLADO") && e.includes("PROVINCIA")) return ETAPAS.TRASLADO_A_PROVINCIA;
+  if (e.includes("ALMACENES CABEZADAS") || (e.includes("TRASLADO") && e.includes("PROVINCIA"))) return ETAPAS.ALMACEN_PROVINCIA;
   if (e.includes("CLASIFIC")) return ETAPAS.CLASIFICACION;
-  if (e.includes("DESAGRUPE")) return ETAPAS.DESAGRUPE_ADUANA;
-  if (e.includes("ADUANA")) return ETAPAS.DESAGRUPE_ADUANA;
+  if (e.includes("DESAGRUPE") || e.includes("ADUANA")) return ETAPAS.DESAGRUPE_ADUANA;
   if (e.includes("ARRIBO")) return ETAPAS.ARRIBO;
-  if (e.includes("SALIDA") && e.includes("PUERTO")) return ETAPAS.SALIDA_A_PUERTO;
+  if (e.includes("SALIDA") && e.includes("PUERTO")) return ETAPAS.SALIDA_PUERTO;
   if (e.includes("CONTENEDOR")) return ETAPAS.EN_CONTENEDOR;
-  if (e.includes("NAVIERA")) return ETAPAS.TRASLADO_A_NAVIERA;
+  if (e.includes("NAVIERA")) return ETAPAS.TRASLADO_NAVIERA;
   if (e.includes("AGENCIA")) return ETAPAS.EN_AGENCIA;
-  if (e.includes("EN DISTRIBUCIÓN")) return ETAPAS.DISTRIBUCION;
-  if (e.includes("EN DISTRIBUCION")) return ETAPAS.DISTRIBUCION;
-  if (e === "DISTRIBUCIÓN" || e === "DISTRIBUCION") return ETAPAS.DISTRIBUCION;
+  if (e.includes("EN DISTRIBUCION") || e.includes("EN DISTRIBUCIÓN") || e === "DISTRIBUCION" || e === "DISTRIBUCIÓN") return ETAPAS.DISTRIBUCION;
 
   return "";
 }
 
-// Esta función aplica tu lógica cronológica cuando la línea no trae un estado claro.
 function estadoPorTiempo(fechaTexto) {
   if (!fechaTexto) return ETAPAS.EN_PROCESO;
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
-  const fechaBase = parseFecha(fechaTexto);
-  if (!fechaBase) return ETAPAS.EN_PROCESO;
-
   const diasNaturales = diasNaturalesEntre(fechaTexto, hoy);
 
-  // Etapa previa a puerto
   if (diasNaturales <= 3) return ETAPAS.EN_AGENCIA;
-  if (diasNaturales <= 5) return ETAPAS.TRASLADO_A_NAVIERA;
+  if (diasNaturales <= 5) return ETAPAS.TRASLADO_NAVIERA;
   if (diasNaturales <= 7) return ETAPAS.EN_CONTENEDOR;
-  if (diasNaturales <= 9) return ETAPAS.SALIDA_A_PUERTO;
+  if (diasNaturales <= 9) return ETAPAS.SALIDA_PUERTO;
 
-  // Aproximadamente al día 10 natural consideramos arribo/inicio de etapa post-puerto
   const fechaPuerto = sumarDiasNaturales(fechaTexto, 10);
   const fechaPuertoTexto = fechaToYYYYMMDD(fechaPuerto);
   const diasHabiles = diasHabilesEntre(fechaPuertoTexto, hoy);
@@ -262,10 +277,7 @@ function estadoPorTiempo(fechaTexto) {
   if (diasHabiles <= 3) return ETAPAS.ARRIBO;
   if (diasHabiles <= 6) return ETAPAS.DESAGRUPE_ADUANA;
   if (diasHabiles <= 10) return ETAPAS.CLASIFICACION;
-  if (diasHabiles <= 14) return ETAPAS.TRASLADO_A_PROVINCIA;
-  if (diasHabiles <= 18) return ETAPAS.PREPARANDO_DISTRIBUCION;
-
-  // Según tu criterio: distribución a partir de los 28 días hábiles
+  if (diasHabiles <= 14) return ETAPAS.ALMACEN_PROVINCIA;
   if (diasHabiles < 28) return ETAPAS.PREPARANDO_DISTRIBUCION;
   if (diasHabiles <= 30) return ETAPAS.DISTRIBUCION;
   if (diasHabiles <= 34) return ETAPAS.ULTIMA_MILLA;
@@ -273,26 +285,26 @@ function estadoPorTiempo(fechaTexto) {
   return ETAPAS.CONTINUACION_DISTRIBUCION;
 }
 
-function construirSaludo(nombreEmbarcador, nombreConsignatario, estado) {
-  const embarcador = limpiarTexto(nombreEmbarcador);
-  const consignatario = limpiarTexto(nombreConsignatario);
+function construirSaludo(embarcador, consignatario, estado) {
+  const nombreEmbarcador = primerNombre(embarcador);
+  const nombreConsignatario = primerNombre(consignatario);
 
-  if (embarcador && consignatario) {
-    return `Hola ${embarcador}, tu mercancía a consignatario ${consignatario} se encuentra en: ${estado}.`;
+  if (nombreEmbarcador && nombreConsignatario) {
+    return `Hola ${nombreEmbarcador}, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado}.`;
   }
 
-  if (embarcador) {
-    return `Hola ${embarcador}, tu mercancía se encuentra en: ${estado}.`;
+  if (nombreEmbarcador) {
+    return `Hola ${nombreEmbarcador}, tus paquetes se encuentran en: ${estado}.`;
   }
 
-  if (consignatario) {
-    return `Hola, tu mercancía a consignatario ${consignatario} se encuentra en: ${estado}.`;
+  if (nombreConsignatario) {
+    return `Hola, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado}.`;
   }
 
-  return `Hola, tu mercancía se encuentra en: ${estado}.`;
+  return `Hola, tus paquetes se encuentran en: ${estado}.`;
 }
 
-// ================= PARSER DE LA BASE PEGADA =================
+// ================= PARSER =================
 function parseTrackingSource(rawText) {
   const db = {};
   const lines = String(rawText || "")
@@ -308,6 +320,7 @@ function parseTrackingSource(rawText) {
     if (!cpk) continue;
 
     const fecha = extraerFecha(line);
+
     const campos = line.split("\t");
     const fechaIndex = campos.findIndex(c => limpiarTexto(c) === fecha);
 
@@ -315,13 +328,8 @@ function parseTrackingSource(rawText) {
       ? extraerDatosPersonalesDesdeCampos(campos, fechaIndex)
       : { embarcador: "", consignatario: "" };
 
-    // Intentar primero extraer estado explícito de la línea completa
     let estado = normalizarEstadoDesdeTexto(line);
-
-    // Si no existe un estado claro en la línea, aplicar lógica por tiempo con la fecha
-    if (!estado) {
-      estado = estadoPorTiempo(fecha);
-    }
+    if (!estado) estado = estadoPorTiempo(fecha);
 
     db[cpk] = {
       cpk,
@@ -349,7 +357,8 @@ app.get("/api/health", (req, res) => {
     return res.json({
       ok: true,
       mensaje: "Servidor activo",
-      totalCPK: Object.keys(db).length
+      totalCPK: Object.keys(db).length,
+      ejemplos: Object.keys(db).slice(0, 10)
     });
   } catch (error) {
     console.error("Error en /api/health:", error);
@@ -384,7 +393,7 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     return res.json({
       ok: true,
       cpk: item.cpk,
-      fecha: formatearFecha(item.fecha),
+      fecha: item.fecha || "",
       estado: item.estado,
       descripcion: item.descripcion,
       embarcador: item.embarcador,
