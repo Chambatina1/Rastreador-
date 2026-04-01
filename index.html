@@ -1,687 +1,220 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Robot Chambatina</title>
-  <style>
-    :root{
-      --bg:#071018;
-      --panel:#0f1b22;
-      --panel-2:#1c2a33;
-      --line:rgba(255,255,255,.07);
-      --text:#e9edef;
-      --muted:#98a6ad;
-      --accent:#f59e0b;
-      --accent-2:#ffb726;
-      --bubble-bot:#23343e;
-      --bubble-user:#f59e0b;
-      --input:#31434e;
-      --shadow:0 16px 38px rgba(0,0,0,.32);
-      --radius:20px;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chambatina</title>
 
-    *{
-      box-sizing:border-box;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f6f7f9;
+  color:#111827;
+}
 
-    html{
-      scroll-behavior:smooth;
-    }
+.container{
+  max-width:680px;
+  margin:0 auto;
+  padding:20px 14px 60px;
+}
 
-    body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:
-        radial-gradient(circle at top, rgba(245,158,11,.05), transparent 24%),
-        linear-gradient(180deg, #061018 0%, #09131a 100%);
-      color:var(--text);
-    }
+.logo{
+  text-align:center;
+  margin-bottom:14px;
+}
 
-    .page{
-      max-width:760px;
-      margin:0 auto;
-      padding:10px 10px 90px;
-    }
+.logo img{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:#fff;
+  padding:4px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
 
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:50;
-      background:rgba(14,24,31,.95);
-      backdrop-filter:blur(10px);
-      border:1px solid var(--line);
-      border-top:none;
-      border-radius:0 0 18px 18px;
-      padding:10px 12px;
-      box-shadow:var(--shadow);
-      margin-bottom:10px;
-    }
+h1{
+  text-align:center;
+  margin:10px 0 4px;
+  font-size:34px;
+  color:#f59e0b;
+}
 
-    .topbar-inner{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+.subtitle{
+  text-align:center;
+  font-size:18px;
+  color:#6b7280;
+  margin-bottom:20px;
+}
 
-    .avatar{
-      width:42px;
-      height:42px;
-      object-fit:contain;
-      border-radius:14px;
-      flex-shrink:0;
-      filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));
-    }
+.box{
+  background:#fff;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
 
-    .topbar-text{
-      min-width:0;
-    }
+#chatBox{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  min-height:220px;
+  max-height:320px;
+  overflow-y:auto;
+  padding:12px;
+  margin-bottom:14px;
+}
 
-    .title{
-      margin:0;
-      font-size:17px;
-      line-height:1.1;
-      font-weight:800;
-      color:#fff;
-    }
+.msg{
+  max-width:85%;
+  padding:12px 14px;
+  border-radius:16px;
+  margin:8px 0;
+  font-size:17px;
+}
 
-    .subtitle{
-      margin-top:3px;
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.25;
-    }
+.bot{
+  background:#eef2f7;
+}
 
-    .layout{
-      display:grid;
-      gap:10px;
-    }
+.user{
+  background:#f59e0b;
+  font-weight:700;
+  margin-left:auto;
+}
 
-    .card{
-      background:rgba(15,27,34,.96);
-      border:1px solid var(--line);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:var(--shadow);
-    }
+input{
+  width:100%;
+  height:56px;
+  border-radius:14px;
+  border:1px solid #d1d5db;
+  padding:12px;
+  font-size:18px;
+  margin-bottom:10px;
+}
 
-    .card-header{
-      background:var(--panel-2);
-      padding:12px 14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      border-bottom:1px solid var(--line);
-    }
-
-    .card-title{
-      margin:0;
-      font-size:15px;
-      font-weight:800;
-      color:#fff;
-    }
-
-    .card-note{
-      font-size:11px;
-      font-weight:700;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-
-    .card-body{
-      padding:10px;
-    }
-
-    #chatBox{
-      background:
-        radial-gradient(circle at top right, rgba(245,158,11,.05), transparent 28%),
-        #0b1620;
-      border:1px solid var(--line);
-      border-radius:16px;
-      min-height:185px;
-      max-height:260px;
-      overflow-y:auto;
-      padding:10px;
-      margin-bottom:10px;
-    }
-
-    #chatBox::-webkit-scrollbar{
-      width:7px;
-    }
-
-    #chatBox::-webkit-scrollbar-thumb{
-      background:#344754;
-      border-radius:999px;
-    }
-
-    .msg{
-      max-width:90%;
-      padding:10px 12px;
-      border-radius:14px;
-      margin:7px 0;
-      line-height:1.38;
-      font-size:14px;
-      white-space:pre-wrap;
-      word-break:break-word;
-      box-shadow:0 5px 12px rgba(0,0,0,.14);
-    }
-
-    .bot{
-      margin-right:auto;
-      background:var(--bubble-bot);
-      color:var(--text);
-      border-top-left-radius:5px;
-    }
-
-    .user{
-      margin-left:auto;
-      background:var(--bubble-user);
-      color:#111;
-      font-weight:700;
-      border-top-right-radius:5px;
-    }
-
-    .composer,
-    .track-wrap{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:8px;
-      align-items:center;
-    }
-
-    .input{
-      width:100%;
-      min-height:48px;
-      height:48px;
-      border:none;
-      outline:none;
-      border-radius:14px;
-      background:var(--input);
-      color:#fff;
-      padding:12px 14px;
-      font-size:15px;
-      border:1px solid rgba(255,255,255,.05);
-    }
-
-    .input::placeholder{
-      color:#b3bec4;
-    }
-
-    .input:focus{
-      box-shadow:0 0 0 3px rgba(245,158,11,.10);
-      border-color:rgba(245,158,11,.35);
-    }
-
-    .send-btn{
-      width:48px;
-      height:48px;
-      border:none;
-      border-radius:14px;
-      background:linear-gradient(180deg,var(--accent-2),var(--accent));
-      color:#111;
-      font-size:18px;
-      font-weight:900;
-      cursor:pointer;
-      box-shadow:0 10px 20px rgba(245,158,11,.18);
-      flex-shrink:0;
-    }
-
-    .track-btn{
-      min-width:92px;
-      height:48px;
-      border:none;
-      border-radius:14px;
-      background:linear-gradient(180deg,var(--accent-2),var(--accent));
-      color:#111;
-      font-size:15px;
-      font-weight:800;
-      padding:0 14px;
-      cursor:pointer;
-      box-shadow:0 10px 20px rgba(245,158,11,.18);
-      flex-shrink:0;
-    }
-
-    .send-btn:disabled,
-    .track-btn:disabled{
-      opacity:.65;
-      cursor:not-allowed;
-    }
-
-    .helper{
-      margin-top:8px;
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.35;
-    }
-
-    .result-box{
-      margin-top:10px;
-      background:#0b1620;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      min-height:92px;
-      font-size:14px;
-      line-height:1.45;
-      white-space:pre-wrap;
-      color:var(--text);
-    }
-
-    .estado{
-      color:var(--accent);
-      font-size:18px;
-      font-weight:900;
-      margin-bottom:6px;
-    }
-
-    .footer-note{
-      text-align:center;
-      color:var(--muted);
-      font-size:11px;
-      margin-top:10px;
-      padding-bottom:4px;
-    }
-
-    .float-wrap{
-      position:fixed;
-      right:10px;
-      bottom:10px;
-      z-index:9999;
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:6px;
-    }
-
-    .float-tip{
-      background:rgba(255,255,255,.92);
-      backdrop-filter:blur(6px);
-      color:#111;
-      padding:7px 10px;
-      border-radius:12px;
-      font-size:11px;
-      font-weight:800;
-      box-shadow:0 10px 20px rgba(0,0,0,.22);
-      max-width:120px;
-      text-align:center;
-      transition:opacity .25s ease, transform .25s ease;
-    }
-
-    .float-tip.hide{
-      opacity:0;
-      transform:translateY(6px);
-      pointer-events:none;
-    }
-
-    .float-bot{
-      width:54px;
-      height:54px;
-      border:none;
-      background:transparent;
-      padding:0;
-      cursor:pointer;
-      border-radius:16px;
-      transition:transform .2s ease;
-    }
-
-    .float-bot:hover{
-      transform:translateY(-2px) scale(1.03);
-    }
-
-    .float-bot img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-      border-radius:16px;
-      filter:drop-shadow(0 12px 20px rgba(0,0,0,.34));
-    }
-
-    @keyframes pulse{
-      0%{transform:scale(1)}
-      50%{transform:scale(1.05)}
-      100%{transform:scale(1)}
-    }
-
-    .pulse{
-      animation:pulse 2.2s infinite;
-    }
-
-    @media (min-width: 641px){
-      .page{
-        padding:14px 14px 95px;
-      }
-
-      .topbar{
-        padding:12px 14px;
-        border-radius:0 0 22px 22px;
-        margin-bottom:12px;
-      }
-
-      .avatar{
-        width:52px;
-        height:52px;
-        border-radius:16px;
-      }
-
-      .title{
-        font-size:20px;
-      }
-
-      .subtitle{
-        font-size:13px;
-      }
-
-      .card{
-        border-radius:22px;
-      }
-
-      .card-header{
-        padding:14px 16px;
-      }
-
-      .card-title{
-        font-size:18px;
-      }
-
-      .card-note{
-        font-size:12px;
-      }
-
-      .card-body{
-        padding:14px;
-      }
-
-      #chatBox{
-        min-height:260px;
-        max-height:360px;
-        padding:12px;
-        border-radius:18px;
-      }
-
-      .msg{
-        font-size:15px;
-        padding:11px 13px;
-        border-radius:16px;
-      }
-
-      .input{
-        min-height:52px;
-        height:52px;
-        font-size:16px;
-        border-radius:16px;
-      }
-
-      .send-btn{
-        width:52px;
-        height:52px;
-        border-radius:16px;
-        font-size:19px;
-      }
-
-      .track-btn{
-        min-width:110px;
-        height:52px;
-        border-radius:16px;
-        font-size:16px;
-      }
-
-      .result-box{
-        min-height:110px;
-        padding:14px;
-        font-size:15px;
-        border-radius:16px;
-      }
-
-      .estado{
-        font-size:22px;
-      }
-
-      .float-wrap{
-        right:14px;
-        bottom:14px;
-      }
-
-      .float-tip{
-        font-size:12px;
-        padding:8px 12px;
-        max-width:140px;
-      }
-
-      .float-bot{
-        width:62px;
-        height:62px;
-      }
-
-      .float-bot img{
-        border-radius:18px;
-      }
-    }
-  </style>
+button{
+  width:100%;
+  height:56px;
+  border:none;
+  border-radius:14px;
+  background:#f59e0b;
+  font-size:20px;
+  font-weight:800;
+  cursor:pointer;
+}
+</style>
 </head>
+
 <body>
-  <div class="page">
-    <div class="topbar">
-      <div class="topbar-inner">
-        <img class="avatar" src="/Rastreador-/public/robot.png" alt="Robot Chambatina">
-        <div class="topbar-text">
-          <h1 class="title">Robot Chambatina</h1>
-          <div class="subtitle">Escriba su pregunta o rastree su paquete por CPK.</div>
-        </div>
+
+<div class="container">
+
+  <div class="logo">
+    <img src="./logo-chambatina.png" alt="Chambatina">
+  </div>
+
+  <h1>Chambatina</h1>
+  <div class="subtitle">
+    Consulte su paquete o haga su pregunta
+  </div>
+
+  <div class="box">
+
+    <div id="chatBox">
+      <div class="msg bot">
+        Escriba su número CPK o su pregunta.
       </div>
     </div>
 
-    <div class="layout">
-      <section class="card" id="chat-section">
-        <div class="card-header">
-          <h2 class="card-title">Chat</h2>
-          <div class="card-note">Consulta directa</div>
-        </div>
+    <input id="mensaje" placeholder="Ej: 123456 o ¿precio de envío?" />
 
-        <div class="card-body">
-          <div id="chatBox">
-            <div class="msg bot">Bienvenido. Escriba su pregunta y pulse enviar.</div>
-          </div>
+    <button onclick="procesar()">Enviar</button>
 
-          <div class="composer">
-            <input
-              id="mensaje"
-              class="input"
-              type="text"
-              placeholder="Escriba aquí su mensaje"
-              autocomplete="off"
-            />
-            <button id="btnEnviar" class="send-btn" type="button">➤</button>
-          </div>
-
-          <div class="helper">Sin botones rápidos. El cliente solo pregunta y el sistema responde.</div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <h2 class="card-title">Rastreo</h2>
-          <div class="card-note">Buscar por CPK</div>
-        </div>
-
-        <div class="card-body">
-          <div class="track-wrap">
-            <input
-              id="cpk"
-              class="input"
-              type="text"
-              placeholder="Escriba su CPK"
-              inputmode="numeric"
-              autocomplete="off"
-            />
-            <button id="btnBuscarCPK" class="track-btn" type="button">Buscar</button>
-          </div>
-
-          <div id="rastreoResultado" class="result-box">Escriba su CPK y pulse Buscar.</div>
-        </div>
-      </section>
-    </div>
-
-    <div class="footer-note">Chambatina · Chat y rastreo</div>
   </div>
 
-  <div class="float-wrap">
-    <div id="chambitaTip" class="float-tip">Pregúntame</div>
-    <button id="chambitaFloat" class="float-bot pulse" type="button" aria-label="Ir al chat">
-      <img src="/Rastreador-/public/robot.png" alt="Robot Chambatina">
-    </button>
-  </div>
+</div>
 
-  <script>
-    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
+<script>
+const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-    const chatBox = document.getElementById("chatBox");
-    const inputMensaje = document.getElementById("mensaje");
-    const inputCPK = document.getElementById("cpk");
-    const rastreoResultado = document.getElementById("rastreoResultado");
-    const btnEnviar = document.getElementById("btnEnviar");
-    const btnBuscarCPK = document.getElementById("btnBuscarCPK");
-    const chambitaFloat = document.getElementById("chambitaFloat");
-    const chambitaTip = document.getElementById("chambitaTip");
-    const chatSection = document.getElementById("chat-section");
+const chatBox = document.getElementById("chatBox");
+const input = document.getElementById("mensaje");
 
-    function addMessage(texto, tipo) {
-      const div = document.createElement("div");
-      div.className = "msg " + tipo;
-      div.textContent = texto;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
+function addMessage(texto, tipo){
+  const div = document.createElement("div");
+  div.className = "msg " + tipo;
+  div.textContent = texto;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-    async function enviarMensaje() {
-      const mensaje = inputMensaje.value.trim();
-      if (!mensaje) return;
+function esCPK(texto){
+  const limpio = texto.replace(/\D/g,"");
+  return limpio.length >= 4 && limpio.length <= 10;
+}
 
-      addMessage(mensaje, "user");
-      inputMensaje.value = "";
-      btnEnviar.disabled = true;
+async function procesar(){
+  const mensaje = input.value.trim();
+  if(!mensaje) return;
 
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mensaje })
-        });
+  addMessage(mensaje,"user");
+  input.value = "";
 
-        const rawText = await res.text();
-        let data = null;
+  if(esCPK(mensaje)){
+    buscarCPK(mensaje);
+  }else{
+    enviarChat(mensaje);
+  }
+}
 
-        try {
-          data = JSON.parse(rawText);
-        } catch (e) {
-          data = null;
-        }
-
-        if (!res.ok) {
-          addMessage(data?.mensaje || `Error del servidor (${res.status})`, "bot");
-          return;
-        }
-
-        if (!data) {
-          addMessage("El servidor respondió con un formato no válido.", "bot");
-          return;
-        }
-
-        if (!data.ok) {
-          addMessage(data.mensaje || "No se pudo procesar la solicitud.", "bot");
-          return;
-        }
-
-        addMessage(
-          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta.",
-          "bot"
-        );
-      } catch (error) {
-        addMessage("No fue posible conectar con el servidor.", "bot");
-        console.error("Error chat:", error);
-      } finally {
-        btnEnviar.disabled = false;
-      }
-    }
-
-    async function buscarCPK() {
-      const cpk = (inputCPK.value || "").replace(/\D/g, "");
-      if (!cpk) {
-        rastreoResultado.textContent = "Escriba un CPK válido.";
-        return;
-      }
-
-      rastreoResultado.textContent = "Buscando...";
-      btnBuscarCPK.disabled = true;
-
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
-        const rawText = await res.text();
-        let data = null;
-
-        try {
-          data = JSON.parse(rawText);
-        } catch (e) {
-          data = null;
-        }
-
-        if (!res.ok) {
-          rastreoResultado.textContent = data?.mensaje || `Error del servidor (${res.status})`;
-          return;
-        }
-
-        if (!data) {
-          rastreoResultado.textContent = "El servidor respondió con un formato no válido.";
-          return;
-        }
-
-        if (!data.ok) {
-          rastreoResultado.textContent = data.mensaje || "No se encontró el CPK.";
-          return;
-        }
-
-        rastreoResultado.innerHTML = `
-          <div class="estado">${data.estado || ""}</div>
-          <div><strong>CPK:</strong> ${data.cpk || cpk}</div>
-          <div><strong>Fecha:</strong> ${data.fecha || "No disponible"}</div>
-          <div style="margin-top:10px;">${data.descripcion || ""}</div>
-        `;
-      } catch (error) {
-        rastreoResultado.textContent = "No fue posible conectar con el servidor.";
-        console.error("Error rastreo:", error);
-      } finally {
-        btnBuscarCPK.disabled = false;
-      }
-    }
-
-    inputMensaje.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        enviarMensaje();
-      }
+async function enviarChat(mensaje){
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/chat`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({mensaje})
     });
 
-    inputCPK.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        buscarCPK();
-      }
-    });
+    const data = await res.json();
+    addMessage(data.respuesta || "Sin respuesta","bot");
 
-    btnEnviar.addEventListener("click", enviarMensaje);
-    btnBuscarCPK.addEventListener("click", buscarCPK);
+  }catch(e){
+    addMessage("No se pudo conectar","bot");
+  }
+}
 
-    chambitaFloat.addEventListener("click", function() {
-      chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      setTimeout(() => inputMensaje.focus(), 350);
-      chambitaFloat.classList.remove("pulse");
-      chambitaTip.classList.add("hide");
-    });
+async function buscarCPK(codigo){
+  const cpk = codigo.replace(/\D/g,"");
 
-    setTimeout(() => {
-      chambitaTip.classList.add("hide");
-    }, 5000);
-  </script>
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
+    const data = await res.json();
+
+    if(!data.ok){
+      addMessage("No se encontró el paquete","bot");
+      return;
+    }
+
+    addMessage(
+      "Estado: " + data.estado +
+      "\nFecha: " + (data.fecha || "") +
+      "\n" + (data.descripcion || ""),
+      "bot"
+    );
+
+  }catch(e){
+    addMessage("Error al buscar el paquete","bot");
+  }
+}
+
+input.addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    e.preventDefault();
+    procesar();
+  }
+});
+</script>
+
 </body>
 </html>
