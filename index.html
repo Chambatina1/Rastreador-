@@ -51,6 +51,7 @@ h1{
 .box{
   background:#fff;
   border-radius:20px;
+  padding:0;
   box-shadow:0 10px 30px rgba(0,0,0,.08);
   overflow:hidden;
 }
@@ -60,6 +61,7 @@ h1{
   align-items:center;
   gap:12px;
   padding:14px 16px;
+  background:#ffffff;
   border-bottom:1px solid #e5e7eb;
 }
 
@@ -71,12 +73,14 @@ h1{
   background:#fff;
   padding:3px;
   box-shadow:0 4px 12px rgba(0,0,0,.08);
+  flex-shrink:0;
 }
 
 .chat-header-text h3{
   margin:0;
   font-size:18px;
   font-weight:800;
+  color:#111827;
 }
 
 .chat-header-text p{
@@ -107,14 +111,17 @@ h1{
   border-radius:16px;
   margin:8px 0;
   font-size:17px;
+  line-height:1.4;
 }
 
 .bot{
   background:#eef2f7;
+  color:#111827;
 }
 
 .user{
   background:#f59e0b;
+  color:#111827;
   font-weight:700;
   margin-left:auto;
 }
@@ -127,6 +134,7 @@ input{
   padding:12px;
   font-size:18px;
   margin-bottom:10px;
+  box-sizing:border-box;
 }
 
 button{
@@ -138,6 +146,55 @@ button{
   font-size:20px;
   font-weight:800;
   cursor:pointer;
+  color:#111827;
+}
+
+button:hover{
+  opacity:.95;
+}
+
+@media (max-width:600px){
+  .container{
+    padding:14px 10px 40px;
+  }
+
+  .logo img{
+    width:74px;
+    height:74px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  .subtitle{
+    font-size:16px;
+  }
+
+  .chat-avatar{
+    width:48px;
+    height:48px;
+  }
+
+  .chat-header-text h3{
+    font-size:16px;
+  }
+
+  .chat-header-text p{
+    font-size:12px;
+  }
+
+  .msg{
+    font-size:16px;
+  }
+
+  input{
+    font-size:16px;
+  }
+
+  button{
+    font-size:18px;
+  }
 }
 </style>
 </head>
@@ -146,7 +203,6 @@ button{
 
 <div class="container">
 
-  <!-- LOGO -->
   <div class="logo">
     <img src="chambita.png" alt="Chambatina">
   </div>
@@ -159,7 +215,7 @@ button{
   <div class="box">
 
     <div class="chat-header">
-      <img src="chambita.png" class="chat-avatar">
+      <img src="chambita.png" alt="Chambita" class="chat-avatar">
       <div class="chat-header-text">
         <h3>Chambita</h3>
         <p>Asistente virtual</p>
@@ -247,6 +303,7 @@ async function buscarCPK(codigo){
       "\n" + (data.descripcion || ""),
       "bot"
     );
+
   }catch(e){
     addMessage("Error al buscar el paquete","bot");
   }
@@ -262,4 +319,3 @@ input.addEventListener("keydown",function(e){
 
 </body>
 </html>
-
