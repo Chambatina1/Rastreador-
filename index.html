@@ -18,389 +18,467 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #000;
-      color: #fff;
+      background: #f4f5f7;
+      color: #111827;
     }
 
     .wrap {
-      max-width: 900px;
+      max-width: 760px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 28px 14px 50px;
     }
 
-    .title {
+    .top {
       text-align: center;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      font-size: 54px;
-      font-weight: 700;
+      margin-bottom: 22px;
+    }
+
+    .logo-shell {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 14px;
+      border-radius: 32px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 34px rgba(0,0,0,.08);
+      border: 1px solid #ececec;
+    }
+
+    .logo-shell img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      display: block;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 42px;
+      font-weight: 800;
       color: #f59e0b;
+      letter-spacing: -0.02em;
     }
 
     .subtitle {
-      text-align: center;
-      color: #bfbfbf;
+      margin: 0;
+      color: #6b7280;
       font-size: 18px;
-      margin-bottom: 30px;
     }
 
     .card {
-      background: #0b0b0b;
-      border: 1px solid #242424;
+      background: #ffffff;
       border-radius: 28px;
+      border: 1px solid #e9eaec;
+      box-shadow: 0 16px 38px rgba(0,0,0,.07);
       overflow: hidden;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.35);
     }
 
     .card-header {
-      background: #f59e0b;
-      color: #000;
-      font-size: 22px;
-      font-weight: 700;
-      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 22px;
+      border-bottom: 1px solid #ececec;
+      background: #ffffff;
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: #f9fafb;
+      border: 1px solid #ececec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+    }
+
+    .header-text h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .header-text p {
+      margin: 5px 0 0;
+      font-size: 15px;
+      color: #6b7280;
     }
 
     .card-body {
       padding: 22px;
+      background: #fcfcfd;
     }
 
-    #chatBox {
-      background: #0f0f10;
-      border: 1px solid #2d2d2d;
-      border-radius: 24px;
-      min-height: 260px;
-      max-height: 420px;
-      overflow-y: auto;
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-
-    .msg {
-      max-width: 86%;
-      padding: 16px 18px;
-      border-radius: 22px;
-      margin: 10px 0;
-      line-height: 1.45;
-      font-size: 16px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .user {
-      margin-left: auto;
-      background: #f59e0b;
-      color: #000;
-      font-weight: 600;
-    }
-
-    .bot {
-      margin-right: auto;
-      background: #222;
-      color: #f2f2f2;
-    }
-
-    .input {
+    .question-box {
       width: 100%;
-      background: #050505;
-      color: #fff;
-      border: 1px solid #323232;
-      border-radius: 22px;
-      padding: 20px;
+      height: 64px;
+      border: 1px solid #f3c26a;
+      background: #fff7e8;
+      color: #111827;
+      border-radius: 18px;
+      padding: 0 18px;
       font-size: 18px;
       outline: none;
+      display: block;
+      margin-bottom: 16px;
+      transition: .2s ease;
+    }
+
+    .question-box:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.12);
+      background: #ffffff;
+    }
+
+    .question-box::placeholder {
+      color: #7b7280;
+    }
+
+    .answer-box {
+      min-height: 260px;
+      background: #eef2f6;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 22px;
+      font-size: 18px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #111827;
     }
 
     .btn {
       width: 100%;
       margin-top: 16px;
-      background: #f59e0b;
-      color: #000;
+      height: 56px;
       border: none;
-      border-radius: 22px;
-      padding: 18px;
-      font-size: 22px;
-      font-weight: 700;
+      border-radius: 18px;
+      background: #f59e0b;
+      color: #111827;
+      font-size: 19px;
+      font-weight: 800;
       cursor: pointer;
+      transition: .2s ease;
     }
 
-    .btn:disabled {
-      opacity: 0.6;
+    .btn:hover {
+      opacity: .96;
+    }
+
+    .btn:disabled,
+    .question-box:disabled {
+      opacity: .7;
       cursor: not-allowed;
     }
 
-    .quick-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .quick-btn {
-      background: #222;
-      color: #fff;
-      border: 1px solid #333;
-      border-radius: 999px;
-      padding: 16px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .result-box {
-      background: #111;
-      border: 1px solid #2d2d2d;
-      border-radius: 22px;
-      padding: 20px;
-      min-height: 120px;
-      font-size: 18px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-    }
-
-    .estado {
-      color: #f59e0b;
-      font-weight: 700;
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-
-    #chambita-bot {
-      position: fixed;
-      bottom: 22px;
-      right: 22px;
-      width: 90px;
-      height: 90px;
-      z-index: 9999;
-      cursor: pointer;
-      transition: transform 0.25s ease;
-    }
-
-    #chambita-bot img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.18));
-    }
-
-    #chambita-bot:hover {
-      transform: scale(1.05) translateY(-4px);
-    }
-
-    #chambita-text {
-      position: fixed;
-      bottom: 120px;
-      right: 28px;
-      background: white;
-      color: #000;
-      padding: 8px 14px;
-      border-radius: 14px;
+    .ios-tip {
+      display: none;
+      margin-top: 14px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 16px;
+      padding: 14px 16px;
       font-size: 14px;
-      font-weight: 600;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      font-family: Arial, sans-serif;
+      line-height: 1.45;
     }
 
     @media (max-width: 700px) {
-      .title { font-size: 34px; }
-      .subtitle { font-size: 16px; }
-      .quick-grid { grid-template-columns: 1fr 1fr; }
+      .wrap {
+        padding: 16px 10px 36px;
+      }
+
+      .logo-shell {
+        width: 110px;
+        height: 110px;
+        border-radius: 26px;
+      }
+
+      .logo-shell img {
+        width: 66px;
+        height: 66px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .card-header {
+        padding: 16px;
+      }
+
+      .avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+      }
+
+      .avatar img {
+        width: 34px;
+        height: 34px;
+      }
+
+      .header-text h2 {
+        font-size: 20px;
+      }
+
+      .header-text p {
+        font-size: 14px;
+      }
+
+      .card-body {
+        padding: 16px;
+      }
+
+      .question-box {
+        height: 58px;
+        font-size: 16px;
+        border-radius: 16px;
+      }
+
+      .answer-box {
+        min-height: 220px;
+        font-size: 16px;
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .btn {
+        height: 52px;
+        font-size: 17px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="title">Robot Chambatina</div>
-    <div class="subtitle">Asistente con chat y rastreo</div>
-
-    <div class="card" id="chat-container">
-      <div class="card-header">Chat inteligente</div>
-      <div class="card-body">
-        <div id="chatBox">
-          <div class="msg bot">Bienvenido. Escriba su pregunta y pulse Enviar.</div>
-        </div>
-
-        <input id="mensaje" class="input" type="text" placeholder="Escriba aquí su mensaje" />
-        <button id="btnEnviar" class="btn" type="button">Enviar</button>
-
-        <div class="quick-grid">
-          <button class="quick-btn" type="button" onclick="preguntaRapida('¿Cuál es el precio por libra?')">Precio por libra</button>
-          <button class="quick-btn" type="button" onclick="preguntaRapida('¿Qué cajas tienen disponibles?')">Cajas</button>
-          <button class="quick-btn" type="button" onclick="preguntaRapida('¿Cuál es el tiempo de entrega?')">Tiempo de entrega</button>
-          <button class="quick-btn" type="button" onclick="preguntaRapida('¿Cómo cobran los equipos?')">Equipos</button>
-        </div>
+    <div class="top">
+      <div class="logo-shell">
+        <img src="public/chambita.png" alt="Chambatina" />
       </div>
+      <h1>Chambatina</h1>
+      <p class="subtitle">Consulte su paquete o haga su pregunta</p>
     </div>
 
     <div class="card">
-      <div class="card-header">Rastreo de paquete</div>
+      <div class="card-header">
+        <div class="avatar">
+          <img src="public/chambita.png" alt="Chambita" />
+        </div>
+        <div class="header-text">
+          <h2>Chambita</h2>
+          <p>Asistente virtual</p>
+        </div>
+      </div>
+
       <div class="card-body">
-        <input id="cpk" class="input" type="text" placeholder="Escriba su CPK" />
-        <button id="btnBuscarCPK" class="btn" type="button">Buscar</button>
-        <div id="rastreoResultado" class="result-box" style="margin-top:16px;">
-          Escriba su CPK y pulse Buscar.
+        <input
+          id="mensaje"
+          class="question-box"
+          type="text"
+          placeholder="Escriba su CPK o su pregunta"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+
+        <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
+
+        <button id="btnEnviar" class="btn" type="button">Enviar</button>
+
+        <div id="iosTip" class="ios-tip">
+          En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
         </div>
       </div>
     </div>
-  </div>
-
-  <div id="chambita-text">Pregúntame</div>
-
-  <div id="chambita-bot" onclick="abrirChat()">
-    <img src="public/chambita.png" alt="Chambatina Bot">
   </div>
 
   <script>
     const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-    const chatBox = document.getElementById("chatBox");
-    const inputMensaje = document.getElementById("mensaje");
-    const inputCPK = document.getElementById("cpk");
-    const rastreoResultado = document.getElementById("rastreoResultado");
+    const mensaje = document.getElementById("mensaje");
+    const respuesta = document.getElementById("respuesta");
     const btnEnviar = document.getElementById("btnEnviar");
-    const btnBuscarCPK = document.getElementById("btnBuscarCPK");
+    const iosTip = document.getElementById("iosTip");
 
-    function addMessage(texto, tipo) {
-      const div = document.createElement("div");
-      div.className = "msg " + tipo;
-      div.textContent = texto;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    let procesando = false;
+
+    function normalizarNumero(texto) {
+      return String(texto || "").replace(/\D/g, "");
     }
 
-    async function enviarMensaje() {
-      const mensaje = inputMensaje.value.trim();
-      if (!mensaje) return;
+    function esCPK(texto) {
+      const limpio = normalizarNumero(texto);
+      return limpio.length >= 6 && limpio.length <= 10;
+    }
 
-      addMessage(mensaje, "user");
-      inputMensaje.value = "";
-      btnEnviar.disabled = true;
+    function setProcesando(valor) {
+      procesando = valor;
+      mensaje.disabled = valor;
+      btnEnviar.disabled = valor;
+      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
+    }
 
+    function ponerRespuesta(texto) {
+      respuesta.textContent = texto;
+    }
+
+    async function enviarChat(texto) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/chat`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ mensaje: mensaje })
+          body: JSON.stringify({ mensaje: texto })
         });
 
-        const rawText = await res.text();
+        const raw = await res.text();
         let data = null;
 
         try {
-          data = JSON.parse(rawText);
+          data = JSON.parse(raw);
         } catch (e) {
           data = null;
         }
 
         if (!res.ok) {
-          addMessage(data?.mensaje || `Error del servidor (${res.status})`, "bot");
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
           return;
         }
 
         if (!data) {
-          addMessage("El servidor respondió con un formato no válido.", "bot");
+          ponerRespuesta("El servidor respondió con un formato no válido.");
           return;
         }
 
         if (!data.ok) {
-          addMessage(data.mensaje || "No se pudo procesar la solicitud.", "bot");
+          ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
           return;
         }
 
-        addMessage(
-          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta.",
-          "bot"
+        ponerRespuesta(
+          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
         );
 
       } catch (error) {
-        addMessage("No fue posible conectar con el servidor.", "bot");
+        ponerRespuesta("No fue posible conectar con el servidor.");
         console.error("Error chat:", error);
-      } finally {
-        btnEnviar.disabled = false;
-        inputMensaje.focus();
       }
     }
 
-    function preguntaRapida(texto) {
-      inputMensaje.value = texto;
-      enviarMensaje();
-    }
+    async function buscarCPK(codigo) {
+      const cpk = normalizarNumero(codigo);
 
-    async function buscarCPK() {
-      const cpk = (inputCPK.value || "").replace(/\D/g, "");
       if (!cpk) {
-        rastreoResultado.textContent = "Escriba un CPK válido.";
+        ponerRespuesta("Escriba un CPK válido.");
         return;
       }
 
-      rastreoResultado.textContent = "Buscando...";
-      btnBuscarCPK.disabled = true;
-
       try {
         const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
-        const rawText = await res.text();
+        const raw = await res.text();
         let data = null;
 
         try {
-          data = JSON.parse(rawText);
+          data = JSON.parse(raw);
         } catch (e) {
           data = null;
         }
 
         if (!res.ok) {
-          rastreoResultado.textContent = data?.mensaje || `Error del servidor (${res.status})`;
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
           return;
         }
 
         if (!data) {
-          rastreoResultado.textContent = "El servidor respondió con un formato no válido.";
+          ponerRespuesta("El servidor respondió con un formato no válido.");
           return;
         }
 
         if (!data.ok) {
-          rastreoResultado.textContent = data.mensaje || "No se encontró el CPK.";
+          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
           return;
         }
 
-        rastreoResultado.innerHTML = `
-          <div class="estado">${data.estado || ""}</div>
-          <div><strong>CPK:</strong> ${data.cpk || cpk}</div>
-          <div><strong>Fecha:</strong> ${data.fecha || "No disponible"}</div>
-          <div style="margin-top:10px;">${data.descripcion || ""}</div>
-        `;
+        const texto =
+          `${data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".")}\n\n` +
+          `Fecha: ${data.fecha || "No disponible"}\n\n` +
+          `Descripción:\n${data.descripcion || "Sin descripción disponible."}`;
+
+        ponerRespuesta(texto);
+
       } catch (error) {
-        rastreoResultado.textContent = "No fue posible conectar con el servidor.";
+        ponerRespuesta("No fue posible conectar con el servidor.");
         console.error("Error rastreo:", error);
+      }
+    }
+
+    async function procesar() {
+      if (procesando) return;
+
+      const texto = mensaje.value.trim();
+      if (!texto) return;
+
+      setProcesando(true);
+
+      try {
+        if (esCPK(texto)) {
+          await buscarCPK(texto);
+        } else {
+          await enviarChat(texto);
+        }
       } finally {
-        btnBuscarCPK.disabled = false;
+        setProcesando(false);
+        mensaje.focus();
       }
     }
 
-    function abrirChat() {
-      const chat = document.querySelector('#chat-container');
-      if (chat) {
-        chat.scrollIntoView({ behavior: "smooth", block: "start" });
+    btnEnviar.addEventListener("click", procesar);
+
+    mensaje.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        procesar();
       }
+    });
+
+    function esIOS() {
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
     }
 
-    inputMensaje.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        enviarMensaje();
-      }
-    });
+    function esSafari() {
+      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+    }
 
-    inputCPK.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        buscarCPK();
-      }
-    });
+    function estaInstalada() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
 
-    btnEnviar.addEventListener("click", enviarMensaje);
-    btnBuscarCPK.addEventListener("click", buscarCPK);
+    if (esIOS() && esSafari() && !estaInstalada()) {
+      iosTip.style.display = "block";
+    }
+
+    window.addEventListener("load", function() {
+      mensaje.disabled = false;
+      mensaje.focus();
+    });
   </script>
 </body>
 </html>
