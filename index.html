@@ -16,7 +16,7 @@ body{
 .container{
   max-width:680px;
   margin:0 auto;
-  padding:20px 14px 60px;
+  padding:20px 14px 100px;
 }
 
 .logo{
@@ -160,9 +160,58 @@ input:disabled{
   cursor:not-allowed;
 }
 
+/* BOTÓN INSTALAR APP */
+#installAppBox{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  background:#111827;
+  color:#ffffff;
+  padding:10px 12px;
+  border-radius:999px;
+  display:none;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 12px 30px rgba(0,0,0,.22);
+  z-index:9999;
+  max-width:92%;
+}
+
+#installAppText{
+  font-size:14px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+#installBtn{
+  width:auto;
+  height:auto;
+  padding:10px 16px;
+  border:none;
+  border-radius:999px;
+  background:#f59e0b;
+  color:#111827;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+#iosInstallTip{
+  display:none;
+  margin-top:14px;
+  background:#fff7ed;
+  border:1px solid #fdba74;
+  color:#9a3412;
+  border-radius:14px;
+  padding:12px 14px;
+  font-size:14px;
+  line-height:1.45;
+}
+
 @media (max-width:600px){
   .container{
-    padding:14px 10px 40px;
+    padding:14px 10px 110px;
   }
 
   .logo img{
@@ -201,6 +250,21 @@ input:disabled{
   button{
     font-size:18px;
   }
+
+  #installAppBox{
+    width:auto;
+    padding:10px;
+    gap:8px;
+  }
+
+  #installAppText{
+    font-size:13px;
+  }
+
+  #installBtn{
+    padding:9px 14px;
+    font-size:13px;
+  }
 }
 </style>
 </head>
@@ -236,10 +300,19 @@ input:disabled{
 
       <input id="mensaje" placeholder="Ej: 1234567 o ¿precio de envío?" />
       <button id="btnEnviar" onclick="procesar()">Enviar</button>
+
+      <div id="iosInstallTip">
+        En iPhone puede instalar esta app tocando el botón de compartir en Safari y luego “Agregar a pantalla de inicio”.
+      </div>
     </div>
 
   </div>
 
+</div>
+
+<div id="installAppBox">
+  <span id="installAppText">Instalar Chambatina</span>
+  <button id="installBtn" type="button">Instalar</button>
 </div>
 
 <script>
@@ -248,8 +321,12 @@ const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("mensaje");
 const btnEnviar = document.getElementById("btnEnviar");
+const installAppBox = document.getElementById("installAppBox");
+const installBtn = document.getElementById("installBtn");
+const iosInstallTip = document.getElementById("iosInstallTip");
 
 let procesando = false;
+let deferredPrompt = null;
 
 function addMessage(texto, tipo){
   const div = document.createElement("div");
@@ -349,6 +426,48 @@ input.addEventListener("keydown",function(e){
     procesar();
   }
 });
+
+/* INSTALACIÓN PWA */
+window.addEventListener("beforeinstallprompt", function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  installAppBox.style.display = "flex";
+});
+
+installBtn.addEventListener("click", async function(){
+  if(!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  const choiceResult = await deferredPrompt.userChoice;
+
+  if(choiceResult && choiceResult.outcome){
+    console.log("Resultado instalación:", choiceResult.outcome);
+  }
+
+  deferredPrompt = null;
+  installAppBox.style.display = "none";
+});
+
+window.addEventListener("appinstalled", function(){
+  installAppBox.style.display = "none";
+  deferredPrompt = null;
+});
+
+function esIOS(){
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+function esSafari(){
+  return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+}
+
+function estaEnStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+if(esIOS() && esSafari() && !estaEnStandalone()){
+  iosInstallTip.style.display = "block";
+}
 </script>
 </body>
 </html>
