@@ -431,25 +431,26 @@
     }
 
     async function procesar() {
-      if (procesando) return;
+  if (procesando) return;
 
-      const texto = mensaje.value.trim();
-      if (!texto) return;
+  const texto = mensaje.value.trim();
+  if (!texto) return;
 
-      setProcesando(true);
+  setProcesando(true);
 
-      try {
-        if (esCPK(texto)) {
-          await buscarCPK(texto);
-        } else {
-          await enviarChat(texto);
-        }
-      } finally {
-        setProcesando(false);
-        mensaje.focus();
-      }
+  try {
+    if (esCPK(texto)) {
+      await buscarCPK(texto);
+    } else {
+      await enviarChat(texto);
     }
 
+    mensaje.value = "";
+  } finally {
+    setProcesando(false);
+    mensaje.focus();
+  }
+}
     btnEnviar.addEventListener("click", procesar);
 
     mensaje.addEventListener("keydown", function(e) {
