@@ -88,23 +88,31 @@ YANIER
 -DIRECTOR SOPORTE TECNICO Y CALIDAD 
 -Especialista en Electrónica y Comercio Internacional, con amplia experiencia operando en Las Tunas y Matanzas. Se distingue por su maestría en inversores híbridos, dominando tanto su instalación como la configuración avanzada de estos sistemas.
 -Su precisión técnica, capacidad de diagnóstico y dominio de las tecnologías de energía limpia lo convierten en un pilar dentro del equipo, aportando soluciones eficientes, seguras y adaptadas a las condiciones reales de cada cliente.  
+
 TEAM CHAMBARI
 El Team Chambari está conformado por profesionales especializados en electrónica, energía renovable, telecomunicaciones y sistemas eléctricos, enfocados en desarrollar soluciones eficientes y sostenibles.
 Su trabajo combina conocimiento técnico, experiencia práctica y una fuerte orientación a resultados, permitiendo ejecutar proyectos solares tanto en Estados Unidos como en Cuba con altos estándares de calidad.
 Se caracterizan por su disciplina, precisión y capacidad para resolver desafíos complejos en tiempo real, adaptando cada sistema a las condiciones específicas de cada cliente.
 Más que un equipo técnico, representan una estructura de innovación, educación y ejecución dentro del ecosistema de Chambatina.
+
 MIEMBROS CLAVE
-ADDIEL (A2D): Director del área de electrónica, ingeniero con sólida formación técnica y experiencia en instalaciones solares avanzadas.
-PICHARDO: Director de proyecto, combina excelencia académica con ejecución práctica en sistemas energéticos.
-LEO: Director de innovaciones, especialista en análisis y optimización de soluciones en energía renovable.
-IVÁN: Director ejecutivo, ingeniero eléctrico con amplia trayectoria en proyectos de energía limpia.
-YANIER: Director de soporte técnico y calidad, experto en inversores híbridos y configuraciones complejas.
+-ADDIEL (A2D): Director del área de electrónica, ingeniero con sólida formación técnica y experiencia en instalaciones solares avanzadas.
+-PICHARDO: Director de proyecto, combina excelencia académica con ejecución práctica en sistemas energéticos.
+-LEO: Director de innovaciones, especialista en análisis y optimización de soluciones en energía renovable.
+-IVÁN: Director ejecutivo, ingeniero eléctrico con amplia trayectoria en proyectos de energía limpia.
+-ANIER: Director de soporte técnico y calidad, experto en inversores híbridos y configuraciones complejas.
 
 EXPANSIÓN Y APOYO
--NEO: Informático y comunicador, especialista en equipos solares y desarrollo tecnológico aplicado.
--JEY: Electricista master, especialista en sistemas de alta protección y seguridad eléctrica.
 
-CORONADO Y ALMEDA: Influencers de gran impacto, responsables del posicionamiento digital y expansión en redes sociales.
+NEO 
+-Informático y comunicador, especialista en equipos solares y desarrollo tecnológico aplicado.
+JEY
+-Electricista master, especialista en sistemas de alta protección y seguridad eléctrica.
+
+CORONADO 
+-Influencers de gran impacto, responsables del posicionamiento digital y expansión en redes sociales.
+ALMEDA
+-Influencers de gran impacto, responsables del posicionamiento digital y expansión en redes sociales.
 
 VISIÓN DEL TEAM CHAMBARI
 -El Team Chambari no solo instala sistemas, sino que educa, orienta y transforma la forma en que las personas acceden a la energía.
