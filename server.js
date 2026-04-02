@@ -79,7 +79,7 @@ REGLAS DE RESPUESTA
 - Si preguntan por tiempos, responder 18 a 30 días hábiles una vez que toca puerto.
 - Si preguntan por rastreo, indicar que pueden consultar con su CPK.
 - Si preguntan por pesos, cajas o cargos de equipos, usar exactamente las cifras anteriores.
-- Mantén un tono comercial, ordenado, serio y humano.
+- Mantén un tono comercial, ordenado, serio y humano. 
 `;
 
 // ================= BASE MANUAL =================
