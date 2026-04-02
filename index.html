@@ -1,208 +1,480 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Chambatina</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chambatina</title>
 
-<!-- ICONOS -->
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="chambita.png">
-<link rel="apple-touch-icon" href="chambita.png">
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#f59e0b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Chambatina" />
+  <link rel="apple-touch-icon" href="./public/chambatinaapp.png" />
 
-<meta name="theme-color" content="#f59e0b">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Chambatina">
+  <style>
+    *{box-sizing:border-box}
 
-<style>
-:root{
-  --bg:#f7f1df;
-  --panel:#fff6e8;
-  --panel-2:#fbf2e4;
-  --text:#5f4d3f;
-  --muted:#8d7a68;
-  --line:#ecdcc6;
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f3f4f6;
+      color:#111827;
+    }
 
-  /* 🔥 NUEVO NARANJA VIVO */
-  --primary:#f59e0b;
-  --primary-dark:#d97706;
+    .wrap{
+      max-width:760px;
+      margin:0 auto;
+      padding:22px 14px 110px;
+    }
 
-  --mint:#b8ddb0;
-  --mint-soft:#eff8ec;
-  --aqua:#9fd9d3;
-  --danger:#cf8f7c;
-  --shadow:0 20px 60px rgba(123,96,72,.10);
-}
+    .top{
+      text-align:center;
+      margin-bottom:18px;
+    }
 
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
+    .logo-shell{
+      width:170px;
+      height:110px;
+      margin:0 auto 12px;
+      background:#ffffff;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 12px 30px rgba(0,0,0,.08);
+    }
 
-.container{
-  max-width:720px;
-  margin:0 auto;
-  padding:20px;
-}
+    .logo-shell img{
+      width:78px;
+      height:78px;
+      object-fit:contain;
+      display:block;
+    }
 
-.logo{
-  text-align:center;
-}
+    h1{
+      margin:0 0 6px;
+      font-size:38px;
+      line-height:1.1;
+      color:#f59e0b;
+      font-weight:800;
+    }
 
-.logo img{
-  width:110px;
-  border-radius:50%;
-  background:#fff;
-  padding:6px;
-  box-shadow:var(--shadow);
-}
+    .sub{
+      margin:0;
+      color:#6b7280;
+      font-size:19px;
+    }
 
-h1{
-  text-align:center;
-  color:var(--primary-dark);
-}
+    .card{
+      background:#fff;
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:0 12px 34px rgba(0,0,0,.08);
+      border:1px solid #ececec;
+    }
 
-.subtitle{
-  text-align:center;
-  color:var(--muted);
-}
+    .head{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:22px;
+      border-bottom:1px solid #ececec;
+    }
 
-.box{
-  background:var(--panel);
-  border-radius:20px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
+    .head-avatar{
+      width:92px;
+      height:92px;
+      border-radius:50%;
+      background:#fafafa;
+      border:1px solid #f0f0f0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+    }
 
-.chat-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:12px;
-  border-bottom:1px solid var(--line);
-}
+    .head-avatar img{
+      width:54px;
+      height:54px;
+      object-fit:contain;
+    }
 
-.chat-avatar{
-  width:50px;
-  border-radius:50%;
-}
+    .head-text h2{
+      margin:0;
+      font-size:24px;
+      font-weight:800;
+      color:#111827;
+    }
 
-.chat-content{
-  padding:12px;
-}
+    .head-text p{
+      margin:6px 0 0;
+      font-size:17px;
+      color:#6b7280;
+    }
 
-#chatBox{
-  min-height:200px;
-  max-height:300px;
-  overflow:auto;
-  background:var(--panel-2);
-  padding:10px;
-  border-radius:10px;
-}
+    .body{
+      padding:22px;
+    }
 
-.msg{
-  margin:8px 0;
-  padding:10px;
-  border-radius:10px;
-}
+    .panel{
+      border:1px solid #e5e7eb;
+      border-radius:24px;
+      background:#fafafa;
+      padding:26px;
+    }
 
-.bot{
-  background:#f4ead8;
-}
+    .question-box{
+      width:100%;
+      min-height:84px;
+      border:none;
+      outline:none;
+      resize:none;
+      border-radius:24px;
+      background:#f59e0b;
+      color:#111827;
+      font-size:28px;
+      font-weight:800;
+      line-height:1.25;
+      padding:22px 26px;
+      font-family:Arial,sans-serif;
+      margin-bottom:18px;
+    }
 
-.user{
-  background:var(--primary);
-  font-weight:bold;
-  margin-left:auto;
-}
+    .question-box::placeholder{
+      color:#3f3f46;
+      opacity:.85;
+      font-weight:700;
+    }
 
-input{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  border:1px solid var(--line);
-}
+    .answer-box{
+      min-height:320px;
+      background:#e9edf3;
+      color:#111827;
+      border-radius:24px;
+      padding:26px;
+      font-size:24px;
+      line-height:1.5;
+      white-space:pre-line;
+      word-break:break-word;
+    }
 
-button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border:none;
-  border-radius:10px;
-  background:var(--primary);
-  font-weight:bold;
-  cursor:pointer;
-}
+    .actions{
+      margin-top:18px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
 
-button:hover{
-  background:var(--primary-dark);
-  color:#fff;
-}
-</style>
+    .main-btn{
+      flex:1 1 220px;
+      height:58px;
+      border:none;
+      border-radius:18px;
+      background:#f59e0b;
+      color:#111827;
+      font-size:20px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .main-btn:disabled,
+    .question-box:disabled{
+      opacity:.7;
+      cursor:not-allowed;
+    }
+
+    .ghost-btn{
+      flex:1 1 220px;
+      height:58px;
+      border:none;
+      border-radius:18px;
+      background:#111827;
+      color:#fff;
+      font-size:18px;
+      font-weight:700;
+      cursor:pointer;
+      display:none;
+    }
+
+    .ios-tip{
+      display:none;
+      margin-top:14px;
+      background:#fff7ed;
+      border:1px solid #fdba74;
+      color:#9a3412;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:15px;
+      line-height:1.45;
+    }
+
+    @media (max-width:700px){
+      .wrap{
+        padding:16px 10px 105px;
+      }
+
+      .logo-shell{
+        width:150px;
+        height:96px;
+      }
+
+      .logo-shell img{
+        width:66px;
+        height:66px;
+      }
+
+      h1{
+        font-size:30px;
+      }
+
+      .sub{
+        font-size:16px;
+      }
+
+      .head{
+        padding:18px;
+      }
+
+      .head-avatar{
+        width:74px;
+        height:74px;
+      }
+
+      .head-avatar img{
+        width:44px;
+        height:44px;
+      }
+
+      .head-text h2{
+        font-size:19px;
+      }
+
+      .head-text p{
+        font-size:14px;
+      }
+
+      .body{
+        padding:16px;
+      }
+
+      .panel{
+        padding:16px;
+        border-radius:20px;
+      }
+
+      .question-box{
+        min-height:76px;
+        font-size:20px;
+        padding:18px 20px;
+        border-radius:20px;
+      }
+
+      .answer-box{
+        min-height:250px;
+        font-size:17px;
+        padding:18px 20px;
+        border-radius:20px;
+      }
+
+      .main-btn,
+      .ghost-btn{
+        height:54px;
+        font-size:17px;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="container">
-
-  <div class="logo">
-    <img src="chambita.png">
-  </div>
-
-  <h1>Chambatina</h1>
-  <div class="subtitle">Consulta tu envío</div>
-
-  <div class="box">
-
-    <div class="chat-header">
-      <img src="chambita.png" class="chat-avatar">
-      <div>
-        <strong>Chambita</strong><br>
-        Asistente
+  <div class="wrap">
+    <div class="top">
+      <div class="logo-shell">
+        <img src="./public/chambita.png" alt="Chambatina">
       </div>
+      <h1>Chambatina</h1>
+      <p class="sub">Consulte su paquete o haga su pregunta</p>
     </div>
 
-    <div class="chat-content">
-
-      <div id="chatBox">
-        <div class="msg bot">Escribe tu número o pregunta</div>
+    <div class="card">
+      <div class="head">
+        <div class="head-avatar">
+          <img src="./public/chambita.png" alt="Chambita">
+        </div>
+        <div class="head-text">
+          <h2>Chambita</h2>
+          <p>Asistente virtual</p>
+        </div>
       </div>
 
-      <input id="mensaje" placeholder="Ej: 1234567">
+      <div class="body">
+        <div class="panel">
+          <textarea
+            id="mensaje"
+            class="question-box"
+            placeholder="Escriba su CPK o su pregunta"
+          ></textarea>
 
-      <button onclick="procesar()">Enviar</button>
+          <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
 
+          <div class="actions">
+            <button id="btnEnviar" class="main-btn" type="button">Enviar</button>
+            <button id="installBtn" class="ghost-btn" type="button">Instalar app</button>
+          </div>
+
+          <div id="iosTip" class="ios-tip">
+            En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
+  <script>
+    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-function addMessage(texto,tipo){
-  let div=document.createElement("div");
-  div.className="msg "+tipo;
-  div.textContent=texto;
-  chatBox.appendChild(div);
-}
+    const mensaje = document.getElementById("mensaje");
+    const respuesta = document.getElementById("respuesta");
+    const btnEnviar = document.getElementById("btnEnviar");
+    const installBtn = document.getElementById("installBtn");
+    const iosTip = document.getElementById("iosTip");
 
-async function procesar(){
-  let msg=document.getElementById("mensaje").value;
-  addMessage(msg,"user");
+    let procesando = false;
+    let deferredPrompt = null;
 
-  let res=await fetch(BACKEND_URL+"/api/chat",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({mensaje:msg})
-  });
+    function normalizarNumero(texto){
+      return String(texto || "").replace(/\D/g, "");
+    }
 
-  let data=await res.json();
-  addMessage(data.respuesta,"bot");
-}
-</script>
+    function esCPK(texto){
+      const limpio = normalizarNumero(texto);
+      return limpio.length >= 6 && limpio.length <= 10;
+    }
 
+    function setProcesando(valor){
+      procesando = valor;
+      mensaje.disabled = valor;
+      btnEnviar.disabled = valor;
+      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
+    }
+
+    function ponerRespuesta(texto){
+      respuesta.textContent = texto;
+    }
+
+    async function enviarChat(texto){
+      try{
+        const res = await fetch(`${BACKEND_URL}/api/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mensaje: texto })
+        });
+
+        const data = await res.json();
+
+        if(!res.ok || !data.ok){
+          ponerRespuesta(data.mensaje || "No se pudo procesar la pregunta.");
+          return;
+        }
+
+        ponerRespuesta(data.respuesta || "Sin respuesta.");
+      }catch(error){
+        ponerRespuesta("No se pudo conectar con el asistente.");
+      }
+    }
+
+    async function buscarCPK(codigo){
+      const cpk = normalizarNumero(codigo);
+
+      try{
+        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
+        const data = await res.json();
+
+        if(!res.ok || !data.ok){
+          ponerRespuesta(data.mensaje || "No se encontró el paquete.");
+          return;
+        }
+
+        const texto =
+          (data.saludo || ("Hola, tu mercancía se encuentra en: " + data.estado + ".")) +
+          "\n\nFecha: " + (data.fecha || "No disponible") +
+          "\n\nDescripción:\n" + (data.descripcion || "Sin descripción disponible.");
+
+        ponerRespuesta(texto);
+      }catch(error){
+        ponerRespuesta("Error al buscar el paquete.");
+      }
+    }
+
+    async function procesar(){
+      if(procesando) return;
+
+      const texto = mensaje.value.trim();
+      if(!texto) return;
+
+      setProcesando(true);
+
+      try{
+        if(esCPK(texto)){
+          await buscarCPK(texto);
+        }else{
+          await enviarChat(texto);
+        }
+      }finally{
+        setProcesando(false);
+      }
+    }
+
+    btnEnviar.addEventListener("click", procesar);
+
+    mensaje.addEventListener("keydown", function(e){
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        procesar();
+      }
+    });
+
+    window.addEventListener("beforeinstallprompt", function(e){
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = "block";
+    });
+
+    installBtn.addEventListener("click", async function(){
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+    });
+
+    window.addEventListener("appinstalled", function(){
+      installBtn.style.display = "none";
+      deferredPrompt = null;
+    });
+
+    function esIOS(){
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    }
+
+    function esSafari(){
+      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+    }
+
+    function estaInstalada(){
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    if(esIOS() && esSafari() && !estaInstalada()){
+      iosTip.style.display = "block";
+    }
+
+    if("serviceWorker" in navigator){
+      window.addEventListener("load", function(){
+        navigator.serviceWorker.register("./service-worker.js").catch(function(error){
+          console.log("SW no registrado:", error);
+        });
+      });
+    }
+  </script>
 </body>
 </html>
