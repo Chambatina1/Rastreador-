@@ -73,7 +73,7 @@ PROCESO DE COMPRA POR TIKTOK O AMAZON
 - No debe usar “Aloma Pine” si TikTok lo sugiere por error.
 
 REGLAS DE RESPUESTA
-- Si preguntan por precio llevando productos a la oficina, responder 1.99 por libra más 10 dólares por manejo, seguro, arancel y transporte.
+- Si preguntan por precio llevando productos a la oficina, responder 1.99 por libra más un cargo por manejo, seguro, arancel y transporte.
 - Si preguntan por recogida en casa, responder 2.30 por libra.
 - Si preguntan por compras mediante links de TikTok, responder 1.80 por libra.
 - Si preguntan por tiempos, responder 18 a 30 días hábiles una vez que toca puerto.
