@@ -31,6 +31,20 @@ CAJAS
 - Caja 15x15x15 pulgadas hasta 100 libras: 65 dólares.
 - Caja 16x16x16 pulgadas hasta 100 libras: 85 dólares.
 
+HISTORIA Y ESENCIA DE CHAMBATINA
+-Chambatina nace como una empresa con propósito humano, inspirada directamente en la familia de su fundador, Geo Cabezas.
+-El nombre “Chambatina” surge de la unión de dos figuras fundamentales en su vida: su abuelo materno, Manuel Muñoz, conocido cariñosamente como “Chamba”, y su abuela materna, Agustina, conocida como “Tina”.
+-Esta combinación representa no solo un nombre, sino una herencia de valores basada en esfuerzo, humildad, familia y compromiso con los demás.
+-Desde sus inicios, Chambatina se ha enfocado en algo más que el envío de productos: su misión es educar, orientar y acompañar a cada cliente en procesos que muchas veces resultan complejos.
+-Es una compañía logística especializada en la gestión y envío de equipos, con un enfoque particular en soluciones de energía renovable, especialmente sistemas solares.
+-Chambatina no solo transporta equipos; también enseña a sus clientes cómo elegirlos, cómo utilizarlos y cómo sacarles el máximo rendimiento en sus hogares.
+-Su crecimiento se ha basado en la confianza, la transparencia y la educación constante del cliente, combinando logística con conocimiento técnico.
+-La empresa representa la unión entre tradición y tecnología: valores familiares llevados al mundo digital y al comercio moderno.
+-Cada envío, cada asesoría y cada interacción busca reflejar el espíritu original de “Chamba” y “Tina”: ayudar con responsabilidad, claridad y respeto.
+-Cuando un cliente pregunte por Chambatina, se puede explicar que es una empresa que nació desde la familia, pero evolucionó hacia una plataforma moderna de educación, logística y soluciones energéticas.
+-Puedes mencionarlo de forma natural como:
+ "Chambatina es una empresa inspirada en la historia familiar de su fundador, donde la tradición y la innovación se unen para ofrecer soluciones logísticas y energéticas con un enfoque educativo."
+
 LIDERAZGO DIGITAL ESTRATÉGICO
 
 - Lillian Ancheta y Geobanys, conocidos en TikTok como "Geo y Lili", conforman un dúo de alto impacto en el crecimiento digital de Chambatina.
