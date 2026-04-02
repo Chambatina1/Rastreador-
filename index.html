@@ -1,190 +1,206 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chambatina</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chambatina</title>
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="./public/Chambatinaapp.png">
-  <link rel="apple-touch-icon" href="./public/Chambatinaapp.png">
-  <meta name="theme-color" content="#ff8a00">
+<!-- ICONOS -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="chambita.png">
+<link rel="apple-touch-icon" href="chambita.png">
 
-  <style>
-    body{
-      font-family: Arial, sans-serif;
-      background:#0f0f0f;
-      color:#fff;
-      margin:0;
-    }
+<meta name="theme-color" content="#f59e0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chambatina">
 
-    .wrap{
-      max-width:1000px;
-      margin:40px auto;
-      padding:20px;
-    }
+<style>
+:root{
+  --bg:#f7f1df;
+  --panel:#fff6e8;
+  --panel-2:#fbf2e4;
+  --text:#5f4d3f;
+  --muted:#8d7a68;
+  --line:#ecdcc6;
 
-    .logo{
-      text-align:center;
-      margin-bottom:20px;
-    }
+  /* 🔥 NUEVO NARANJA VIVO */
+  --primary:#f59e0b;
+  --primary-dark:#d97706;
 
-    .logo img{
-      width:120px;
-      height:auto;
-      display:block;
-      margin:0 auto;
-      background:white;
-      border-radius:18px;
-      padding:6px;
-    }
+  --mint:#b8ddb0;
+  --mint-soft:#eff8ec;
+  --aqua:#9fd9d3;
+  --danger:#cf8f7c;
+  --shadow:0 20px 60px rgba(123,96,72,.10);
+}
 
-    .card{
-      background:#1b1b1b;
-      border-radius:18px;
-      padding:28px;
-      margin-bottom:20px;
-      border:1px solid #2a2a2a;
-    }
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
 
-    h1{
-      text-align:center;
-      color:#ff8a00;
-    }
+.container{
+  max-width:720px;
+  margin:0 auto;
+  padding:20px;
+}
 
-    h2{
-      color:#ff8a00;
-      margin-top:0;
-    }
+.logo{
+  text-align:center;
+}
 
-    .search{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+.logo img{
+  width:110px;
+  border-radius:50%;
+  background:#fff;
+  padding:6px;
+  box-shadow:var(--shadow);
+}
 
-    input{
-      flex:1;
-      padding:14px;
-      border-radius:12px;
-      border:none;
-      background:#111;
-      color:#fff;
-    }
+h1{
+  text-align:center;
+  color:var(--primary-dark);
+}
 
-    button{
-      padding:14px 20px;
-      border:none;
-      border-radius:12px;
-      background:#ff8a00;
-      color:#000;
-      font-weight:bold;
-      cursor:pointer;
-    }
+.subtitle{
+  text-align:center;
+  color:var(--muted);
+}
 
-    .result{
-      margin-top:20px;
-      padding:15px;
-      background:#121212;
-      border-radius:12px;
-      border:1px solid #333;
-      line-height:1.5;
-      white-space:pre-line;
-    }
+.box{
+  background:var(--panel);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
 
-    .ok{color:#7CFC8A;}
-    .err{color:#ff6b6b;}
-    .warn{color:#ffd166;}
+.chat-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border-bottom:1px solid var(--line);
+}
 
-    .info p{
-      margin:8px 0;
-      line-height:1.4;
-    }
-  </style>
+.chat-avatar{
+  width:50px;
+  border-radius:50%;
+}
+
+.chat-content{
+  padding:12px;
+}
+
+#chatBox{
+  min-height:200px;
+  max-height:300px;
+  overflow:auto;
+  background:var(--panel-2);
+  padding:10px;
+  border-radius:10px;
+}
+
+.msg{
+  margin:8px 0;
+  padding:10px;
+  border-radius:10px;
+}
+
+.bot{
+  background:#f4ead8;
+}
+
+.user{
+  background:var(--primary);
+  font-weight:bold;
+  margin-left:auto;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid var(--line);
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:var(--primary);
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover{
+  background:var(--primary-dark);
+  color:#fff;
+}
+</style>
 </head>
 
 <body>
 
-<div class="wrap">
+<div class="container">
 
   <div class="logo">
-    <img src="./public/Chambatinaapp.png" alt="Chambita">
+    <img src="chambita.png">
   </div>
 
-  <div class="card">
-    <h1>Rastreador Chambatina</h1>
+  <h1>Chambatina</h1>
+  <div class="subtitle">Consulta tu envío</div>
 
-    <div class="search">
-      <input id="codigo" placeholder="Introduce tu código CPK">
-      <button onclick="buscar()">Buscar</button>
+  <div class="box">
+
+    <div class="chat-header">
+      <img src="chambita.png" class="chat-avatar">
+      <div>
+        <strong>Chambita</strong><br>
+        Asistente
+      </div>
     </div>
 
-    <div id="resultado" class="result">
-      Introduce tu código para ver el estado.
+    <div class="chat-content">
+
+      <div id="chatBox">
+        <div class="msg bot">Escribe tu número o pregunta</div>
+      </div>
+
+      <input id="mensaje" placeholder="Ej: 1234567">
+
+      <button onclick="procesar()">Enviar</button>
+
     </div>
   </div>
-
-  <div class="card info">
-    <h2>Información de Servicios</h2>
-
-    <p><b>Precio por libra:</b> $1.99</p>
-    <p><b>Compras por nuestros links:</b> $1.80 por libra</p>
-    <p><b>Recogida en puerta:</b> $2.30 por libra</p>
-
-    <p><b>Fee / arancel:</b> entre $15 y $35 según el equipo</p>
-
-    <p><b>Cajas:</b></p>
-    <p>12x12x12 hasta 60 lb → $45</p>
-    <p>15x15x15 hasta 100 lb → $65</p>
-    <p>16x16x16 hasta 100 lb → $85</p>
-
-    <p><b>Equipos pesados:</b></p>
-    <p>Equipos → fee adicional entre $15 y $35</p>
-    <p>Más de 200 lb → $45 adicional</p>
-
-    <p><b>Tiempo estimado:</b></p>
-    <p>18 a 30 días hábiles una vez que toca puerto</p>
-
-    <p><b>Productos:</b></p>
-    <p>Baterías, inversores, sistemas solares, equipos eléctricos y más.</p>
-  </div>
-
 </div>
 
 <script>
-async function buscar() {
-  const codigo = document.getElementById("codigo").value.trim();
-  const resultado = document.getElementById("resultado");
+const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-  if (!codigo) {
-    resultado.innerHTML = '<span class="err">Debes escribir un código</span>';
-    return;
-  }
-
-  const cpk = codigo.replace(/\D/g, "");
-  resultado.innerHTML = "Buscando...";
-
-  try {
-    const res = await fetch("https://rastreador-tj5b.onrender.com/api/rastreo/" + cpk);
-    const data = await res.json();
-
-    if (data.ok) {
-      resultado.innerHTML = `
-        <div class="ok">${data.saludo || ("Estado: " + data.estado)}</div>
-        <div><b>Fecha:</b> ${data.fecha || "No disponible"}</div>
-        <div>${data.descripcion || ""}</div>
-      `;
-    } else {
-      resultado.innerHTML = `<div class="warn">${data.mensaje || "No encontrado"}</div>`;
-    }
-
-  } catch (e) {
-    resultado.innerHTML = `<div class="err">No hay conexión con el servidor</div>`;
-  }
+function addMessage(texto,tipo){
+  let div=document.createElement("div");
+  div.className="msg "+tipo;
+  div.textContent=texto;
+  chatBox.appendChild(div);
 }
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js").catch(console.error);
+async function procesar(){
+  let msg=document.getElementById("mensaje").value;
+  addMessage(msg,"user");
+
+  let res=await fetch(BACKEND_URL+"/api/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({mensaje:msg})
+  });
+
+  let data=await res.json();
+  addMessage(data.respuesta,"bot");
 }
 </script>
 
