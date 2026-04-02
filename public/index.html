@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chambatina</title>
 
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="./public/Chambatinaapp.png">
+  <link rel="apple-touch-icon" href="./public/Chambatinaapp.png">
+  <meta name="theme-color" content="#ff8a00">
+
   <style>
     body{
       font-family: Arial, sans-serif;
@@ -17,6 +22,21 @@
       max-width:1000px;
       margin:40px auto;
       padding:20px;
+    }
+
+    .logo{
+      text-align:center;
+      margin-bottom:20px;
+    }
+
+    .logo img{
+      width:120px;
+      height:auto;
+      display:block;
+      margin:0 auto;
+      background:white;
+      border-radius:18px;
+      padding:6px;
     }
 
     .card{
@@ -68,6 +88,8 @@
       background:#121212;
       border-radius:12px;
       border:1px solid #333;
+      line-height:1.5;
+      white-space:pre-line;
     }
 
     .ok{color:#7CFC8A;}
@@ -85,12 +107,15 @@
 
 <div class="wrap">
 
-  <!-- BUSCADOR -->
+  <div class="logo">
+    <img src="./public/Chambatinaapp.png" alt="Chambita">
+  </div>
+
   <div class="card">
     <h1>Rastreador Chambatina</h1>
 
     <div class="search">
-      <input id="codigo" placeholder="Introduce tu código">
+      <input id="codigo" placeholder="Introduce tu código CPK">
       <button onclick="buscar()">Buscar</button>
     </div>
 
@@ -99,7 +124,6 @@
     </div>
   </div>
 
-  <!-- INFORMACIÓN -->
   <div class="card info">
     <h2>Información de Servicios</h2>
 
@@ -115,11 +139,11 @@
     <p>16x16x16 hasta 100 lb → $85</p>
 
     <p><b>Equipos pesados:</b></p>
-    <p>15 a 35 lb → fee adicional</p>
+    <p>Equipos → fee adicional entre $15 y $35</p>
     <p>Más de 200 lb → $45 adicional</p>
 
     <p><b>Tiempo estimado:</b></p>
-    <p>18 a 30 días una vez embarcado</p>
+    <p>18 a 30 días hábiles una vez que toca puerto</p>
 
     <p><b>Productos:</b></p>
     <p>Baterías, inversores, sistemas solares, equipos eléctricos y más.</p>
@@ -137,35 +161,32 @@ async function buscar() {
     return;
   }
 
+  const cpk = codigo.replace(/\D/g, "");
   resultado.innerHTML = "Buscando...";
 
   try {
-    const res = await fetch("https://rastreador-tj5b.onrender.com/buscar?codigo=" + codigo);
+    const res = await fetch("https://rastreador-tj5b.onrender.com/api/rastreo/" + cpk);
     const data = await res.json();
 
-    if (data.encontrado) {
+    if (data.ok) {
       resultado.innerHTML = `
-        <div class="ok">Estado: ${data.estado}</div>
+        <div class="ok">${data.saludo || ("Estado: " + data.estado)}</div>
+        <div><b>Fecha:</b> ${data.fecha || "No disponible"}</div>
         <div>${data.descripcion || ""}</div>
       `;
     } else {
-      resultado.innerHTML = `<div class="warn">No encontrado</div>`;
+      resultado.innerHTML = `<div class="warn">${data.mensaje || "No encontrado"}</div>`;
     }
 
   } catch (e) {
     resultado.innerHTML = `<div class="err">No hay conexión con el servidor</div>`;
   }
 }
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js").catch(console.error);
+}
 </script>
 
 </body>
-<img src="./chambita.png" alt="Chambita" style="
-  width:140px;
-  height:auto;
-  display:block;
-  margin:0 auto 12px;
-  background:white;
-  border-radius:18px;
-  padding:6px;
-">
 </html>
