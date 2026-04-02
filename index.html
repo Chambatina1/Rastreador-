@@ -13,9 +13,7 @@
   <link rel="apple-touch-icon" href="public/chambatinaapp.png" />
 
   <style>
-    *{
-      box-sizing:border-box;
-    }
+    *{box-sizing:border-box}
 
     body{
       margin:0;
@@ -27,7 +25,7 @@
     .wrap{
       max-width:760px;
       margin:0 auto;
-      padding:22px 14px 110px;
+      padding:20px 14px 80px;
     }
 
     .top{
@@ -36,28 +34,27 @@
     }
 
     .logo-shell{
-      width:170px;
-      height:110px;
+      width:160px;
+      height:100px;
       margin:0 auto 12px;
-      background:#ffffff;
+      background:#fff;
       border-radius:999px;
       display:flex;
       align-items:center;
       justify-content:center;
-      box-shadow:0 12px 30px rgba(0,0,0,.08);
+      box-shadow:0 10px 28px rgba(0,0,0,.08);
     }
 
     .logo-shell img{
-      width:78px;
-      height:78px;
+      width:76px;
+      height:76px;
       object-fit:contain;
       display:block;
     }
 
     h1{
       margin:0 0 6px;
-      font-size:38px;
-      line-height:1.1;
+      font-size:36px;
       color:#f59e0b;
       font-weight:800;
     }
@@ -65,12 +62,12 @@
     .sub{
       margin:0;
       color:#6b7280;
-      font-size:19px;
+      font-size:18px;
     }
 
     .card{
       background:#fff;
-      border-radius:28px;
+      border-radius:26px;
       overflow:hidden;
       box-shadow:0 12px 34px rgba(0,0,0,.08);
       border:1px solid #ececec;
@@ -80,13 +77,13 @@
       display:flex;
       align-items:center;
       gap:14px;
-      padding:22px;
+      padding:20px;
       border-bottom:1px solid #ececec;
     }
 
     .head-avatar{
-      width:92px;
-      height:92px;
+      width:84px;
+      height:84px;
       border-radius:50%;
       background:#fafafa;
       border:1px solid #f0f0f0;
@@ -97,8 +94,8 @@
     }
 
     .head-avatar img{
-      width:54px;
-      height:54px;
+      width:50px;
+      height:50px;
       object-fit:contain;
     }
 
@@ -111,36 +108,35 @@
 
     .head-text p{
       margin:6px 0 0;
-      font-size:17px;
+      font-size:16px;
       color:#6b7280;
     }
 
     .body{
-      padding:22px;
+      padding:20px;
     }
 
     .panel{
       border:1px solid #e5e7eb;
-      border-radius:24px;
+      border-radius:22px;
       background:#fafafa;
-      padding:26px;
+      padding:20px;
     }
 
     .question-box{
       width:100%;
-      min-height:84px;
+      height:68px;
       border:none;
       outline:none;
-      resize:none;
-      border-radius:24px;
+      border-radius:20px;
       background:#f59e0b;
       color:#111827;
-      font-size:28px;
+      font-size:22px;
       font-weight:800;
-      line-height:1.25;
-      padding:22px 26px;
+      line-height:1.2;
+      padding:0 20px;
       font-family:Arial,sans-serif;
-      margin-bottom:18px;
+      margin-bottom:16px;
     }
 
     .question-box::placeholder{
@@ -150,57 +146,50 @@
     }
 
     .answer-box{
-      min-height:320px;
+      min-height:260px;
       background:#e9edf3;
       color:#111827;
-      border-radius:24px;
-      padding:26px;
-      font-size:24px;
+      border-radius:20px;
+      padding:22px;
+      font-size:22px;
       line-height:1.5;
       white-space:pre-line;
       word-break:break-word;
     }
 
     .actions{
-      margin-top:18px;
+      margin-top:16px;
       display:flex;
       gap:12px;
       flex-wrap:wrap;
     }
 
-    .main-btn{
+    .main-btn,
+    .ghost-btn{
       flex:1 1 220px;
-      height:58px;
+      height:56px;
       border:none;
       border-radius:18px;
-      background:#f59e0b;
-      color:#111827;
-      font-size:20px;
+      font-size:18px;
       font-weight:800;
       cursor:pointer;
     }
 
-    .main-btn:hover{
-      opacity:.96;
+    .main-btn{
+      background:#f59e0b;
+      color:#111827;
+    }
+
+    .ghost-btn{
+      background:#111827;
+      color:#fff;
+      display:none;
     }
 
     .main-btn:disabled,
     .question-box:disabled{
       opacity:.7;
       cursor:not-allowed;
-    }
-
-    .ghost-btn{
-      flex:1 1 220px;
-      height:58px;
-      border:none;
-      border-radius:18px;
-      background:#111827;
-      color:#fff;
-      font-size:18px;
-      font-weight:700;
-      cursor:pointer;
-      display:none;
     }
 
     .ios-tip{
@@ -211,23 +200,23 @@
       color:#9a3412;
       border-radius:16px;
       padding:14px 16px;
-      font-size:15px;
+      font-size:14px;
       line-height:1.45;
     }
 
     @media (max-width:700px){
       .wrap{
-        padding:16px 10px 105px;
+        padding:14px 10px 70px;
       }
 
       .logo-shell{
-        width:150px;
-        height:96px;
+        width:145px;
+        height:92px;
       }
 
       .logo-shell img{
-        width:66px;
-        height:66px;
+        width:64px;
+        height:64px;
       }
 
       h1{
@@ -239,17 +228,17 @@
       }
 
       .head{
-        padding:18px;
+        padding:16px;
       }
 
       .head-avatar{
-        width:74px;
-        height:74px;
+        width:72px;
+        height:72px;
       }
 
       .head-avatar img{
-        width:44px;
-        height:44px;
+        width:42px;
+        height:42px;
       }
 
       .head-text h2{
@@ -266,26 +255,26 @@
 
       .panel{
         padding:16px;
-        border-radius:20px;
+        border-radius:18px;
       }
 
       .question-box{
-        min-height:76px;
-        font-size:20px;
-        padding:18px 20px;
-        border-radius:20px;
+        height:60px;
+        font-size:18px;
+        border-radius:16px;
+        padding:0 16px;
       }
 
       .answer-box{
-        min-height:250px;
+        min-height:220px;
         font-size:17px;
-        padding:18px 20px;
-        border-radius:20px;
+        padding:18px;
+        border-radius:16px;
       }
 
       .main-btn,
       .ghost-btn{
-        height:54px;
+        height:52px;
         font-size:17px;
       }
     }
@@ -314,11 +303,16 @@
 
       <div class="body">
         <div class="panel">
-          <textarea
+          <input
             id="mensaje"
             class="question-box"
+            type="text"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
             placeholder="Escriba su CPK o su pregunta"
-          ></textarea>
+          />
 
           <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
 
@@ -427,13 +421,14 @@
         }
       }finally{
         setProcesando(false);
+        mensaje.focus();
       }
     }
 
     btnEnviar.addEventListener("click", procesar);
 
     mensaje.addEventListener("keydown", function(e){
-      if(e.key === "Enter" && !e.shiftKey){
+      if(e.key === "Enter"){
         e.preventDefault();
         procesar();
       }
@@ -447,7 +442,6 @@
 
     installBtn.addEventListener("click", async function(){
       if(!deferredPrompt) return;
-
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
