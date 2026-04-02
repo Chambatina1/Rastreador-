@@ -1,24 +1,21 @@
 {
   "name": "Chambatina",
   "short_name": "Chambatina",
-  "start_url": "./index.html",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#f7f1df",
+  "background_color": "#f3f4f6",
   "theme_color": "#f59e0b",
-  "orientation": "portrait-primary",
-  "scope": "./",
   "icons": [
     {
-      "src": "./public/Chambatinaapp.png",
+      "src": "public/chambatinaapp.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "./public/Chambatinaapp.png",
+      "src": "public/chambatinaapp.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
