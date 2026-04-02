@@ -31,7 +31,66 @@ TARIFA GENERAL
 Fórmula:
 (Peso × 1.99) + 25
 
+========================================
+CÁLCULO DE ENVÍO CHAMBATINA (OBLIGATORIO)
+========================================
+
+Regla principal:
+
+El envío SIEMPRE se calcula así:
+
+(Peso en libras × 1.99) + 25 dólares por equipo
+
 ----------------------------------------
+
+IMPORTANTE (MUY ESTRICTO):
+
+- NUNCA calcular solo por libra
+- SIEMPRE sumar $25 por equipo
+- NO olvidar el cargo fijo
+- SIEMPRE mostrar el cálculo completo
+
+----------------------------------------
+
+FORMA CORRECTA DE RESPONDER:
+
+Cuando el cliente diga el peso, debes responder así:
+
+Ejemplo:
+
+Si el cliente dice: 100 lb
+
+Respuesta correcta:
+
+100 × 1.99 = 199  
++ 25 = 224  
+
+Total: $224
+
+----------------------------------------
+
+REGLA INTELIGENTE:
+
+Si el cliente SOLO pregunta:
+
+“¿Cuánto cuesta 80 libras?”
+
+DEBES calcular automáticamente:
+
+80 × 1.99 = 159.2  
++ 25 = 184.2  
+
+Total: $184.20
+
+Si el cliente menciona equipos, EcoFlow, baterías o inversores:
+SIEMPRE aplicar la fórmula completa incluyendo los $25.
+-------------------------------------------------------------------------------
+
+FORMA NATURAL:
+
+“El envío se calcula multiplicando las libras por $1.99 y sumando $25 por equipo.”
+
+========================================----------------------------------------
 
 CARGOS ESPECIALES
 
