@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chambatina</title>
 
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#f59e0b" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Chambatina" />
-  <link rel="apple-touch-icon" href="public/chambatinaapp.png" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f59e0b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Chambatina">
+  <link rel="apple-touch-icon" href="public/chambatinaapp.png">
 
   <style>
     *{box-sizing:border-box}
@@ -25,7 +25,7 @@
     .wrap{
       max-width:760px;
       margin:0 auto;
-      padding:20px 14px 80px;
+      padding:20px 14px 70px;
     }
 
     .top{
@@ -103,7 +103,6 @@
       margin:0;
       font-size:24px;
       font-weight:800;
-      color:#111827;
     }
 
     .head-text p{
@@ -120,70 +119,52 @@
       border:1px solid #e5e7eb;
       border-radius:22px;
       background:#fafafa;
-      padding:20px;
+      padding:18px;
     }
 
     .question-box{
+      display:block;
       width:100%;
-      height:68px;
+      height:64px;
       border:none;
       outline:none;
-      border-radius:20px;
+      border-radius:18px;
       background:#f59e0b;
       color:#111827;
       font-size:22px;
-      font-weight:800;
-      line-height:1.2;
-      padding:0 20px;
-      font-family:Arial,sans-serif;
-      margin-bottom:16px;
+      font-weight:700;
+      padding:0 18px;
+      margin:0 0 16px 0;
+      -webkit-appearance:none;
+      appearance:none;
     }
 
     .question-box::placeholder{
-      color:#3f3f46;
-      opacity:.85;
-      font-weight:700;
+      color:#5b4b2a;
+      opacity:1;
     }
 
     .answer-box{
-      min-height:260px;
+      min-height:230px;
       background:#e9edf3;
-      color:#111827;
-      border-radius:20px;
-      padding:22px;
-      font-size:22px;
-      line-height:1.5;
-      white-space:pre-line;
-      word-break:break-word;
-    }
-
-    .actions{
-      margin-top:16px;
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-
-    .main-btn,
-    .ghost-btn{
-      flex:1 1 220px;
-      height:56px;
-      border:none;
       border-radius:18px;
-      font-size:18px;
-      font-weight:800;
-      cursor:pointer;
+      padding:20px;
+      font-size:22px;
+      line-height:1.45;
+      white-space:pre-line;
+      margin-bottom:16px;
     }
 
     .main-btn{
+      width:100%;
+      height:56px;
+      border:none;
+      border-radius:18px;
       background:#f59e0b;
       color:#111827;
-    }
-
-    .ghost-btn{
-      background:#111827;
-      color:#fff;
-      display:none;
+      font-size:20px;
+      font-weight:800;
+      cursor:pointer;
     }
 
     .main-btn:disabled,
@@ -206,7 +187,7 @@
 
     @media (max-width:700px){
       .wrap{
-        padding:14px 10px 70px;
+        padding:14px 10px 60px;
       }
 
       .logo-shell{
@@ -255,25 +236,21 @@
 
       .panel{
         padding:16px;
-        border-radius:18px;
       }
 
       .question-box{
-        height:60px;
+        height:58px;
         font-size:18px;
-        border-radius:16px;
         padding:0 16px;
       }
 
       .answer-box{
-        min-height:220px;
+        min-height:210px;
         font-size:17px;
         padding:18px;
-        border-radius:16px;
       }
 
-      .main-btn,
-      .ghost-btn{
+      .main-btn{
         height:52px;
         font-size:17px;
       }
@@ -307,19 +284,12 @@
             id="mensaje"
             class="question-box"
             type="text"
-            autocomplete="off"
-            autocapitalize="off"
-            autocorrect="off"
-            spellcheck="false"
             placeholder="Escriba su CPK o su pregunta"
-          />
+          >
 
           <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
 
-          <div class="actions">
-            <button id="btnEnviar" class="main-btn" type="button">Enviar</button>
-            <button id="installBtn" class="ghost-btn" type="button">Instalar app</button>
-          </div>
+          <button id="btnEnviar" class="main-btn" type="button">Enviar</button>
 
           <div id="iosTip" class="ios-tip">
             En iPhone, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
@@ -335,11 +305,9 @@
     const mensaje = document.getElementById("mensaje");
     const respuesta = document.getElementById("respuesta");
     const btnEnviar = document.getElementById("btnEnviar");
-    const installBtn = document.getElementById("installBtn");
     const iosTip = document.getElementById("iosTip");
 
     let procesando = false;
-    let deferredPrompt = null;
 
     function normalizarNumero(texto){
       return String(texto || "").replace(/\D/g, "");
@@ -427,30 +395,11 @@
 
     btnEnviar.addEventListener("click", procesar);
 
-    mensaje.addEventListener("keydown", function(e){
+    mensaje.addEventListener("keypress", function(e){
       if(e.key === "Enter"){
         e.preventDefault();
         procesar();
       }
-    });
-
-    window.addEventListener("beforeinstallprompt", function(e){
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = "block";
-    });
-
-    installBtn.addEventListener("click", async function(){
-      if(!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-    });
-
-    window.addEventListener("appinstalled", function(){
-      installBtn.style.display = "none";
-      deferredPrompt = null;
     });
 
     function esIOS(){
@@ -467,14 +416,6 @@
 
     if(esIOS() && esSafari() && !estaInstalada()){
       iosTip.style.display = "block";
-    }
-
-    if("serviceWorker" in navigator){
-      window.addEventListener("load", function(){
-        navigator.serviceWorker.register("service-worker.js").catch(function(error){
-          console.log("SW no registrado:", error);
-        });
-      });
     }
   </script>
 </body>
