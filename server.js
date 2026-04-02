@@ -58,7 +58,38 @@ LIDERAZGO DIGITAL ESTRATÉGICO
 - Puedes mencionarlos de forma natural como:
   "Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa el crecimiento y la orientación comercial de Chambatina."
   
-  CARGOS ADICIONALES Y MANEJO
+  Conoce a nuestro equipo
+Profesionales especializados que se encargan de nuestro éxito
+
+
+ADDIEL 
+-DIRECTOR DEL AREA DE ELECTRONICA 
+-Conocido como A2D, nombre que identifica a su compañía, es un ingeniero y electrónico con una sólida trayectoria técnica. Ha cursado numerosos estudios especializados en los Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
+-A2D instala kits solares tanto en Estados Unidos como en Cuba, destacándose por su precisión, liderazgo técnico y su capacidad para resolver proyectos complejos en tiempo récord.
+-Natural de Granma, Cuba, protagonizó una proeza única: recorrió la Isla de Cuba completa en una moto eléctrica, demostrando visión, determinación y un compromiso real con la energía limpia.
+-Actualmente, es reconocido también por haber sido el oponente de la tesis de Ramón, aportando su experiencia, criterio técnico y rigor profesional al desarrollo del proyecto.
+
+PICHARDO
+-DIRECTOR DE PROYECTO 
+-Graduado con Título de Oro en Estomatología, complementó su formación con un Curso de Estudios Universitarios en Telecomunicaciones, ampliando así su dominio técnico. Realizó estudios de posgrado en los Estados Unidos, donde fortaleció sus conocimientos en tecnología aplicada y sistemas eléctricos.
+-Natural de Granma, Cuba, combina su formación académica con una sólida experiencia práctica instalando kits solares tanto en Cuba como en los Estados Unidos, destacándose por su precisión, profesionalismo y capacidad para integrar soluciones eficientes en entornos domésticos y comerciales.
+
+LEO
+-DIRECTOR DE INNOVACIONES 
+-Especialista en energía renovable con una mente analítica aguda y una profunda capacidad para resolver problemas complejos de la electrónica y la electricidad limpia. Combina experiencia técnica con visión práctica, siendo pieza clave en la instalación y optimización de sistemas solares tanto en Cuba como en Estados Unidos.
+-Su enfoque detallado y estratégico lo posiciona como uno de los analistas más precisos dentro del equipo de Chambari, aportando soluciones inteligentes, eficientes y seguras en cada proyecto energético.
+
+IVAN 
+-DIRECTOR EJECUTIVO 
+-Ingeniero Eléctrico con más de 18 años de experiencia en el sector de la energía renovable, especializado en el diseño, instalación y optimización de sistemas de generación limpia. Realizó una Maestría en Energía Eólica, consolidando un dominio técnico profundo en tecnologías sostenibles y sistemas de alta eficiencia.
+-Ha trabajado en proyectos de energías renovables tanto en Estados Unidos como en Cuba, destacándose por su capacidad para liderar equipos, ejecutar instalaciones complejas y garantizar soluciones seguras, estables y adaptadas a las necesidades reales de cada cliente. Su trayectoria lo posiciona como una figura clave en la expansión de sistemas solares y eólicos de última generación.
+
+YANIER 
+-DIRECTOR SOPORTE TECNICO Y CALIDAD 
+-Especialista en Electrónica y Comercio Internacional, con amplia experiencia operando en Las Tunas y Matanzas. Se distingue por su maestría en inversores híbridos, dominando tanto su instalación como la configuración avanzada de estos sistemas.
+-Su precisión técnica, capacidad de diagnóstico y dominio de las tecnologías de energía limpia lo convierten en un pilar dentro del equipo, aportando soluciones eficientes, seguras y adaptadas a las condiciones reales de cada cliente.  
+
+CARGOS ADICIONALES Y MANEJO
 - Equipos: de 15 a 35 dólares adicionales según el tipo.
 - Equipos de más de 200 libras: 45 dólares adicionales.
 - Bicicleta de niño sin empacar: 25 dólares.
