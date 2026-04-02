@@ -4,20 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chambatina</title>
-
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f59e0b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Chambatina">
-  <link rel="apple-touch-icon" href="public/chambatinaapp.png">
-
+  <meta name="theme-color" content="#f59e0b" />
   <style>
-    *{box-sizing:border-box}
+    * { box-sizing: border-box; }
 
     body{
       margin:0;
-      font-family:Arial,sans-serif;
+      font-family: Arial, sans-serif;
       background:#f3f4f6;
       color:#111827;
     }
@@ -25,7 +18,7 @@
     .wrap{
       max-width:760px;
       margin:0 auto;
-      padding:20px 14px 70px;
+      padding:24px 14px 50px;
     }
 
     .top{
@@ -67,10 +60,10 @@
 
     .card{
       background:#fff;
-      border-radius:26px;
-      overflow:hidden;
-      box-shadow:0 12px 34px rgba(0,0,0,.08);
+      border-radius:24px;
       border:1px solid #ececec;
+      box-shadow:0 12px 34px rgba(0,0,0,.08);
+      overflow:hidden;
     }
 
     .head{
@@ -82,8 +75,8 @@
     }
 
     .head-avatar{
-      width:84px;
-      height:84px;
+      width:74px;
+      height:74px;
       border-radius:50%;
       background:#fafafa;
       border:1px solid #f0f0f0;
@@ -94,8 +87,8 @@
     }
 
     .head-avatar img{
-      width:50px;
-      height:50px;
+      width:42px;
+      height:42px;
       object-fit:contain;
     }
 
@@ -117,39 +110,36 @@
 
     .panel{
       border:1px solid #e5e7eb;
-      border-radius:22px;
+      border-radius:20px;
       background:#fafafa;
       padding:18px;
     }
 
     .question-box{
-      display:block;
       width:100%;
-      height:64px;
-      border:none;
-      outline:none;
-      border-radius:18px;
-      background:#f59e0b;
+      height:62px;
+      border:2px solid #f59e0b;
+      border-radius:16px;
+      background:#fff;
       color:#111827;
-      font-size:22px;
-      font-weight:700;
-      padding:0 18px;
-      margin:0 0 16px 0;
-      -webkit-appearance:none;
-      appearance:none;
+      font-size:20px;
+      padding:0 16px;
+      outline:none;
+      margin-bottom:16px;
+      display:block;
     }
 
-    .question-box::placeholder{
-      color:#5b4b2a;
-      opacity:1;
+    .question-box:focus{
+      border-color:#d97706;
+      box-shadow:0 0 0 3px rgba(245,158,11,.15);
     }
 
     .answer-box{
-      min-height:230px;
+      min-height:220px;
       background:#e9edf3;
-      border-radius:18px;
-      padding:20px;
-      font-size:22px;
+      border-radius:16px;
+      padding:18px;
+      font-size:20px;
       line-height:1.45;
       white-space:pre-line;
       margin-bottom:16px;
@@ -157,12 +147,12 @@
 
     .main-btn{
       width:100%;
-      height:56px;
+      height:54px;
       border:none;
-      border-radius:18px;
+      border-radius:16px;
       background:#f59e0b;
       color:#111827;
-      font-size:20px;
+      font-size:19px;
       font-weight:800;
       cursor:pointer;
     }
@@ -173,21 +163,9 @@
       cursor:not-allowed;
     }
 
-    .ios-tip{
-      display:none;
-      margin-top:14px;
-      background:#fff7ed;
-      border:1px solid #fdba74;
-      color:#9a3412;
-      border-radius:16px;
-      padding:14px 16px;
-      font-size:14px;
-      line-height:1.45;
-    }
-
     @media (max-width:700px){
       .wrap{
-        padding:14px 10px 60px;
+        padding:14px 10px 40px;
       }
 
       .logo-shell{
@@ -212,16 +190,6 @@
         padding:16px;
       }
 
-      .head-avatar{
-        width:72px;
-        height:72px;
-      }
-
-      .head-avatar img{
-        width:42px;
-        height:42px;
-      }
-
       .head-text h2{
         font-size:19px;
       }
@@ -239,15 +207,13 @@
       }
 
       .question-box{
-        height:58px;
+        height:56px;
         font-size:18px;
-        padding:0 16px;
       }
 
       .answer-box{
-        min-height:210px;
+        min-height:200px;
         font-size:17px;
-        padding:18px;
       }
 
       .main-btn{
@@ -285,15 +251,12 @@
             class="question-box"
             type="text"
             placeholder="Escriba su CPK o su pregunta"
-          >
+            autocomplete="off"
+          />
 
           <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
 
           <button id="btnEnviar" class="main-btn" type="button">Enviar</button>
-
-          <div id="iosTip" class="ios-tip">
-            En iPhone, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
-          </div>
         </div>
       </div>
     </div>
@@ -305,7 +268,6 @@
     const mensaje = document.getElementById("mensaje");
     const respuesta = document.getElementById("respuesta");
     const btnEnviar = document.getElementById("btnEnviar");
-    const iosTip = document.getElementById("iosTip");
 
     let procesando = false;
 
@@ -364,8 +326,8 @@
 
         const texto =
           (data.saludo || ("Hola, tu mercancía se encuentra en: " + data.estado + ".")) +
-          "\n\nFecha: " + (data.fecha || "No disponible") +
-          "\n\nDescripción:\n" + (data.descripcion || "Sin descripción disponible.");
+          "\\n\\nFecha: " + (data.fecha || "No disponible") +
+          "\\n\\nDescripción:\\n" + (data.descripcion || "Sin descripción disponible.");
 
         ponerRespuesta(texto);
       }catch(error){
@@ -395,28 +357,17 @@
 
     btnEnviar.addEventListener("click", procesar);
 
-    mensaje.addEventListener("keypress", function(e){
+    mensaje.addEventListener("keydown", function(e){
       if(e.key === "Enter"){
         e.preventDefault();
         procesar();
       }
     });
 
-    function esIOS(){
-      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-    }
-
-    function esSafari(){
-      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
-    }
-
-    function estaInstalada(){
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }
-
-    if(esIOS() && esSafari() && !estaInstalada()){
-      iosTip.style.display = "block";
-    }
+    window.addEventListener("load", function(){
+      mensaje.disabled = false;
+      mensaje.focus();
+    });
   </script>
 </body>
 </html>
