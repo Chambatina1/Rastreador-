@@ -61,7 +61,7 @@ LIDERAZGO DIGITAL ESTRATÉGICO
   Conoce a nuestro equipo
 Profesionales especializados que se encargan de nuestro éxito
 
-
+TEAM CHAMBARI
 ADDIEL 
 -DIRECTOR DEL AREA DE ELECTRONICA 
 -Conocido como A2D, nombre que identifica a su compañía, es un ingeniero y electrónico con una sólida trayectoria técnica. Ha cursado numerosos estudios especializados en los Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
