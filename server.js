@@ -6,695 +6,192 @@ const app = express();
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type", "x-session-id"]
 }));
 
 app.use(express.json({ limit: "2mb" }));
 
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
-Eres el asistente oficial de Chambatina y Team Chambari.
-
-Responde siempre en español claro, profesional, útil y directo.
-No inventes precios, condiciones ni políticas.
-Si no sabes algo con certeza, dilo con honestidad.
-
 ========================================
-PRECIOS Y CARGOS CHAMBATINA
+ASISTENTE OFICIAL CHAMBATINA
 ========================================
 
-TARIFA GENERAL
+Responde siempre en español claro, directo y profesional.
+No inventes precios ni condiciones.
+Si no sabes algo con certeza, dilo claramente.
 
+IDENTIDAD
+Chambatina es una empresa logística especializada en envíos a Cuba
+y en la orientación sobre equipos de energía renovable, especialmente sistemas solares.
+
+El nombre proviene de los abuelos del fundador Geo Cabezas:
+- Manuel Muñoz (Chamba)
+- Agustina (Tina)
+
+LIDERAZGO DIGITAL
+Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa
+el crecimiento y la orientación comercial de Chambatina.
+
+SERVICIOS
+- Envíos a Cuba
+- Orientación sobre compras (Amazon, TikTok, etc.)
+- Asesoría en sistemas solares
+- Seguimiento de paquetes (CPK)
+
+PRECIOS BASE
 - Precio por libra: $1.99
-- Cargo por equipo: $25 (incluye manejo, seguro, arancel y transporte)
+- Cargo por equipo: $25
+- Recogida en casa: $2.30 por libra
+- Compras por links de TikTok: $1.80 por libra
 
-Fórmula:
+IMPORTANTE:
+El cálculo general de equipo es:
 (Peso × 1.99) + 25
-
-========================================
-CÁLCULO DE ENVÍO CHAMBATINA (OBLIGATORIO)
-========================================
-
-Regla principal:
-
-El envío SIEMPRE se calcula así:
-
-(Peso en libras × 1.99) + 25 dólares por equipo
-
-----------------------------------------
-
-IMPORTANTE (MUY ESTRICTO):
-
-- NUNCA calcular solo por libra
-- SIEMPRE sumar $25 por equipo
-- NO olvidar el cargo fijo
-- SIEMPRE mostrar el cálculo completo
-
-----------------------------------------
-
-FORMA CORRECTA DE RESPONDER:
-
-Cuando el cliente diga el peso, debes responder así:
-
-Ejemplo:
-
-Si el cliente dice: 100 lb
-
-Respuesta correcta:
-
-100 × 1.99 = 199  
-+ 25 = 224  
-
-Total: $224
-
-----------------------------------------
-
-REGLA INTELIGENTE:
-
-Si el cliente SOLO pregunta:
-
-“¿Cuánto cuesta 80 libras?”
-
-DEBES calcular automáticamente:
-
-80 × 1.99 = 159.2  
-+ 25 = 184.2  
-
-Total: $184.20
-
-Si el cliente menciona equipos, EcoFlow, baterías o inversores:
-SIEMPRE aplicar la fórmula completa incluyendo los $25.
--------------------------------------------------------------------------------
-
-FORMA NATURAL:
-
-“El envío se calcula multiplicando las libras por $1.99 y sumando $25 por equipo.”
-
-========================================----------------------------------------
 
 CARGOS ESPECIALES
 
 BICICLETAS
-
-- Niño sin empacar: $25
-- Niño empacada: $15
-- Adulto sin empacar: $45
-- Adulto empacada: $25
-- Eléctrica en caja: $35
-- Eléctrica sin caja: $50
-
-----------------------------------------
+- Bicicleta de niño sin empacar: $25
+- Bicicleta de niño empacada: $15
+- Bicicleta de adulto sin empacar: $45
+- Bicicleta de adulto empacada: $25
+- Bicicleta eléctrica en caja: $35
+- Bicicleta eléctrica sin caja: $50
 
 COLCHONES
-
 - Hasta 50 lb: $15
-- Más de 50 lb: $40 total
-
-----------------------------------------
+- Más de 50 lb: $40
 
 ELECTRODOMÉSTICOS
-
 - Ollas pequeñas: $12
 - Olla arrocera o multifuncional: $22
 
-----------------------------------------
-
-EQUIPOS
-
-- Manejo general: $25
-- Equipos mayores de 200 lb: $45 adicionales
-
-----------------------------------------
+EQUIPOS GRANDES
+- Más de 200 lb: $45 adicionales
 
 RETRACTILADO
-
 - Empacado: $35
 - Sin empacar: $50
 - Externo: cargo variable
 
-----------------------------------------
-
-SISTEMAS SOLARES
-
-INVERSORES
-
-- 6.5 kW → $988 equipo / $145 envío / Total $1,133
-- 10 kW → $1,254 equipo / $178 envío / Total $1,432
-- 12 kW → $2,146 equipo / $257 envío / Total $2,403
-
-BATERÍAS
-
-- 5 kWh → $886 equipo / $352 envío / Total $1,238
-- 10 kWh → $1,651 equipo / $536 envío / Total $2,187
-- 16 kWh → $1,825 equipo / $696 envío / Total $2,521
-
-----------------------------------------
-
-REGLAS IMPORTANTES
-
-- Todo equipo eléctrico lleva $25 obligatorio
-- El precio final depende del peso real
-- Algunos productos tienen cargos adicionales
-- Siempre responder claro, directo y sin confundir
-
-----------------------------------------
-
-FORMA DE RESPONDER
-
-Explicar de forma simple:
-
-“El envío se calcula por libra a $1.99 más $25 por equipo. Algunos productos tienen cargos adicionales según el tipo.”
-
-========================================INFORMACIÓN GENERAL
-- Precio por libra general: 1.99 más 10 dólares por manejo, seguro, arancel y transporte.
-- Si recogemos en la puerta de la casa: 2.30 por libra.
-- Si compran por nuestros links de TikTok: 1.80 por libra.
-- Tiempo estimado: 18 a 30 días hábiles una vez que toca puerto.
-- Aproximadamente a los 7 días de la entrega toca puerto.
-
 CAJAS
-- Caja 12x12x12 pulgadas hasta 60 libras: 45 dólares.
-- Caja 15x15x15 pulgadas hasta 100 libras: 65 dólares.
-- Caja 16x16x16 pulgadas hasta 100 libras: 85 dólares.
+- 12x12x12 hasta 60 lb: $45
+- 15x15x15 hasta 100 lb: $65
+- 16x16x16 hasta 100 lb: $85
 
-HISTORIA Y ESENCIA DE CHAMBATINA
--Chambatina nace como una empresa con propósito humano, inspirada directamente en la familia de su fundador, Geo Cabezas.
--El nombre “Chambatina” surge de la unión de dos figuras fundamentales en su vida: su abuelo materno, Manuel Muñoz, conocido cariñosamente como “Chamba”, y su abuela materna, Agustina, conocida como “Tina”.
--Esta combinación representa no solo un nombre, sino una herencia de valores basada en esfuerzo, humildad, familia y compromiso con los demás.
--Desde sus inicios, Chambatina se ha enfocado en algo más que el envío de productos: su misión es educar, orientar y acompañar a cada cliente en procesos que muchas veces resultan complejos.
--Es una compañía logística especializada en la gestión y envío de equipos, con un enfoque particular en soluciones de energía renovable, especialmente sistemas solares.
--Chambatina no solo transporta equipos; también enseña a sus clientes cómo elegirlos, cómo utilizarlos y cómo sacarles el máximo rendimiento en sus hogares.
--Su crecimiento se ha basado en la confianza, la transparencia y la educación constante del cliente, combinando logística con conocimiento técnico.
--La empresa representa la unión entre tradición y tecnología: valores familiares llevados al mundo digital y al comercio moderno.
--Cada envío, cada asesoría y cada interacción busca reflejar el espíritu original de “Chamba” y “Tina”: ayudar con responsabilidad, claridad y respeto.
--Cuando un cliente pregunte por Chambatina, se puede explicar que es una empresa que nació desde la familia, pero evolucionó hacia una plataforma moderna de educación, logística y soluciones energéticas.
--Puedes mencionarlo de forma natural como:
- "Chambatina es una empresa inspirada en la historia familiar de su fundador, donde la tradición y la innovación se unen para ofrecer soluciones logísticas y energéticas con un enfoque educativo."
-
-LIDERAZGO DIGITAL ESTRATÉGICO
-
-- Lillian Ancheta y Geobanys, conocidos en TikTok como "Geo y Lili", conforman un dúo de alto impacto en el crecimiento digital de Chambatina.
-- Son creadores de contenido, instructores y promotores clave en el desarrollo de Chambatina dentro de TikTok, impulsando especialmente el modelo de ventas por referido.
-- Su trabajo ha contribuido directamente al posicionamiento de la marca, educando a la audiencia y guiando a nuevos clientes en el proceso de compra y envío.
-- Poseen experiencia sólida en el mundo de los generadores eléctricos, combinando conocimiento técnico con habilidades comerciales y dominio de la comunicación digital.
-- Se caracterizan por su disciplina constante, enfoque en resultados, honestidad y claridad al comunicar en redes sociales.
-- Cuando un cliente pregunte por ellos, se debe explicar que son figuras principales en el crecimiento, la educación del cliente y la expansión digital de Chambatina.
-- Puedes mencionarlos de forma natural como:
-  "Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa el crecimiento y la orientación comercial de Chambatina."
-- Puedes mencionarlos de forma natural como:
-  "Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa el crecimiento y la orientación comercial de Chambatina."
-  
-  Conoce a nuestro equipo
-Profesionales especializados que se encargan de nuestro éxito
-
-TEAM CHAMBARI
-ADDIEL 
--DIRECTOR DEL AREA DE ELECTRONICA 
--Conocido como A2D, nombre que identifica a su compañía, es un ingeniero y electrónico con una sólida trayectoria técnica. Ha cursado numerosos estudios especializados en los Estados Unidos, ampliando sus competencias en sistemas eléctricos, telecomunicaciones y energías renovables.
--A2D instala kits solares tanto en Estados Unidos como en Cuba, destacándose por su precisión, liderazgo técnico y su capacidad para resolver proyectos complejos en tiempo récord.
--Natural de Granma, Cuba, protagonizó una proeza única: recorrió la Isla de Cuba completa en una moto eléctrica, demostrando visión, determinación y un compromiso real con la energía limpia.
--Actualmente, es reconocido también por haber sido el oponente de la tesis de Ramón, aportando su experiencia, criterio técnico y rigor profesional al desarrollo del proyecto.
-
-PICHARDO
--DIRECTOR DE PROYECTO 
--Graduado con Título de Oro en Estomatología, complementó su formación con un Curso de Estudios Universitarios en Telecomunicaciones, ampliando así su dominio técnico. Realizó estudios de posgrado en los Estados Unidos, donde fortaleció sus conocimientos en tecnología aplicada y sistemas eléctricos.
--Natural de Granma, Cuba, combina su formación académica con una sólida experiencia práctica instalando kits solares tanto en Cuba como en los Estados Unidos, destacándose por su precisión, profesionalismo y capacidad para integrar soluciones eficientes en entornos domésticos y comerciales.
-
-LEO
--DIRECTOR DE INNOVACIONES 
--Especialista en energía renovable con una mente analítica aguda y una profunda capacidad para resolver problemas complejos de la electrónica y la electricidad limpia. Combina experiencia técnica con visión práctica, siendo pieza clave en la instalación y optimización de sistemas solares tanto en Cuba como en Estados Unidos.
--Su enfoque detallado y estratégico lo posiciona como uno de los analistas más precisos dentro del equipo de Chambari, aportando soluciones inteligentes, eficientes y seguras en cada proyecto energético.
-
-IVAN 
--DIRECTOR EJECUTIVO 
--Ingeniero Eléctrico con más de 18 años de experiencia en el sector de la energía renovable, especializado en el diseño, instalación y optimización de sistemas de generación limpia. Realizó una Maestría en Energía Eólica, consolidando un dominio técnico profundo en tecnologías sostenibles y sistemas de alta eficiencia.
--Ha trabajado en proyectos de energías renovables tanto en Estados Unidos como en Cuba, destacándose por su capacidad para liderar equipos, ejecutar instalaciones complejas y garantizar soluciones seguras, estables y adaptadas a las necesidades reales de cada cliente. Su trayectoria lo posiciona como una figura clave en la expansión de sistemas solares y eólicos de última generación.
-
-YANIER 
--DIRECTOR SOPORTE TECNICO Y CALIDAD 
--Especialista en Electrónica y Comercio Internacional, con amplia experiencia operando en Las Tunas y Matanzas. Se distingue por su maestría en inversores híbridos, dominando tanto su instalación como la configuración avanzada de estos sistemas.
--Su precisión técnica, capacidad de diagnóstico y dominio de las tecnologías de energía limpia lo convierten en un pilar dentro del equipo, aportando soluciones eficientes, seguras y adaptadas a las condiciones reales de cada cliente.  
-
-TEAM CHAMBARI
-El Team Chambari está conformado por profesionales especializados en electrónica, energía renovable, telecomunicaciones y sistemas eléctricos, enfocados en desarrollar soluciones eficientes y sostenibles.
-Su trabajo combina conocimiento técnico, experiencia práctica y una fuerte orientación a resultados, permitiendo ejecutar proyectos solares tanto en Estados Unidos como en Cuba con altos estándares de calidad.
-Se caracterizan por su disciplina, precisión y capacidad para resolver desafíos complejos en tiempo real, adaptando cada sistema a las condiciones específicas de cada cliente.
-Más que un equipo técnico, representan una estructura de innovación, educación y ejecución dentro del ecosistema de Chambatina.
-
-MIEMBROS CLAVE
--ADDIEL (A2D): Director del área de electrónica, ingeniero con sólida formación técnica y experiencia en instalaciones solares avanzadas.
--PICHARDO: Director de proyecto, combina excelencia académica con ejecución práctica en sistemas energéticos.
--LEO: Director de innovaciones, especialista en análisis y optimización de soluciones en energía renovable.
--IVÁN: Director ejecutivo, ingeniero eléctrico con amplia trayectoria en proyectos de energía limpia.
--ANIER: Director de soporte técnico y calidad, experto en inversores híbridos y configuraciones complejas.
-
-EXPANSIÓN Y APOYO
-
-NEO 
--Informático y comunicador, especialista en equipos solares y desarrollo tecnológico aplicado.
-JEY
--Electricista master, especialista en sistemas de alta protección y seguridad eléctrica.
-
-CORONADO 
--Influencers de gran impacto, responsables del posicionamiento digital y expansión en redes sociales.
-ALMEDA
--Influencers de gran impacto, responsables del posicionamiento digital y expansión en redes sociales.
-
-VISIÓN DEL TEAM CHAMBARI
--El Team Chambari no solo instala sistemas, sino que educa, orienta y transforma la forma en que las personas acceden a la energía.
--Su enfoque se basa en innovación, claridad técnica y compromiso con soluciones reales.
--Puedes mencionarlo de forma natural como:
- "El Team Chambari está formado por especialistas que combinan experiencia técnica y visión estratégica para desarrollar soluciones energéticas confiables y modernas."
-
-CARGOS ADICIONALES Y MANEJO
-- Equipos: de 15 a 35 dólares adicionales según el tipo.
-- Equipos de más de 200 libras: 45 dólares adicionales.
-- Bicicleta de niño sin empacar: 25 dólares.
-- Bicicleta de niño empacada: 15 dólares.
-- Bicicleta de adulto sin empacar: 45 dólares.
-- Bicicleta de adulto empacada: 25 dólares.
-- Bicicleta eléctrica en caja: 35 dólares.
-- Bicicleta eléctrica sin caja: 50 dólares.
-- Colchones hasta 50 libras: 15 dólares.
-- Colchones de más de 50 libras: 40 dólares total.
-- Ollas pequeñas: 12 dólares.
-- Olla arrocera o multifuncional: 22 dólares.
-- Equipos con retractilado empacados: 35 dólares.
-- Equipos con retractilado sin empacar: 50 dólares.
-- Retractilado externo: cargo variable.
+TIEMPOS
+- Aproximadamente 18 a 30 días una vez que toca puerto
+- Aproximadamente a los 7 días de la entrega toca puerto
 
 OFICINA
-- Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112.
-- Teléfono Geo: 786-942-6904.
-- Teléfono Adriana: 786-784-6421.
+- Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112
+- Teléfono Geo: 786-942-6904
+- Teléfono Adriana: 786-784-6421
 
-PROCESO DE COMPRA POR TIKTOK O AMAZON
-- El cliente compra por el link que le brinda la oficina.
-- Luego envía el producto a la dirección de Chambatina.
-- Debe escribir correctamente: 7523 Aloma Ave, Suite 112.
-- No debe usar “Aloma Pine” si TikTok lo sugiere por error.
-
-REGLAS DE RESPUESTA
-- Si preguntan por precio llevando productos a la oficina, responder 1.99 por libra más un cargo por manejo, seguro, arancel y transporte.
-- Si preguntan por recogida en casa, responder 2.30 por libra.
-- Si preguntan por compras mediante links de TikTok, responder 1.80 por libra.
-- Si preguntan por tiempos, responder 18 a 30 días hábiles una vez que toca puerto.
-- Si preguntan por rastreo, indicar que pueden consultar con su CPK.
-- Si preguntan por pesos, cajas o cargos de equipos, usar exactamente las cifras anteriores.
-- Mantén un tono comercial, ordenado, serio y humano. 
+FORMA DE RESPONDER
+- Ser claro, breve y útil
+- No repetir información innecesaria
+- Si el sistema ya calculó por código, no recalcular diferente
+- Si preguntan por rastreo, orientar con el CPK
 `;
 
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS COMPLETAS DESDE TU SISTEMA
 const RAW_TRACKING_SOURCE = `
-CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
-CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242385	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10344	2026-02-01	ANA MARIA MORENO CRUZ		62041703914	AVENIDA 21 # 50 e/ 308 y 310, PLAYA, LA HABANA	56956351	YOHANA PONTE			2.99	0	1	4	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0252026	DESPACHADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA 12	10915	2026-02-24	AMANDA HIDALGO ABREU		02022270255	CALLE JOSE ANTONIO SACO # 201 Rpto. LA VIBORA e/ CARMEN y PATROCINIO, DIEZ DE OCTUBRE, LA HABANA	55722968	WILFREDO LLERENA			0	0	1	16	1	219.32	0	0	CHAMBATINA MIAMI	GEO MIA		CPK-0242384	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	TV HISENSE 50 PULGADAS	10346	2026-02-01	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	CARIDAD IZQUIERDO			0	0	1	29	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242383	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10344	2026-02-01	ANA MARIA MORENO CRUZ		62041703914	AVENIDA 21 # 50 e/ 308 y 310, PLAYA, LA HABANA	56956351	YOHANA PONTE			0	0	1	34	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0252026	DESPACHADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA 12	10915	2026-02-24	AMANDA HIDALGO ABREU		02022270255	CALLE JOSE ANTONIO SACO # 201 Rpto. LA VIBORA e/ CARMEN y PATROCINIO, DIEZ DE OCTUBRE, LA HABANA	55722968	WILFREDO LLERENA			0	0	1	16	1	219.32	0	0	CHAMBATINA MIAMI	GEO MIA		CPK-0242382	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10346	2026-02-01	ANA MARIA MORENO CRUZ		62041703914	AVENIDA 21 # 50 e/ 308 y 310, PLAYA, LA HABANA	56956351	YOHANA PONTE			0	0	1	38	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242381	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	SOPORTE PARA TV	10344	2026-02-01	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	CARIDAD IZQUIERDO			0	0	1	7	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242379	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 12	10344	2026-02-01	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	23	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242378	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 12	10344	2026-02-01	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	25	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242377	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 12	10345	2026-02-01	CLARA GONZALEZ CARMONA		54081204853	CALLE ANTONIO MACEO # 9 Rpto. POBLADO SANTA CRUZ, SAN CRISTOBAL, ARTEMISA	51356089	CARIDAD IZQUIERDO			0	0	1	18	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242376	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 12	10344	2026-02-01	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	CARIDAD IZQUIERDO			0	0	1	19	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242375	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10345	2026-02-01	LUIS CARLOS MENDOZA MARTINEZ		65061219885	CALLE FRANK PAIS # 70 e/ JOSE TEY y CAMILO CIENFUEGOS, SIBANICU, CAMAGUEY	51393489	ROSALI MENDOZA CARRASCO			2.99	0	1	29	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242374	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 12	10344	2026-02-01	MARIBEL HERNANDEZ CONTINO		79081801193	CALLE CARRETERA CENTRAL KILOMETRO 166 Rpto. BARRIO LA CORONELA, SAN CRISTOBAL, ARTEMISA	63665444	MADELAINE BRIDON			0	0	1	32	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261945	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	CAJA ELECTRICA PARA KIT SOLAR		2026-03-31	OLGA LIDIA SUBI RODRIGUEZ		68100403152	CALLE DOCE SUR # 2 ALTOS Rpto. POBLADO SIGUANEY, TAGUASCO, SANCTI SPIRITUS	53204285	DAYAN OLIVERA			0	0	1	36	0.296	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261913	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 12		2026-03-31	MARICELA PLATA BARCELO		60041601172	CALLE 2 A, EDIFICIO 3, APTO 9 Rpto. POBLADO HARLEM e/ AVENIDA 5 y AVENIDA 7, BAHIA HONDA, ARTEMISA	59750727	MARINA DOPICO			0	0	1	29	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261910	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	OLIVIA AMERICA ABELLA CASTRO		70062500216	CALLE CARMELINA # 19 A Rpto. VIEJA LINDA e/ JACINTO ROIG y EMILIA, ARROYO NARANJO, LA HABANA	55154092	LEYANIS RODRIGUEZ			0	0	1	58.75	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261900	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	LAURA CAMEJO CRUZ		05010463792	AVENIDA 23 # 1816 E e/ 18 y PASAJE 1, BAHIA HONDA, ARTEMISA	55497727	LARITZA RENE DIAZ			0	0	1	63	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261897	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-31	SONIA AGUIAR FIALLO		48102326350	CALLE 22 # 1105 Rpto. LOS PALOS e/ 11 y 13, NUEVA PAZ, MAYABEQUE	54436150	ZURAMI DEL PINO AGUIAR			0	0	1	96	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261896	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	SONIA AGUIAR FIALLO		48102326350	CALLE 22 # 1105 Rpto. LOS PALOS e/ 11 y 13, NUEVA PAZ, MAYABEQUE	54436150	ZURAMI DEL PINO AGUIAR			0	0	1	56	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261894	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-31	ALEXANDER ESPINO TORRES		84021103740	CALLE 22 # 1102 Rpto. LOS PALOS e/ 11 y 13, NUEVA PAZ, MAYABEQUE	54323470	OSVALDO ABREU TORRES			0	0	1	93	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262461	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA		2026-04-02	EVA ELENA CRUZ HERNANDEZ		58073100295	CALLE MERCEDES Rpto. EDIFICIO 2 APTO 2 e/ ETERO y ARROLLO, CARDENAS, MATANZAS	53688504	ELSA MARIA CRUZ			0	0	1	46.1	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262460	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA		2026-04-02	EVA ELENA CRUZ HERNANDEZ		58073100295	CALLE MERCEDES Rpto. EDIFICIO 2 APTO 2 e/ ETERO y ARROLLO, CARDENAS, MATANZAS	53688504	ELSA MARIA CRUZ			0	0	1	28.9	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262459	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA		2026-04-02	EVA ELENA CRUZ HERNANDEZ		58073100295	CALLE MERCEDES Rpto. EDIFICIO 2 APTO 2 e/ ETERO y ARROLLO, CARDENAS, MATANZAS	53688504	ELSA MARIA CRUZ			0	0	1	36	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262453	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	BATERIA 12 V 280 AH		2026-04-02	REINA RUBALCABA SOTOMAYOR		67030813696	CALLE 9 # 2425 e/ AVENIDA 24 y AVENIDA 26, JOVELLANOS, MATANZAS	58680133	YURIAN JIMENEZ RUBALCABA			0	0	1	66.9	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262452	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	INVERSOR ELECTRICO 4 MIL WATTS		2026-04-02	REINA RUBALCABA SOTOMAYOR		67030813696	CALLE 9 # 2425 e/ AVENIDA 24 y AVENIDA 26, JOVELLANOS, MATANZAS	58680133	YURIAN JIMENEZ RUBALCABA			0	0	1	28.8	1.588	0	0	0		CHAMBATINA MIAMI	GEO MIA		CPK-0261893	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	ALEXANDER ESPINO TORRES		84021103740	CALLE 22 # 1102 Rpto. LOS PALOS e/ 11 y 13, NUEVA PAZ, MAYABEQUE	54323470	OSVALDO ABREU TORRES			0	0	1	75	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261888	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	ELIANYS UNQUID FONTS		95093030651	AVENIDA 71 # 14807 e/ 148 y 152, LA LISA, LA HABANA	53105687	YORDANIS RODRIGUEZ			0	0	1	73	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261884	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-31	LAURA CAMEJO CRUZ		05010463792	AVENIDA 23 # 1816 E e/ 18 y PASAJE 1, BAHIA HONDA, ARTEMISA	55497727	YANET CRUZ PEREZ			0	0	1	90	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261883	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 12		2026-03-31	LAURA CAMEJO CRUZ		05010463792	AVENIDA 23 # 1816 E e/ 18 y PASAJE 1, BAHIA HONDA, ARTEMISA	55497727	YANET CRUZ PEREZ			0	0	1	27	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261882	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-31	OSMANY NUÑEZ LAUZARDO		75011904608	CALLE EDIFICIO 6 APTO 19 EL CANGRE, GUINES, MAYABEQUE	52843651	LARITZA NUÑEZ LAUZARDO			0	0	1	78	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262461	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA		2026-04-02	EVA ELENA CRUZ HERNANDEZ		58073100295	CALLE MERCEDES Rpto. EDIFICIO 2 APTO 2 e/ ETERO y ARROLLO, CARDENAS, MATANZAS	53688504	ELSA MARIA CRUZ			0	0	1	46.1	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0262460	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA		2026-04-02	EVA ELENA CRUZ HERNANDEZ		58073100295	CALLE MERCEDES Rpto. EDIFICIO 2 APTO 2 e/ ETERO y ARROLLO, CARDENAS, MATANZAS	53688504	ELSA MARIA CRUZ			0	0	1	28.9	0.579	0	0	0		CHAMBATINA MIAMI	GEO MIA		CPK-0262459	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA		2026-04-02	EVA ELENA CRUZ HERNANDEZ		58073100295	CALLE MERCEDES Rpto. EDIFICIO 2 APTO 2 e/ ETERO y ARROLLO, CARDENAS, MATANZAS	53688504	ELSA MARIA CRUZ			0	0	1	36	0.072	0	0	0	CHAMBATINA MIAMI	GEO MIA		CPK-0261881	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	OSMANY NUÑEZ LAUZARDO		75011904608	CALLE EDIFICIO 6 APTO 19 EL CANGRE, GUINES, MAYABEQUE	52843651	LARITZA NUÑEZ LAUZARDO			0	0	1	49	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261876	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-31	SANDRA LEDESMA CRUZ		69042322552	CALLE VIRGINIA # 117 Rpto. CALLEJAS e/ PINAR DEL RÍO y WOODBURY, ARROYO NARANJO, LA HABANA	58200389	GISELL DIAZ LEDESMA			2.99	0	1	83	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261875	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-31	SANDRA LEDESMA CRUZ		69042322552	CALLE VIRGINIA # 117 Rpto. CALLEJAS e/ PINAR DEL RÍO y WOODBURY, ARROYO NARANJO, LA HABANA	58200389	GISELL DIAZ LEDESMA			0	0	1	86	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261873	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 12		2026-03-31	SANDRA LEDESMA CRUZ		69042322552	CALLE VIRGINIA # 117 Rpto. CALLEJAS e/ PINAR DEL RÍO y WOODBURY, ARROYO NARANJO, LA HABANA	58200389	GISELL DIAZ LEDESMA			0	0	1	33	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261849	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	INVERSOR 4 K		2026-03-31	YORDANY MOLINA BASCOY		83082609001	CALLE MARIO MESA # 28, CORRALILLO, VILLA CLARA	55169290	YASMANI RAMOS			0	0	1	19.1	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261836	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	INVERSOR 10 K		2026-03-31	PITER CUELLAR ALMEIDA		89011930124	CALLE LOMA # 62 Rpto. CAMARIOCA, CARDENAS, MATANZAS	58787019	YASMANI RAMOS			0	0	1	63.3	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261830	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	INVERSOR 10 K		2026-03-31	PITER CUELLAR ALMEIDA		89011930124	CALLE LOMA # 62 Rpto. CAMARIOCA, CARDENAS, MATANZAS	58787019	YASMANI RAMOS			0	0	1	63.3	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261689	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-30	LAZARO LUIS PEGUERO FALCON		76102000382	CALLE CARRETERA CENTRAL 179 M FINCA LOS BAÑOS, SAN CRISTOBAL, ARTEMISA	55490089	NEYLIN SANCHEZ PEGUERO			0	0	1	40	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261688	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-30	LAZARO LUIS PEGUERO FALCON		76102000382	CALLE CARRETERA CENTRAL 179 M FINCA LOS BAÑOS, SAN CRISTOBAL, ARTEMISA	55490089	NEYLIN SANCHEZ PEGUERO			0	0	1	66	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261577	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-30	DANIELIS ALONSO MANGLY		97021413035	AVELLANEDA # 73 e/ MACEO y CISNEROS, JATIBONICO, SANCTI SPIRITUS	53114076	PEDRO LUIS VALDES			0	0	1	98	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261568	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-30	JOSEFA LEDO SUAREZ		55010419858	CALLE ANTONIO GUITERA # 10 Rpto. EL 6, JATIBONICO, SANCTI SPIRITUS	53204487	YAMILEISY VALDIVIA LEDO			0	0	1	99.6	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261520	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-30	ALFREDO VELIZ MARTINEZ		73052418147	FINCA LA ROSITA # 20, CORRALILLO, VILLA CLARA	51022008	WILFREDO LLERENA			0	0	1	58.75	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261427	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	GENERADOR ELECTRICO 5000W		2026-03-30	ALFREDO CARRION MARTINEZ		94061729908	CALLE CARRETERA VIA BLANCA FINCA PEPITO TEY, APTO 19 Rpto. CELIMAR, HABANA DEL ESTE, LA HABANA	56861803	JUAN CARLOS COSIO			0	0	1	57	0	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242372	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10345	2026-02-01	ODYS MARIA ESPARRAGUERA ALMENARES		76011711834	CALLE REY PELAYO # 52 e/ CALVARIO y RELOJ, SANTIAGO DE CUBA, SANTIAGO DE CUBA	55962330	MADELAINE BRIDON			0	0	1	44	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242365	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10344	2026-02-01	ESPERANZA SEMILLA GÓMEZ		72091815759	AVENIDA 54 # 6718 Rpto. JUANITA e/ 67 y 69, CIENFUEGOS, CIENFUEGOS	5519395454	IRELYS SUÁREZ			2.99	0	1	26	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242364	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10345	2026-02-01	EDUARDO GUTIERREZ RODRIGUEZ		98011920607	CALLE VIETNAM # 29 e/ CALIXTO GARCIA y 10 DE OCTUBRE, CAMPECHUELA, GRANMA	55068107	RAMON PICHARDO			2.99	0	1	12.7	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242363	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	LOSAS PLASTICAS PARA PISO 8 METROS	10346	2026-02-01	TERESA AGUILAR BAREA		68101508191	CALLE 86 # 509, APTO 5 e/ 5TA y 5TA A, PLAYA, LA HABANA	52734656	CELIBEL JIMENEZ			0	0	1	33.7	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242362	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10344	2026-02-01	TERESA AGUILAR BAREA		68101508191	CALLE 86 # 509, APTO 5 e/ 5TA y 5TA A, PLAYA, LA HABANA	52734656	CELIBEL JIMENEZ			2.99	0	1	16.34	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242360	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	IMPRESORA BROTHER	10344	2026-02-01	JORGE JOAQUIN ALVAREZ CASTILLO		57081624408	AVENIDA 19 # 7417 ALTOS e/ 74 y 76, PLAYA, LA HABANA	52725450	GEO CABE			0	0	1	15	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242348	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	OLLA ARROCERA	10344	2026-02-01	MARIA DEL CARMEN GONZALEZ GARCIA		57101101633	CALLE 220 # 8736 Rpto. CRUZ VERDE e/ 2 y FINAL, COTORRO, LA HABANA	58383288	JORGE MANUEL GARCIA RIVERO			0	0	1	12.7	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242343	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEA 15	10344	2026-02-01	MAGALYS SANCHEZ AGUILA		62122030955	CALLE 16 # 203 Rpto. PREVISORA e/ LUCAS y AVENIDA DE LOS ANCIANOS, CAMAGUEY, CAMAGUEY	58262249	LAINET LEYVA SANCHEZ			0	0	1	51	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242339	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10345	2026-02-01	ANAY MORALES DIAZ		70020408494	CALLE RAMONA IDABOY # 64 e/ LIBERTAD y JOSE MARIA HEREDIA, CIRO REDONDO, CIEGO DE AVILA	54920624	MAIVY REYES			2.99	0	1	28	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242337	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	LAPTOP HP MODELO 15-AY014DX( DE USO)	10344	2026-02-01	ANAY MORALES DIAZ		70020408494	CALLE RAMONA IDABOY # 64 e/ LIBERTAD y JOSE MARIA HEREDIA, CIRO REDONDO, CIEGO DE AVILA	54920624	MAIVY REYES			0	0	1	8	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242331	ENTREGADO	Sí	066(CPK-297)	DENEB/(GAOU 6494339)/(CWPS26145521)	ENVIO	MISCELANEAS	10344	2026-02-01	LARITZA MARTINEZ RODRIGUEZ		79080225158	CALLE LEALTAD # 214, APTO 9 e/ VIRTUDES y CONCORDIA, CENTRO HABANA, LA HABANA	53973394	JORGE HERNANDEZ			2.99	0	1	12.7	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0242314	ENTREGADO	Sí	066(CPK-298)	DENEB/(BSIU 9724046)/(CWPS26145982)	ENVIO	GENERADOR ELÉCTRICO 5000W	10371	2026-02-01	MERCEDES PÉREZ COSIO		61092408819	CALLE MAXIMO GOMEZ # 1008 Rpto. IBARRA e/ ALONSO y PASEO DE AGRAMONTE, FLORIDA, CAMAGUEY	59593449	JUAN CARLOS COSIO			0	0	1	56	0	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255137	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	34.9	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255136	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10917	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	19.6	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255135	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	JUEGO DE HERRAMIENTAS DE MANO	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	20	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255133	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	BATERIA 16 K	10919	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	276.8	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255131	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	BATERIA 16 K	10917	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	274.6	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0233751	ENTREGADO	Sí	045(CPK-287)	DENEB/(SEGU 5662673)/(CWPS26138502)	ENVIO	LAVADORA/ SECADORA AUTOMATICA MODELO LG	9902	2026-01-12	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	335	4.63	0	0	0		CHAMBATINA MIAMI	GEO MIA		CPK-0255137	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			2.99	0	1	34.9	0.579	0.5	0	0
-CHAMBATINA MIAMI	GEO MIA		CPK-0260443	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	DIANARA CORREA SANCHEZ		94092744494	Ave Piti fajardo # Edificio 27 Apto 4 Rpto. Emilio Barcenas e/ 9 y 11, HOLGUIN, HOLGUIN	52065680	YISEL LOPEZ ALVAREZ			2.99	0	1	32	3.375	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260440	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	YURISLEIDI TAPIA ALVAREZ		92110940512	CALLE 16 # 112 E Rpto. PIEDRECITA e/ 13 y 15, CESPEDES, CAMAGUEY	56244435	YISEL LOPEZ ALVAREZ			2.99	0	1	26	3.375	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260199	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 51 V 100 AH	11159	2026-03-25	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO			0	0	1	102.7	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260197	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR 10 MIL WATTS	11159	2026-03-25	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO			0	0	1	52.9	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260020	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA			2.99	0	1	16.9	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260019	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA			2.99	0	1	16.3	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260018	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11159	2026-03-24	NANCY ROJAS REGUERA		70052315538	CALLE HABANA # 756, APTO 4, SEGUNDO PISO e/ LUZ y ACOSTA, LA HABANA VIEJA, LA HABANA	53608954	CLAUDIA ESPINOSA			2.99	0	1	6.34	0.072	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260017	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	CARETA DE SOLDAR	11159	2026-03-24	ROY YOESON SLOVACEVICHES MARTINEZ		81121900803	CALLE SEGUNDA CALLE # 89, MINAS DE MATAHAMBRE, PINAR DEL RIO	58340971	ALEX MARTINEZ			0	0	1	2.45	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260016	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	PLANTA DE SOLDAR	11159	2026-03-24	ROY YOESON SLOVACEVICHES MARTINEZ		81121900803	CALLE SEGUNDA CALLE # 89, MINAS DE MATAHAMBRE, PINAR DEL RIO	58340971	ALEX MARTINEZ			0	0	1	14.64	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260015	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	SOMBRILLA PARA TERRAZA	11159	2026-03-24	ROY YOESON SLOVACEVICHES MARTINEZ		81121900803	CALLE SEGUNDA CALLE # 89, MINAS DE MATAHAMBRE, PINAR DEL RIO	58340971	ALEX MARTINEZ			0	0	1	50.5	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260014	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11159	2026-03-24	JOSE ANTONIO GARCIA MONTALVO		78122301667	CALLE CAPITAN REYES # 43 e/ 26 DE JULIO y CESPEDES, SAN CRISTOBAL, ARTEMISA	53064026	SANDY GARCIA			2.99	0	1	14.6	1.588	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260013	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GUILLOTINA PARA PAPEL	11159	2026-03-24	JOSE ANTONIO GARCIA MONTALVO		78122301667	CALLE CAPITAN REYES # 43 e/ 26 DE JULIO y CESPEDES, SAN CRISTOBAL, ARTEMISA	53064026	SANDY GARCIA			0	0	1	17.92	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0260012	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	SILLA DE ESCRITORIO	11159	2026-03-24	JOSE ANTONIO GARCIA MONTALVO		78122301667	CALLE CAPITAN REYES # 43 e/ 26 DE JULIO y CESPEDES, SAN CRISTOBAL, ARTEMISA	53064026	SANDY GARCIA			0	0	1	33.16	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259847	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 16		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	45.4	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259844	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-24	ADRIANA RIVERA SUAREZ		59021413918	CALLE CALZADA DE BAKER # 5 e/ SAYA y CRET, SAGUA LA GRANDE, VILLA CLARA	54219986	ANET AVILA RIVERA			0	0	1	58.75	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259575	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-23	FELICIA CARVAJAL MARTIN		73082101550	CALLE DELICIAS # S/N Rpto. CASERIO GUARACABULLA e/ CAMILO CIENFUEGOS y MARTI, PLACETAS, VILLA CLARA	53282278	MAIKEL HERNANDEZ LLANEZA			2.99	0	1	4	0.003	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259574	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11114	2026-03-23	FELICIA CARVAJAL MARTIN		73082101550	CALLE DELICIAS # S/N Rpto. CASERIO GUARACABULLA e/ CAMILO CIENFUEGOS y MARTI, PLACETAS, VILLA CLARA	53282278	MAIKEL HERNANDEZ LLANEZA			2.99	0	1	17	1.588	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259570	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-23	CIRIA UMPIERRE NAPOLES		57112204096	CALLE CRUCERO LOS ANGELES SENADO # 27, MINAS, CAMAGUEY	51202638	ISRAEL TENDERO UMPIERRE			2.99	0	1	2.5	0.003	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259565	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BOBINA	11113	2026-03-23	DORALQUIS SANCHEZ MICHEL		93061035059	CALLE 9 B # 2425 e/ AVENIDA 24 y AVENIDA 26, JOVELLANOS, MATANZAS	58680133	YURIAN JIMENEZ RUBALCABA			0	0	1	1	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259558	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	ESCALERA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	12.6	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259557	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	VENTILADOR DE TECHO	11113	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	5.6	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259555	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA ELECTRICA	11114	2026-03-23	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	106.4	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259547	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	JOSE MANUEL HERNANDEZ CABEZAS		00082162286	CALLE J # 453 ALTO Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	GEO CABEZAS			0	0	1	7	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259540	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MESA PLASTICA	11113	2026-03-23	ACELA ARROYO ARENCIBIA		33120603838	CALLE AGRAMONTE # 11 e/ AVE MARIANA GRANJALES y COMANDANTE PINARES, PINAR DEL RIO, PINAR DEL RIO	52671478	MEIVYS PAEZ			2.99	0	1	6	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259539	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-23	ACELA ARROYO ARENCIBIA		33120603838	CALLE AGRAMONTE # 11 e/ AVE MARIANA GRANJALES y COMANDANTE PINARES, PINAR DEL RIO, PINAR DEL RIO	52671478	MEIVYS PAEZ			2.99	0	1	4	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259533	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-23	MARIA TERESA ROJAS GONZALEZ		70112204811	CALLE VIRTUDES # 15 e/ VELEZ CAVIEDES Y OSMANI ARENADO, PINAR DEL RIO, PINAR DEL RIO	55916464	PEDRO DIAZ PAEZ			2.99	0	1	29.2	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259532	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11113	2026-03-23	MARIA TERESA ROJAS GONZALEZ		70112204811	CALLE VIRTUDES # 15 e/ VELEZ CAVIEDES Y OSMANI ARENADO, PINAR DEL RIO, PINAR DEL RIO	55916464	PEDRO DIAZ PAEZ			0	0	1	50	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259529	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	PISCINA	11114	2026-03-23	AMANDA LESVIA DIAZ YERO		01121178274	CALLE 21 # 10 Rpto. ALCIDES PINO e/ 28 y 30, HOLGUIN, HOLGUIN	55675812	JOSE LUIS CRUZ			0	0	1	54.5	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259443	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	PULIDORA ELECTRICA	11113	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	7.32	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259441	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 16	11113	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	60	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259432	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11116	2026-03-23	MIRIALYS RODRIGUEZ GONZALEZ		84092200832	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	JOSE MOYA			0	0	1	67	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259420	EMBARCADO	Sí	CPK-313	STORM/(CMCU 4961207)/()	ENVIO	COLCHON	11087	2026-03-23	ROSABEL SALAZAR BARRERAS		89070834296	CALLE 6 # 63 Rpto. EL PORVENIR e/ B y C, CAMAGUEY, CAMAGUEY	58279237	REYNALDO DANGER GOMEZ			0	0	1	80	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259413	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MONTURA PARA CABALLO	11113	2026-03-23	LAZARO FRANCISCO SALAZAR HERRERA		83031302428	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	MIGUEL SANTIN			0	0	1	24.2	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259412	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 16	11116	2026-03-23	LAZARO FRANCISCO SALAZAR HERRERA		83031302428	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	MIGUEL SANTIN			0	0	1	78	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259404	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 16	11114	2026-03-23	GLADISLEY SANTIN AVILA		90052332293	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54500027	MARIA DEL CARMEN AVILA			0	0	1	60	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259384	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11114	2026-03-23	DANIELIS ALONSO MANGLY		97021413035	AVELLANEDA # 73 e/ MACEO y CISNEROS, JATIBONICO, SANCTI SPIRITUS	53114076	PEDRO LUIS ALVAREZ			2.99	0	1	43	0.003	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259383	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11114	2026-03-23	DANIELIS ALONSO MANGLY		97021413035	AVELLANEDA # 73 e/ MACEO y CISNEROS, JATIBONICO, SANCTI SPIRITUS	53114076	PEDRO LUIS ALVAREZ			2.99	0	1	38.9	3.375	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259380	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	TV HISENSE 55 PULGADAS	11114	2026-03-23	VIOLEDYS BAEZ GONZALEZ		82070600034	AVENIDA 37 # 3604 e/ 36 y 38, CANDELARIA, ARTEMISA	54215648	AMANDA GONZALEZ			0	0	1	25.5	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259367	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 12	11114	2026-03-23	CARLOS VOLODIA LOPEZ AVILA		84052702129	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	MARIA ELENA AVILA			0	0	1	16	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259342	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11116	2026-03-23	VIOLEDYS BAEZ GONZALEZ		82070600034	AVENIDA 37 # 3604 e/ 36 y 38, CANDELARIA, ARTEMISA	54215648	AMANDA GONZALEZ			2.99	0	1	38	3.375	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259340	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11114	2026-03-23	VIOLEDYS BAEZ GONZALEZ		82070600034	AVENIDA 37 # 3604 e/ 36 y 38, CANDELARIA, ARTEMISA	54215648	AMANDA GONZALEZ			0	0	1	30	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259337	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11113	2026-03-23	VIOLEDYS BAEZ GONZALEZ		82070600034	AVENIDA 37 # 3604 e/ 36 y 38, CANDELARIA, ARTEMISA	54215648	AMANDA GONZALEZ			0	0	1	39	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259309	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11114	2026-03-23	ADRIANA PEREZ ARGUELLES		76020705117	CALLE 134 # 23718 Rpto. NUEVO VEDADO e/ 237 y 239, BAUTA, ARTEMISA	52086842	MAIROBIS SOSA			0	0	1	52	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259297	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11115	2026-03-23	YUDIER OVALLE MUÑOZ		85111801702	CALLE 12 # #11A Rpto. Ceferino FernandeZ e/ A y B, PINAR DEL RIO, PINAR DEL RIO	59871761	MARTA MUÑOZ			0	0	1	35	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259296	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11115	2026-03-23	YUDIER OVALLE MUÑOZ		85111801702	CALLE 12 # #11A Rpto. Ceferino FernandeZ e/ A y B, PINAR DEL RIO, PINAR DEL RIO	59871761	MARIA DEL CARMEN MUÑOZ LOPEZ			0	0	1	50	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259295	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	SECADORA	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	125	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259294	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	SOPORTE PARA TV	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	11	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259293	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MESA DE NOCHE	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	20	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259290	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MESA DE NOCHE	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	22	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259289	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MESA DE NOCHE	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	22	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259287	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	CABECERA PARA CAMA	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	47	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259286	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	CAMA	11115	2026-03-23	TAMARA CABEZA MUNOZ		75012200277	CALLE J # 453 A ALTOS Rpto. VEDADO e/ 21 y 23, PLAZA, LA HABANA	52460783	YORDANY OVALLE			0	0	1	87	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259238	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11113	2026-03-23	JOSE LUIS PEREDA CARDENAS		08082860349	CALLE KILOMETRO 174 CARRETERA CENTRAL , ARROYO GRANDE, SAN CRISTOBAL, ARTEMISA	54642889	KIRA PEREDA			0	0	1	55	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259233	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11114	2026-03-23	JOSE LUIS PEREDA CARDENAS		08082860349	CALLE KILOMETRO 174 CARRETERA CENTRAL , ARROYO GRANDE, SAN CRISTOBAL, ARTEMISA	54642889	KIRA PEREDA			0	0	1	58.75	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259192	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR 10 MIL WATTS	11159	2026-03-23	ROBERTO PACHECO RAMIREZ		77070601100	CALLE TAINO, BIPLANTA APTO 1 Rpto. TERRAZA DE VISTA ALEGRE e/ BITIRI y RAUL PUJOLS, SANTIAGO DE CUBA, SANTIAGO DE CUBA	5353194571	ALEJANDRO SAN MARTIN PRADO			0	0	1	64.35	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259104	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	VENTILADOR DE TECHO	11118	2026-03-22	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	7	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259100	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	TV HISENSE 32 PULGADAS	11114	2026-03-22	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	ANGEL LUIS			0	0	1	12	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259098	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	TV VIZIO 32 PULGADAS	11114	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	12	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259097	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 16	11119	2026-03-22	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	ANGEL LUIS			0	0	1	43	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259094	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	MARIA DEL CARMEN REGINFO GONZALEZ		57081107579	CALLE EDIFICO 11, ESCALERA B, APTO 6, MICRO 2 Rpto. ABEL SANTAMARIA, SANTIAGO DE CUBA, SANTIAGO DE CUBA	54073645	VALENTIN REGINFO			0	0	1	45	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259093	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	OSMEL GARCIA IZQUIERDO		75071800440	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	52573809	CARIDAD IZQUIERDO			0	0	1	38	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259092	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	40	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259091	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	43	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259090	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	DARITZA GARCIA IZQUIERDO		76101700476	CALLE CASERIO CURVA EL MANI Rpto. BARRIO FLORENCIO MOREJON, SAN CRISTOBAL, ARTEMISA	53353018	CARIDAD IZQUIERDO			0	0	1	36	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259088	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	YUNIA RODRIGUEZ PANEQUE		77010619436	CALLE 7 DE DICIEMBRE # S/N Rpto. LOCALIDAD BUENAVENTURA, CALIXTO GARCIA, HOLGUIN	56351538	YELENNI RODRIGUEZ			0	0	1	39	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259086	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 12	11119	2026-03-22	EUGENIO FELIPE SANTANA BENITEZ		50090604608	CALLE 8 # 1706 Rpto. POBLADO PILOTO e/ 17 y 19, CONSOLACION DEL SUR, PINAR DEL RIO	55455130	OLGA SANTANA			0	0	1	32	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259085	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-22	MARIBEL HERNANDEZ CONTINO		79081801193	CALLE CARRETERA CENTRAL KILOMETRO 166 Rpto. BARRIO LA CORONELA, SAN CRISTOBAL, ARTEMISA	63665444	MADELAINE BRIDON			0	0	1	52	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259084	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 12	11118	2026-03-22	ODYS MARIA ESPARRAGUERA ALMENARES		76011711834	CALLE REY PELAYO # 52 e/ CALVARIO y RELOJ, SANTIAGO DE CUBA, SANTIAGO DE CUBA	55962330	MADELAINE BRIDON			0	0	1	33	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259080	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 16	11119	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	43	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259079	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 16	11119	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	66	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259078	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	JUEGO DE GOMAS PARA BICICLETA DE NIÑO	11118	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	3.44	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259077	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA DE NIÑO	11118	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	30.5	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259075	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	COLCHON	11119	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	37.5	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259074	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA DE NIÑO	11118	2026-03-22	AIDA DAMARIS TELLEZ VAZQUEZ		66071707871	CALLE ROBERTO REYES # 11 e/ JUAN CANINO y LUIS ALDANA, SIBANICU, CAMAGUEY	55024568	DELISMAI GONZALEZ			0	0	1	28.3	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259073	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 12	11118	2026-03-22	LISNAIDY PELAEZ GONZALEZ		97081515619	CALLE CIELO # 5, PASILLO INTERIOR e/ RISA y BEMBETA, CAMAGUEY, CAMAGUEY	55016940	DELISMAI GONZALEZ			0	0	1	17.4	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259035	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 5 MIL WATTS	11113	2026-03-22	AMARILIS MONTEJO LEON		68080828098	CALLE CARRETERA EL PILAR KILOMETRO 2 Y MEDIO Rpto. COMUNIDAD MILITAR, PALMA SORIANO, SANTIAGO DE CUBA	55551040	GEYLER MARTINEZ			0	0	1	150	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259034	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 5 MIL WATTS	11114	2026-03-22	AMARILIS MONTEJO LEON		68080828098	CALLE CARRETERA EL PILAR KILOMETRO 2 Y MEDIO Rpto. COMUNIDAD MILITAR, PALMA SORIANO, SANTIAGO DE CUBA	55551040	GEYLER MARTINEZ			0	0	1	150	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259029	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEAS	11119	2026-03-22	LISANDRA MARTIN CUE		86020811453	CALLE 5TA # 1 Rpto. OÑA e/ CARRETERA ANTONIO FINALET y A, SAGUA LA GRANDE, VILLA CLARA	58502798	LILI CUE			2.99	0	1	61	3.375	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259021	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	HUMIFICADOR	11118	2026-03-22	LISANDRA MARTIN CUE		86020811453	CALLE 5TA # 1 Rpto. OÑA e/ CARRETERA ANTONIO FINALET y A, SAGUA LA GRANDE, VILLA CLARA	58502798	LILI CUE			0	0	1	2	0.289	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259020	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GENERADOR ELECTRICO DELTA 3/ 2700 W	11118	2026-03-22	LISANDRA MARTIN CUE		86020811453	CALLE 5TA # 1 Rpto. OÑA e/ CARRETERA ANTONIO FINALET y A, SAGUA LA GRANDE, VILLA CLARA	58502798	LILI CUE			0	0	1	30	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0259004	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA ELECTRICA	11118	2026-03-22	ANA MARIA GARCIA LEON		59030206912	CALLE GONZALO DE QUESADA # 270 Rpto. LA VIGIA e/ BELLAVISTA y BENAVIDES, CAMAGUEY, CAMAGUEY	53779038	AUGUSTO SARDUY GARCIA			0	0	1	80	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258990	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA DE NIÑO	11118	2026-03-22	ANA MARIA GARCIA LEON		59030206912	CALLE GONZALO DE QUESADA # 270 Rpto. LA VIGIA e/ BELLAVISTA y BENAVIDES, CAMAGUEY, CAMAGUEY	53779038	AUGUSTO SARDUY GARCIA			0	0	1	27.8	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258975	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA DE NIÑO	11118	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	18.4	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258958	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	COLCHON	11118	2026-03-22	ANA MARIA GARCIA LEON		59030206912	CALLE GONZALO DE QUESADA # 270 Rpto. LA VIGIA e/ BELLAVISTA y BENAVIDES, CAMAGUEY, CAMAGUEY	53779038	AUGUSTO SARDUY GARCIA			0	0	1	38.7	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258946	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	COLCHON	11119	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	37.5	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258943	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	COLCHON	11119	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	37.5	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258942	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	ARBOL DE NAVIDAD	11118	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	16.5	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258941	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 16	11119	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	77	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258940	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 16	11119	2026-03-22	LETICIA DE LA CARIDAD HERNANDEZ MIRANDA		06110176298	CALLE GONZALO DE QUESADA # 306 Rpto. LA VIGIA e/ BENAVIDES y JOAQUIN DE AGUERO, CAMAGUEY, CAMAGUEY	51829810	AUGUSTO SARDUY GARCIA			0	0	1	65	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258920	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	CARRO DE JUGUETE PARA NIÑO	11117	2026-03-22	DARLENIS LABRADA PEREZ		90031442091	CALLE 7MA # 102 Rpto. ENTRONQUE PLAYA LARGA e/ 2DA y 4TA, CIENAGA DE ZAPATA, MATANZAS	54309008	MIGUEL FERNANDEZ			0	0	1	81.2	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258866	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 16	11113	2026-03-21	CARLOS VOLODIA LOPEZ AVILA		84052702129	CALLE 13 # 2002 E e/ 20 y 22, LOS PALACIOS, PINAR DEL RIO	54606924	MARIA ELENA AVILA			0	0	1	40	2.37	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258864	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11114	2026-03-21	DEBORAH RODRIGUEZ NAVARRO		84030508818	CALLE HATUEY # 4 e/ JARUCO y BERNABE VARONA, ARROYO NARANJO, LA HABANA	52431658	SILVINA HERNANDEZ			0	0	1	50	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258863	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-21	SADY JAHEL OROPESA PADRON		85112516677	CALLE 3RA # 1057 Rpto. REPARTO ORTIZ e/ B y C, CIEGO DE AVILA, CIEGO DE AVILA	54874673	MIRTA COLLADO			0	0	1	34	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258851	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 12	11118	2026-03-21	IRAINA RODRIGUEZ GONZALEZ		90112336177	CALLE JOSE ANTONIO ECHEVARRIA # 183 e/ ELIOPEZ PAZ y ANDRES BERRO, TRINIDAD, SANCTI SPIRITUS	56923996	LISMEY SORIS HERNANDEZ			0	0	1	18	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258850	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-21	IRAINA RODRIGUEZ GONZALEZ		90112336177	CALLE JOSE ANTONIO ECHEVARRIA # 183 e/ ELIOPEZ PAZ y ANDRES BERRO, TRINIDAD, SANCTI SPIRITUS	56923996	LISMEY SORIS HERNANDEZ			0	0	1	70	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258844	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 12	11118	2026-03-21	KATIUSKA RODRIGUEZ GONZALEZ		82100914676	CALLE CARMEN # 201, APTO 5 Rpto. VIBORA e/ SACO y LUZ CABALLERO, DIEZ DE OCTUBRE, LA HABANA	52773972	VIVIAN GONZALEZ			0	0	1	25	1	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258840	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-21	KATIUSKA RODRIGUEZ GONZALEZ		82100914676	CALLE CARMEN # 201, APTO 5 Rpto. VIBORA e/ SACO y LUZ CABALLERO, DIEZ DE OCTUBRE, LA HABANA	52773972	VIVIAN GONZALEZ			0	0	1	65	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258839	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-21	KATIUSKA RODRIGUEZ GONZALEZ		82100914676	CALLE CARMEN # 201, APTO 5 Rpto. VIBORA e/ SACO y LUZ CABALLERO, DIEZ DE OCTUBRE, LA HABANA	52773972	VIVIAN GONZALEZ			0	0	1	62	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258838	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	MISCELANEA 15	11119	2026-03-21	EVANGELINA GONZALEZ RAMOS		68122528130	CALLE 5TA FINAL Rpto. REPARTO NITROGENO, CAMAGUEY, CAMAGUEY	55264213	ANTONIO GONZALEZ			0	0	1	35	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258832	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11116	2026-03-21	JUANA GONZALEZ CARMONA		63061208810	CALLE CARRETERA LA RAFAELA FINCA NUEVA ESPERANZA Rpto. LAS CAÑAS, ARTEMISA, ARTEMISA	56971962	ADIARKY ROSADO			2.99	0	1	46	0.003	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258829	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-21	JUANA GONZALEZ CARMONA		63061208810	CALLE CARRETERA LA RAFAELA FINCA NUEVA ESPERANZA Rpto. LAS CAÑAS, ARTEMISA, ARTEMISA	56971962	ADIARKY ROSADO			2.99	0	1	39	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258828	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MAQUINA DE COSER ELECTRICA	11114	2026-03-21	JUANA GONZALEZ CARMONA		63061208810	CALLE CARRETERA LA RAFAELA FINCA NUEVA ESPERANZA Rpto. LAS CAÑAS, ARTEMISA, ARTEMISA	56971962	ADIARKY ROSADO			0	0	1	16.4	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258825	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11114	2026-03-21	JUANA GONZALEZ CARMONA		63061208810	CALLE CARRETERA LA RAFAELA FINCA NUEVA ESPERANZA Rpto. LAS CAÑAS, ARTEMISA, ARTEMISA	56971962	ADIARKY ROSADO			0	0	1	70	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258821	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11113	2026-03-21	JUANA GONZALEZ CARMONA		63061208810	CALLE CARRETERA LA RAFAELA FINCA NUEVA ESPERANZA Rpto. LAS CAÑAS, ARTEMISA, ARTEMISA	56971962	ADIARKY ROSADO			0	0	1	35	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258475	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO DELTA 3/2700 W	11119	2026-03-20	DAILYN ROYERO PENA		93081300296	CALLE E, EDIFICIO 3, APTO 5 Rpto. ZONA N e/ 5TA y 9NA, SANDINO, PINAR DEL RIO	54453129	YELIAN PENA			0	0	1	29.9	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258473	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO DELTA 3/2700 W	11119	2026-03-20	ODELKIS PEÑA MARTINEZ		92062422098	CALLE E , EDIFICIO 3, APTO 5 Rpto. ZONA N e/ 5 TA y 9 NA, SANDINO, PINAR DEL RIO	54453129	YELIAN PENA			0	0	1	29.9	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258472	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO DELTA 3/2700 W	11119	2026-03-20	ODELKIS PEÑA MARTINEZ		92062422098	CALLE E , EDIFICIO 3, APTO 5 Rpto. ZONA N e/ 5 TA y 9 NA, SANDINO, PINAR DEL RIO	54453129	YELIAN PENA			0	0	1	29.9	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258468	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO DELTA 3/2700 W	11119	2026-03-20	DANIUSKA VAZQUEZ RODRIGUEZ		88071530579	CALLE 202 # 1305 Rpto. SIBONEY e/ 13 y 15, PLAYA, LA HABANA	55829652	GRISELIA BORGES GOMEZ			0	0	1	29.9	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0261520	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-03-30	ALFREDO VELIZ MARTINEZ		73052418147	FINCA LA ROSITA # 20, CORRALILLO, VILLA CLARA	51022008	WILFREDO LLERENA			0	0	1	58.75	1.953	219.32	0	0	CHAMBATINA MIAMI	GEO MIA		CPK-0258464	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GENERADOR ELECTRICO DELTA 3/ 2700 W	11118	2026-03-20	YAIMA SANCHEZ MARTIN		89041932376	CALLE BENITO CONCEPCION # 37 Rpto. VENEGAS, YAGUAJAY, SANCTI SPIRITUS	51276120	KENYO MARTINEZ HERNANDEZ			0	0	1	29.9	2.074	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258463	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO DELTA 3 /2700 W	11119	2026-03-20	YAIMA SANCHEZ MARTIN		89041932376	CALLE BENITO CONCEPCION # 37 Rpto. VENEGAS, YAGUAJAY, SANCTI SPIRITUS	51276120	KENYO MARTINEZ HERNANDEZ			0	0	1	29.9	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258333	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	TV VIZIO 43	11117	2026-03-20	CRISTINA NORA HERNANDEZ VALIENTE		35111221253	CALLE 70 # 3511 A e/ 35 y 37, SAN ANTONIO DE LOS BANOS, ARTEMISA	52055871	DINORA LIMONTI			0	0	1	19.7	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258118	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	CAJA PROTECTORA PARA GENERADOR ELECTRICO	11118	2026-03-19	DEYSIS MARY MILLO ARTIGA		99061402454	CALLE KILOMETRO 1 Y MEDIO CAMINO GUAMA FINCA LA CABAÑA, PINAR DEL RIO, PINAR DEL RIO	53128025	PEDRO HERNANDEZ GONZALEZ			0	0	1	6	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0258117	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GENERADOR ELECTRICO DELTA PRO 7200 W	11116	2026-03-19	DEYSIS MARY MILLO ARTIGA		99061402454	CALLE KILOMETRO 1 Y MEDIO CAMINO GUAMA FINCA LA CABAÑA, PINAR DEL RIO, PINAR DEL RIO	53128025	PEDRO HERNANDEZ GONZALEZ			0	0	1	108	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257877	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11117	2026-03-18	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			2.99	0	1	4.4	0.579	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257683	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO 2600 W	11119	2026-03-18	RAFAEL JIMENEZ FIGUERAS		89093034247	CALLE PEDRO PERNA # 461 Rpto. LUYANO e/ TERESA BLANCO y JUAN ALONSO, DIEZ DE OCTUBRE, LA HABANA	53992268	RAFA JIMENEZ			0	0	1	29.7	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257679	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	JUEGO DE HERRAMIENTAS DE MANO	11119	2026-03-18	DARLENIS LABRADA PEREZ		90031442091	CALLE 7MA # 102 Rpto. ENTRONQUE PLAYA LARGA e/ 2DA y 4TA, CIENAGA DE ZAPATA, MATANZAS	54309008	MIGUEL FERNANDEZ			0	0	1	27.1	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257672	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR DE 2048 W	11119	2026-03-18	YOLANDA HERNANDEZ SALAZAR		43073128038	CALLE 46 # 3307 e/ 33 y 35, PLAYA, LA HABANA	53345634	MADDIEL FUNDORA			0	0	1	50	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257617	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11118	2026-03-17	NELVIS FELICITA BATISTA BATISTA		65123100912	CALLE 2DA, EDIFICIO 18413, APTO 3 Rpto. CAPDEVILA e/ AVENIDA INDEPENDENCIA y 3 PALMAS, BOYEROS, LA HABANA	56546472	ANDRO RAFAEL GONZALEZ ACOSTA			2.99	0	1	22.7	1.588	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257616	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GENERADOR ELECTRICO DELTA PRO 7200 WATSS	11116	2026-03-17	NELVIS FELICITA BATISTA BATISTA		65123100912	CALLE 2DA, EDIFICIO 18413, APTO 3 Rpto. CAPDEVILA e/ AVENIDA INDEPENDENCIA y 3 PALMAS, BOYEROS, LA HABANA	56546472	ANDRO RAFAEL GONZALEZ ACOSTA			0	0	1	108	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257518	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	INVERSOR 4 MIL W	11119	2026-03-17	PITER CUELLAR ALMEIDA		89011930124	CALLE RIO # 34 Rpto. CAMARIOCA, CARDENAS, MATANZAS	51116437	YASMANI RAMOS			0	0	1	19.9	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257517	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR 4 MIL W	11118	2026-03-17	PITER CUELLAR ALMEIDA		89011930124	CALLE RIO # 34 Rpto. CAMARIOCA, CARDENAS, MATANZAS	51116437	YASMANI RAMOS			0	0	1	19.4	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257516	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	INVERSOR 4 MIL W	11119	2026-03-17	MARIA MABEL ALMEIDA LINARES		63042505279	CALLE RIO # 34 Rpto. CAMARIOCA, CARDENAS, MATANZAS	51116437	YASMANI RAMOS			0	0	1	19.9	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257515	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	INVERSOR 4 MIL W	11119	2026-03-17	MARIA MABEL ALMEIDA LINARES		63042505279	CALLE RIO # 34 Rpto. CAMARIOCA, CARDENAS, MATANZAS	51116437	YASMANI RAMOS			0	0	1	19.9	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257504	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR DE 10 MIL W	11116	2026-03-17	OLGA LIDIA SUBI RODRIGUEZ		68100403152	CALLE DOCE SUR # 2 ALTOS Rpto. POBLADO SIGUANEY, TAGUASCO, SANCTI SPIRITUS	53204285	DAYAN OLIVERA			0	0	1	94.59	2.315	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257503	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 10 MIL W	11116	2026-03-17	OLGA LIDIA SUBI RODRIGUEZ		68100403152	CALLE DOCE SUR # 2 ALTOS Rpto. POBLADO SIGUANEY, TAGUASCO, SANCTI SPIRITUS	53204285	DAYAN OLIVERA			0	0	1	242	2.315	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257501	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA DE 10 MIL W	11116	2026-03-17	OLGA LIDIA SUBI RODRIGUEZ		68100403152	CALLE DOCE SUR # 2 ALTOS Rpto. POBLADO SIGUANEY, TAGUASCO, SANCTI SPIRITUS	53204285	DAYAN OLIVERA			0	0	1	242	2.315	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257484	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 12 V 100 AH	11118	2026-03-17	ACELA ARROYO ARENCIBIA		33120603838	CALLE AGRAMONTE # 11 e/ AVE MARIANA GRANJALES y COMANDANTE PINARES, PINAR DEL RIO, PINAR DEL RIO	52671478	MEIVYS PAEZ			0	0	1	25.6	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257453	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	BATERIA 12 V 100 AH	11119	2026-03-17	CIRIA UMPIERRE NAPOLES		57112204096	CALLE CRUCERO LOS ANGELES SENADO # 27, MINAS, CAMAGUEY	51202638	ISRAEL TENDERO UMPIERRE			0	0	1	60.4	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257440	EMBARCADO	Sí	CPK-315	STORM/(GAOU 6894485)/()	ENVIO	GENERADOR ELECTRICO 7200 W	11119	2026-03-17	ARLENYS LABRADA PEREZ		03030770357	CALLE BATEY MARIO LOPEZ, CIENAGA DE ZAPATA, MATANZAS	58782771	MIGUEL LLORENTE			0	0	1	108	3.472	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257299	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-16	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			2.99	0	1	23.4	2.37	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257298	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	DUCHA ELECTRICA	11113	2026-03-16	OSMANY CASTELLON RAMIREZ		71021405385	AVENIDA 72 # 4906A e/ 49 y 51, CIENFUEGOS, CIENFUEGOS	53421145	YUMIN SORIANO ARIAS			0	0	1	1.6	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257290	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-16	TERESA AGUILAR BAREA		68101508191	CALLE 86 # 509, APTO 5 e/ 5TA y 5TA A, PLAYA, LA HABANA	52734656	CELIBEL JIMENEZ			2.99	0	1	6	0.072	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257284	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	SILLA	11118	2026-03-16	ACELA ARROYO ARENCIBIA		33120603838	CALLE AGRAMONTE # 11 e/ AVE MARIANA GRANJALES y COMANDANTE PINARES, PINAR DEL RIO, PINAR DEL RIO	52671478	MEIVYS PAEZ			0	0	1	14.9	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257277	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-16	ANTONIA RAMONA PEÑA PEÑA		67100309896	CALLE 7MA E, EDIFICIO 22, APTO 10 Rpto. COMUNIDAD HERMANOS AGUILERA e/ 8VA y 4TA, HOLGUIN, HOLGUIN	56400930	WILBER ACOSTA			2.99	0	1	2	0.072	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257260	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-16	CIRIA UMPIERRE NAPOLES		57112204096	CALLE CRUCERO LOS ANGELES SENADO # 27, MINAS, CAMAGUEY	51202638	ISRAEL TENDERO UMPIERRE			2.99	0	1	4	0.072	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257259	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR ELECTRICO 4 MIL W	11113	2026-03-16	CIRIA UMPIERRE NAPOLES		57112204096	CALLE CRUCERO LOS ANGELES SENADO # 27, MINAS, CAMAGUEY	51202638	ISRAEL TENDERO UMPIERRE			0	0	1	19.8	1.588	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257169	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	CABLE DE CONEXION DE PANEL SOLAR	11113	2026-03-16	LUMEY PORTAL MARTINEZ		93120810970	CALLE J, EDIFICIO 15, APTO 11 Rpto. GUAYABA e/ SEXTA y DECIMA, SANTA CLARA, VILLA CLARA	58093195	YASMANI RAMOS			0	0	1	4.4	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257168	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 24 V 100 AH	11114	2026-03-16	LUMEY PORTAL MARTINEZ		93120810970	CALLE J, EDIFICIO 15, APTO 11 Rpto. GUAYABA e/ SEXTA y DECIMA, SANTA CLARA, VILLA CLARA	58093195	YASMANI RAMOS			0	0	1	44.2	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257166	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 24 V 100 AH	11114	2026-03-16	LUMEY PORTAL MARTINEZ		93120810970	CALLE J, EDIFICIO 15, APTO 11 Rpto. GUAYABA e/ SEXTA y DECIMA, SANTA CLARA, VILLA CLARA	58093195	YASMANI RAMOS			0	0	1	44.2	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257160	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BICICLETA ELECTRICA	11117	2026-03-16	MARIA DEL CARMEN GONZALEZ GARCIA		57101101633	CALLE 220 # 8736 Rpto. CRUZ VERDE e/ 2 y FINAL, COTORRO, LA HABANA	58383288	JORGE MANUEL GARCIA RIVERO			0	0	1	67	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257149	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 10 MIL WATSS	11117	2026-03-16	ADA RODRIGUEZ ORTA		61110713598	CALLE 4 # S/N Rpto. BOLONDRON e/ 1 y 1 B, PEDRO BETANCOURT, MATANZAS	53115158	FELIPE RODRIGUEZ ORTA			0	0	1	242	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257146	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR ELECTRICO 10 MIL WATTS	11113	2026-03-16	ADA RODRIGUEZ ORTA		61110713598	CALLE 4 # S/N Rpto. BOLONDRON e/ 1 y 1 B, PEDRO BETANCOURT, MATANZAS	53115158	FELIPE RODRIGUEZ ORTA			0	0	1	68	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257083	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11114	2026-03-16	DANIELIS ALONSO MANGLY		97021413035	AVELLANEDA # 73 e/ MACEO y CISNEROS, JATIBONICO, SANCTI SPIRITUS	53114076	PEDRO LUIS ALVAREZ			0	0	1	86	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257064	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEAS	11113	2026-03-16	AMANDA LESVIA DIAZ YERO		01121178274	CALLE 21 # 10 Rpto. ALCIDES PINO e/ 28 y 30, HOLGUIN, HOLGUIN	55675812	JOSE LUIS CRUZ			2.99	0	1	14.2	1.588	0.5	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257032	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR ELECTRICO 4 MIL WATTS	11113	2026-03-16	ARLENE COLOME RODRIGUEZ		96070923614	CALLE AGUILERA # 950 Rpto. PORTUONDO e/ PEDRERA y D, SANTIAGO DE CUBA, SANTIAGO DE CUBA	54076245	FERNANDO BOYJOLY POTRONY			0	0	1	31.3	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257028	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 48 V 100 AH	11118	2026-03-16	ARLENE COLOME RODRIGUEZ		96070923614	CALLE AGUILERA # 950 Rpto. PORTUONDO e/ PEDRERA y D, SANTIAGO DE CUBA, SANTIAGO DE CUBA	54076245	FERNANDO BOYJOLY POTRONY			0	0	1	81.6	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257008	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	REGULADOR DE VOLTAJE	11113	2026-03-16	YAUMARA ATIENZA GARCIA		93082011175	AVENIDA DEL OESTE # 117 Rpto. BRISAS DEL OESTE e/ AVENIDA DE LOS CANEYES y SEGUNDA, SANTA CLARA, VILLA CLARA	58497840	ZONIA GARCIA			0	0	1	3.3	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257006	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	REGULAR DE VOLTAJE	11113	2026-03-16	YAUMARA ATIENZA GARCIA		93082011175	AVENIDA DEL OESTE # 117 Rpto. BRISAS DEL OESTE e/ AVENIDA DE LOS CANEYES y SEGUNDA, SANTA CLARA, VILLA CLARA	58497840	ZONIA GARCIA			0	0	1	6.6	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0257002	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 12 V 100 AH	11113	2026-03-16	YAUMARA ATIENZA GARCIA		93082011175	AVENIDA DEL OESTE # 117 Rpto. BRISAS DEL OESTE e/ AVENIDA DE LOS CANEYES y SEGUNDA, SANTA CLARA, VILLA CLARA	58497840	ZONIA GARCIA			0	0	1	24	0.579	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256983	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	BATERIA 5 K	11113	2026-03-16	TANIA PEÑA RAMIREZ		69042919579	CALLE CARRETERA VIA BLANCA, CELIMAR, PEPITO TEY S/N FRENTE DEL MOLINO DE PIEDRA, HABANA DEL ESTE, LA HABANA	53486574	ARIANNIS ARANDA			0	0	1	150	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256982	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	INVERSOR 10 K	11117	2026-03-16	TANIA PEÑA RAMIREZ		69042919579	CALLE CARRETERA VIA BLANCA, CELIMAR, PEPITO TEY S/N FRENTE DEL MOLINO DE PIEDRA, HABANA DEL ESTE, LA HABANA	53486574	ARIANNIS ARANDA			0	0	1	68	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256757	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GENERADOR ELECTRICO DELTA PRO 3600 W	11117	2026-03-15	MARIA MAGDALENA PEREZ PEREDA		64072224991	CALLE CASTILLO DE JAGUA , BIPLANTA NO. 1, CIENFUEGOS, CIENFUEGOS	51332203	YASIM TORRES			0	0	1	108	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256296	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	GENERADOR ELECTRICO 3600 W	11117	2026-03-13	GRISELIA RODRIGUEZ ESPINOSA		63021802250	CALLE 250, EDIFICIO 236 B, APTO 2 Rpto. SAN AGUSTIN e/ 37 y 39, LA LISA, LA HABANA	53853380	ANLIX CALDERON			0	0	1	108	3.375	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256136	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	LAPTOP ACER 7070 4276	11113	2026-03-12	MAXIMO LUZ RUIZ		66011324582	AVE 33 # 1817 e/ 18 y 20, CAIBARIEN, VILLA CLARA	52133160	ARMANDO DEL RIO			0	0	1	5	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256133	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	CELULAR USO REDMI 51167/64NA02701	11113	2026-03-12	MAXIMO LUZ RUIZ		66011324582	AVE 33 # 1817 e/ 18 y 20, CAIBARIEN, VILLA CLARA	52133160	ARMANDO DEL RIO			0	0	1	1	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256129	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA	11113	2026-03-12	MAXIMO LUZ RUIZ		66011324582	AVE 33 # 1817 e/ 18 y 20, CAIBARIEN, VILLA CLARA	52133160	ARMANDO DEL RIO			0	0	1	19	0.072	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256113	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11113	2026-03-12	MAXIMO LUZ RUIZ		66011324582	AVE 33 # 1817 e/ 18 y 20, CAIBARIEN, VILLA CLARA	52133160	ARMANDO DEL RIO			0	0	1	65	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0256106	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA 15	11113	2026-03-12	MAXIMO LUZ RUIZ		66011324582	AVE 33 # 1817 e/ 18 y 20, CAIBARIEN, VILLA CLARA	52133160	ARMANDO DEL RIO			0	0	1	63.2	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255532	EMBARCADO	Sí	CPK-314	STORM/(SEGU 5662210)/()	ENVIO	MISCELANEA	11113	2026-03-10	MERCEDES RIVERO VALLADARES		51060212412	CALLE CALZADA ALDAY EDIFICIO 6 APTO 31 Rpto. EL TRIGAL, BOYEROS, LA HABANA	59803613	VIVIANNE VILLALON			0	0	1	11.6	0.072	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255303	EN TRANSITO PINAR DEL RIO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	HORNO MICROONDAS	10916	2026-03-09	ANA LIEN VELAZQUEZ GUERRA		70121304458	CALLE CAPITAN SAN LUIS # 158 e/ ORMANI ARENADO y GUSTAVO LORES, PINAR DEL RIO, PINAR DEL RIO	58103255	YURI DIAZ			0	0	1	56	2.37	0	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255288	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA 15	10915	2026-03-09	DANIELA CEIRO ROSA		99121608095	CALLE 154 # 4311 INTERIOR, APTO 8 e/ 43 y 45, LA LISA, LA HABANA	53614673	SUREYA CEIRO			0	0	1	42	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255287	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA 15	10917	2026-03-09	DANIELA CEIRO ROSA		99121608095	CALLE 154 # 4311 INTERIOR, APTO 8 e/ 43 y 45, LA LISA, LA HABANA	53614673	SUREYA CEIRO			2.99	0	1	44	1.953	219.32	0	0		
-CHAMBATINA MIAMI	GEO MIA		CPK-0255286	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEAS	10918	2026-03-09	DANIELA CEIRO ROSA		99121608095	CALLE 154 # 4311 INTERIOR, APTO 8 e/ 43 y 45, LA LISACHAMBATINA MIAMI	GEO MIA		CPK-0253092	EN DISTRIBUCION	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA 12	10917	2026-03-01	ANNIA LUISA CARABALLO BELLO		83032106338	CALLE AGRAMONTE # 162 INTERIOR Rpto. ROSARIO e/ GUINERA y SIMON BOLIVAR, ARROYO NARANJO, LA HABANA	53245456	MARIA ELENA RODRIGUEZ			0	0	1	37	1	219.32	0	0
+PEGA_AQUI_TU_BLOQUE_COMPLETO_DE_CPK
 `;
 
-// ================= UTILIDADES =================
-function limpiarTexto(texto) {
-  return String(texto || "").replace(/\s+/g, " ").trim();
+// ================= UTILIDADES GENERALES =================
+function soloDigitos(v) {
+  return String(v || "").replace(/\D/g, "");
 }
 
-function normalizarCPK(cpk) {
-  return String(cpk || "")
-    .replace(/\D/g, "")
-    .replace(/^0+/, "");
+function normalizarCPK(v) {
+  const limpio = soloDigitos(v);
+  if (limpio.length < 6 || limpio.length > 10) return "";
+  return limpio;
 }
 
-function parseFecha(fechaTexto) {
-  if (!fechaTexto) return null;
-  const d = new Date(`${fechaTexto}T00:00:00`);
+function primerNombre(nombre) {
+  return String(nombre || "").trim().split(/\s+/)[0] || "";
+}
+
+function fechaToYYYYMMDD(d) {
+  const fecha = new Date(d);
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, "0");
+  const day = String(fecha.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function parseFechaSegura(fechaTexto) {
+  const m = String(fechaTexto || "").match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+  if (!m) return null;
+  const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function fechaToYYYYMMDD(fecha) {
-  if (!fecha) return "";
-  const y = fecha.getFullYear();
-  const m = String(fecha.getMonth() + 1).padStart(2, "0");
-  const d = String(fecha.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function diasNaturalesEntre(desdeTexto, hastaFecha = new Date()) {
+  const desde = parseFechaSegura(desdeTexto);
+  if (!desde) return 0;
+  const hasta = new Date(hastaFecha);
+  desde.setHours(0, 0, 0, 0);
+  hasta.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.floor((hasta - desde) / 86400000));
 }
 
 function sumarDiasNaturales(fechaTexto, dias) {
-  const base = parseFecha(fechaTexto);
-  if (!base) return null;
-  const nueva = new Date(base);
-  nueva.setDate(nueva.getDate() + dias);
-  return nueva;
+  const base = parseFechaSegura(fechaTexto) || new Date();
+  const d = new Date(base);
+  d.setDate(d.getDate() + dias);
+  return d;
 }
 
-function diasNaturalesEntre(fechaInicio, fechaFin = new Date()) {
-  const start = parseFecha(fechaInicio);
-  if (!start) return 0;
+function diasHabilesEntre(desdeTexto, hastaFecha = new Date()) {
+  const desde = parseFechaSegura(desdeTexto);
+  if (!desde) return 0;
 
-  const end = new Date(fechaFin);
-  end.setHours(0, 0, 0, 0);
-
-  const diff = end.getTime() - start.getTime();
-  const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-  return dias < 0 ? 0 : dias;
-}
-
-function diasHabilesEntre(fechaInicioTexto, fechaFin = new Date()) {
-  const start = parseFecha(fechaInicioTexto);
-  if (!start) return 0;
-
-  const end = new Date(fechaFin);
-  end.setHours(0, 0, 0, 0);
-
-  if (start > end) return 0;
+  const inicio = new Date(desde);
+  const fin = new Date(hastaFecha);
+  inicio.setHours(0, 0, 0, 0);
+  fin.setHours(0, 0, 0, 0);
 
   let count = 0;
-  const cursor = new Date(start);
+  const cur = new Date(inicio);
 
-  while (cursor <= end) {
-    const day = cursor.getDay();
+  while (cur <= fin) {
+    const day = cur.getDay();
     if (day !== 0 && day !== 6) count++;
-    cursor.setDate(cursor.getDate() + 1);
+    cur.setDate(cur.getDate() + 1);
   }
 
-  return count;
+  return Math.max(0, count - 1);
 }
 
-function extraerFecha(linea) {
-  const match = String(linea || "").match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-  return match ? match[1] : "";
-}
-
-function primerNombre(nombreCompleto) {
-  const limpio = limpiarTexto(nombreCompleto);
-  return limpio ? limpio.split(" ")[0] : "";
-}
-
-// CORREGIDO: en tu estructura real primero viene consignatario y después embarcador
-function extraerDatosPersonalesDesdeCampos(campos, fechaIndex) {
-  const valores = [];
-
-  for (let i = fechaIndex + 1; i < campos.length; i++) {
-    const actual = limpiarTexto(campos[i]);
-    if (!actual) continue;
-
-    const esNumero = /^\d+(\.\d+)?$/.test(actual);
-    const pareceFecha = /^\d{4}-\d{2}-\d{2}$/.test(actual);
-    const pareceTelefono = /^\d{6,}$/.test(actual);
-    const pareceDireccion = /#|CALLE|AVE|AVENIDA|Rpto|REPARTO|e\/|INTERIOR|LA HABANA|PINAR|MATANZAS|SANTIAGO|HOLGUIN|CAMAGUEY/i.test(actual);
-
-    if (esNumero || pareceFecha || pareceTelefono || pareceDireccion) continue;
-
-    valores.push(actual);
-  }
-
-  return {
-    consignatario: valores[0] || "",
-    embarcador: valores[1] || ""
-  };
-}
-
-// ================= ETAPAS =================
+// ================= ESTADOS LOGÍSTICOS =================
 const ETAPAS = {
+  ENTREGADO: "ENTREGADO",
   EN_AGENCIA: "EN AGENCIA",
   TRASLADO_NAVIERA: "TRASLADO A NAVIERA",
   EN_CONTENEDOR: "EN CONTENEDOR",
-  SALIDA_PUERTO: "SALIDA A PUERTO",
+  SALIDA_PUERTO: "SALIDA DE PUERTO",
   ARRIBO: "ARRIBO",
-  DESAGRUPE_ADUANA: "DESAGRUPE ADUANA",
+  DESAGRUPE_ADUANA: "DESAGRUPE / ADUANA",
   CLASIFICACION: "CLASIFICACIÓN",
-  ALMACEN_PROVINCIA: "TRASLADO A LOS ALMACENES CABEZADAS DE PROVINCIA",
-  PREPARANDO_DISTRIBUCION: "PREPARÁNDOSE PARA DISTRIBUCIÓN",
+  ALMACEN_PROVINCIA: "ALMACÉN DE PROVINCIA",
+  PREPARANDO_DISTRIBUCION: "PREPARANDO DISTRIBUCIÓN",
   DISTRIBUCION: "DISTRIBUCIÓN",
   ULTIMA_MILLA: "ÚLTIMA MILLA",
-  CONTINUACION_DISTRIBUCION: "CONTINUACIÓN DE JORNADA DE DISTRIBUCIÓN",
-  ENTREGADO: "ENTREGADO",
+  CONTINUACION_DISTRIBUCION: "EN CONTINUACIÓN DE DISTRIBUCIÓN",
   EN_PROCESO: "EN PROCESO"
 };
 
-function descripcionPorEstado(estado) {
-  switch (estado) {
-    case ETAPAS.EN_AGENCIA:
-      return "Tu mercancía fue recibida en nuestra agencia. En esta etapa se valida la entrada del envío, se organiza el CPK y se prepara la carga para comenzar el flujo logístico.";
-    case ETAPAS.TRASLADO_NAVIERA:
-      return "Tu mercancía salió de la agencia y está siendo trasladada hacia la naviera. Este paso conecta la recepción inicial con el proceso de embarque marítimo.";
-    case ETAPAS.EN_CONTENEDOR:
-      return "Tu mercancía ya fue ubicada dentro del contenedor. Esto indica que avanzó correctamente dentro del proceso de consolidación previo a su salida.";
-    case ETAPAS.SALIDA_PUERTO:
-      return "Tu mercancía va saliendo hacia puerto como parte del trayecto previo al arribo. Esta fase forma parte del avance normal dentro de la operación logística.";
-    case ETAPAS.ARRIBO:
-      return "Tu mercancía ya arribó. A partir de esta etapa comienza el conteo principal del proceso en días hábiles dentro del flujo interno posterior al puerto.";
-    case ETAPAS.DESAGRUPE_ADUANA:
-      return "Tu mercancía se encuentra en desagrupe y revisión aduanal. Aquí la carga se separa del contenedor y se realizan controles normales del proceso logístico.";
-    case ETAPAS.CLASIFICACION:
-      return "Tu mercancía está en proceso de clasificación. En esta fase se organiza según destino, provincia y ruta para continuar hacia la siguiente etapa.";
-    case ETAPAS.ALMACEN_PROVINCIA:
-      return "Tu mercancía está siendo trasladada a los almacenes cabezadas de provincia. Este paso acerca la carga a la zona final donde será preparada para su entrega.";
-    case ETAPAS.PREPARANDO_DISTRIBUCION:
-      return "Tu mercancía ya se encuentra en almacén y está preparándose para distribución. Aquí se organiza la salida hacia el reparto territorial correspondiente.";
-    case ETAPAS.DISTRIBUCION:
-      return "Tu mercancía ya está en distribución. Esto significa que entró en el proceso activo de entrega dentro del territorio.";
-    case ETAPAS.ULTIMA_MILLA:
-      return "Tu mercancía se encuentra en última milla. Esta es una de las fases más cercanas a la entrega final al destinatario.";
-    case ETAPAS.CONTINUACION_DISTRIBUCION:
-      return "Tu mercancía continúa en jornada de distribución. Esto puede ocurrir cuando la ruta de entrega sigue avanzando en días sucesivos dentro del proceso final.";
-    case ETAPAS.ENTREGADO:
-      return "Tu mercancía ya fue entregada satisfactoriamente. Gracias por confiar en Chambatina.";
-    default:
-      return "Tu mercancía continúa avanzando dentro del proceso logístico.";
-  }
-}
-
-function normalizarEstadoDesdeTexto(texto) {
-  const e = limpiarTexto(texto).toUpperCase();
-
-  if (!e) return "";
+function mapearEstadoTexto(estadoTexto) {
+  const e = String(estadoTexto || "").toUpperCase();
 
   if (e.includes("ENTREGADO")) return ETAPAS.ENTREGADO;
-  if (e.includes("ULTIMA MILLA") || e.includes("ÚLTIMA MILLA")) return ETAPAS.ULTIMA_MILLA;
-  if (e.includes("CONTINUACIÓN") && e.includes("DISTRIBU")) return ETAPAS.CONTINUACION_DISTRIBUCION;
-  if (e.includes("CONTINUACION") && e.includes("DISTRIBU")) return ETAPAS.CONTINUACION_DISTRIBUCION;
-  if (e.includes("PREPAR") && e.includes("DISTRIBU")) return ETAPAS.PREPARANDO_DISTRIBUCION;
-  if (e.includes("ALMACENES CABEZADAS") || (e.includes("TRASLADO") && e.includes("PROVINCIA"))) return ETAPAS.ALMACEN_PROVINCIA;
+  if (e.includes("EN DISTRIBUCION") || e.includes("EN DISTRIBUCIÓN") || e === "DISTRIBUCION" || e === "DISTRIBUCIÓN") return ETAPAS.DISTRIBUCION;
   if (e.includes("CLASIFIC")) return ETAPAS.CLASIFICACION;
   if (e.includes("DESAGRUPE") || e.includes("ADUANA")) return ETAPAS.DESAGRUPE_ADUANA;
   if (e.includes("ARRIBO")) return ETAPAS.ARRIBO;
@@ -702,7 +199,8 @@ function normalizarEstadoDesdeTexto(texto) {
   if (e.includes("CONTENEDOR")) return ETAPAS.EN_CONTENEDOR;
   if (e.includes("NAVIERA")) return ETAPAS.TRASLADO_NAVIERA;
   if (e.includes("AGENCIA")) return ETAPAS.EN_AGENCIA;
-  if (e.includes("EN DISTRIBUCION") || e.includes("EN DISTRIBUCIÓN") || e === "DISTRIBUCION" || e === "DISTRIBUCIÓN") return ETAPAS.DISTRIBUCION;
+  if (e.includes("DESPACH")) return "DESPACHO";
+  if (e.includes("EMBARC")) return "EMBARCADO";
 
   return "";
 }
@@ -742,69 +240,343 @@ function construirSaludo(embarcador, consignatario, estado) {
   if (nombreEmbarcador && nombreConsignatario) {
     return `Hola ${nombreEmbarcador}, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado}.`;
   }
-
   if (nombreEmbarcador) {
     return `Hola ${nombreEmbarcador}, tus paquetes se encuentran en: ${estado}.`;
   }
-
-  if (nombreConsignatario) {
-    return `Hola, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado}.`;
-  }
-
-  return `Hola, tus paquetes se encuentran en: ${estado}.`;
+  return `Hola, tu mercancía se encuentra en: ${estado}.`;
 }
 
-// ================= PARSER =================
-function parseTrackingSource(rawText) {
-  const db = {};
-  const lines = String(rawText || "")
-    .split("\n")
-    .map(line => line.trim())
+// ================= PARSER Y LIMPIEZA DE CPK =================
+function normalizarLinea(linea) {
+  return String(linea || "").replace(/\r/g, "").trim();
+}
+
+function extraerCPKDesdeLinea(linea) {
+  const m = String(linea || "").match(/CPK[-\s]?(\d{6,10})/i);
+  return m ? m[1] : "";
+}
+
+function extraerFechaDesdeLinea(linea) {
+  const m = String(linea || "").match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  return m ? m[1] : "";
+}
+
+function extraerEstadoDesdeLinea(linea) {
+  const bruto = String(linea || "");
+  const posibles = [
+    "ENTREGADO",
+    "EN DISTRIBUCION",
+    "EN DISTRIBUCIÓN",
+    "DISTRIBUCION",
+    "DISTRIBUCIÓN",
+    "DESPACHADO",
+    "DESPACHO",
+    "EN AGENCIA",
+    "EMBARCADO",
+    "ARRIBO",
+    "CLASIFICADO",
+    "DESAGRUPE",
+    "ADUANA"
+  ];
+
+  const up = bruto.toUpperCase();
+  const encontrado = posibles.find(p => up.includes(p));
+  return encontrado ? encontrado.replace("EN DISTRIBUCIÓN", "EN DISTRIBUCION") : "";
+}
+
+function extraerNombreProbable(linea, fechaTexto) {
+  const s = String(linea || "");
+  if (!fechaTexto) return "";
+
+  const idx = s.indexOf(fechaTexto);
+  if (idx === -1) return "";
+
+  const despues = s.slice(idx + fechaTexto.length).trim();
+  const parts = despues.split(/\t+/).map(v => v.trim()).filter(Boolean);
+
+  for (const p of parts) {
+    if (/^[A-ZÁÉÍÓÚÑ ]{6,}$/i.test(p) && !/\d/.test(p)) {
+      return p;
+    }
+  }
+  return "";
+}
+
+function esTextoDescripcionUtil(p) {
+  const up = String(p || "").toUpperCase();
+  if (!up) return false;
+  if (up.startsWith("CPK-")) return false;
+  if (/\b20\d{2}-\d{2}-\d{2}\b/.test(up)) return false;
+  if (["ENTREGADO","EN AGENCIA","EMBARCADO","DESPACHADO","EN DISTRIBUCION","DISTRIBUCION","SI","NO","ENVIO"].includes(up)) return false;
+  if (/^[0-9.\-]+$/.test(up)) return false;
+  return /[A-ZÁÉÍÓÚÑ]/i.test(up) && up.length >= 4;
+}
+
+function extraerDescripcionProbable(linea) {
+  const parts = String(linea || "")
+    .split(/\t+/)
+    .map(v => v.trim())
     .filter(Boolean);
 
-  for (const line of lines) {
-    const cpkMatch = line.match(/CPK[-\s]?0*([0-9]{5,})/i);
-    if (!cpkMatch) continue;
+  const preferidas = [];
 
-    const cpk = normalizarCPK(cpkMatch[1]);
+  for (const p of parts) {
+    const up = p.toUpperCase();
+
+    if (
+      esTextoDescripcionUtil(p) &&
+      (
+        up.includes("ECOFLOW") ||
+        up.includes("DELTA") ||
+        up.includes("RIVER") ||
+        up.includes("BATERIA") ||
+        up.includes("BATERÍA") ||
+        up.includes("INVERSOR") ||
+        up.includes("GENERADOR") ||
+        up.includes("TV") ||
+        up.includes("IMPRESORA") ||
+        up.includes("OLLA") ||
+        up.includes("SILLA") ||
+        up.includes("PISCINA") ||
+        up.includes("SECADORA") ||
+        up.includes("COLCHON") ||
+        up.includes("LAPTOP") ||
+        up.includes("MISCELANEA") ||
+        up.includes("MISCELANEAS") ||
+        up.includes("MISCELÁNEA")
+      )
+    ) {
+      preferidas.push(p);
+    }
+  }
+
+  if (preferidas.length) {
+    return preferidas.sort((a, b) => b.length - a.length)[0];
+  }
+
+  for (const p of parts) {
+    if (esTextoDescripcionUtil(p)) return p;
+  }
+
+  return "Sin descripción disponible.";
+}
+
+function puntajeEstado(estado) {
+  const e = String(estado || "").toUpperCase();
+  if (e.includes("ENTREGADO")) return 100;
+  if (e.includes("DISTRIBUC")) return 80;
+  if (e.includes("DESPACH")) return 70;
+  if (e.includes("EMBARC")) return 60;
+  if (e.includes("ARRIBO")) return 50;
+  if (e.includes("CLASIFIC")) return 40;
+  if (e.includes("AGENCIA")) return 30;
+  return 10;
+}
+
+function puntajeRegistro(r) {
+  const fecha = parseFechaSegura(r.fecha)?.getTime() || 0;
+  const descripcionScore = r.descripcion && r.descripcion !== "Sin descripción disponible." ? 500 : 0;
+  return puntajeEstado(r.estado) * 1e12 + fecha * 1e3 + descripcionScore + (r.raw?.length || 0);
+}
+
+function parseTrackingSource(raw) {
+  const lineas = String(raw || "")
+    .split("\n")
+    .map(normalizarLinea)
+    .filter(Boolean);
+
+  const db = {};
+
+  for (const linea of lineas) {
+    const cpk = extraerCPKDesdeLinea(linea);
     if (!cpk) continue;
 
-    const fecha = extraerFecha(line);
+    const fecha = extraerFechaDesdeLinea(linea);
+    const estadoDirecto = extraerEstadoDesdeLinea(linea);
+    const estado = mapearEstadoTexto(estadoDirecto) || estadoPorTiempo(fecha);
+    const embarcador = extraerNombreProbable(linea, fecha);
+    const consignatario = "";
+    const descripcion = extraerDescripcionProbable(linea);
 
-    // MÁS TOLERANTE: acepta tabs o varios espacios
-    const campos = line.split(/\s{2,}|\t/);
-    const fechaIndex = campos.findIndex(c => limpiarTexto(c) === fecha);
-
-    const { embarcador, consignatario } = fechaIndex >= 0
-      ? extraerDatosPersonalesDesdeCampos(campos, fechaIndex)
-      : { embarcador: "", consignatario: "" };
-
-    let estado = normalizarEstadoDesdeTexto(line);
-    if (!estado) estado = estadoPorTiempo(fecha);
-
-    db[cpk] = {
+    const nuevo = {
       cpk,
       fecha,
       estado,
-      descripcion: descripcionPorEstado(estado),
+      descripcion,
       embarcador,
       consignatario,
-      raw: line
+      raw: linea
     };
+
+    if (!db[cpk] || puntajeRegistro(nuevo) > puntajeRegistro(db[cpk])) {
+      db[cpk] = nuevo;
+    }
   }
 
   return db;
 }
 
+let TRACKING_DB_CACHE = parseTrackingSource(RAW_TRACKING_SOURCE);
+
 function getTrackingDb() {
-  return parseTrackingSource(RAW_TRACKING_SOURCE);
+  return TRACKING_DB_CACHE;
 }
 
-// ================= API =================
+// ================= MEMORIA TEMPORAL =================
+const MEMORIA = new Map();
+
+function getSessionKey(req) {
+  return String(req.headers["x-session-id"] || req.ip || "anon");
+}
+
+function getMemory(key) {
+  const item = MEMORIA.get(key);
+  if (!item) return {};
+
+  if (Date.now() - (item.ts || 0) > 10 * 60 * 1000) {
+    MEMORIA.delete(key);
+    return {};
+  }
+
+  return item;
+}
+
+function setMemory(key, patch) {
+  const prev = getMemory(key);
+  MEMORIA.set(key, {
+    ...prev,
+    ...patch,
+    ts: Date.now()
+  });
+}
+
+// ================= DETECCIÓN DE INTENCIÓN =================
+function detectarPeso(texto) {
+  const t = String(texto || "").toLowerCase();
+  const m =
+    t.match(/(\d+(?:\.\d+)?)\s*(lb|libras?)/i) ||
+    t.match(/peso\s*(\d+(?:\.\d+)?)/i);
+  return m ? Number(m[1]) : null;
+}
+
+function detectarTipoBicicleta(texto) {
+  const t = String(texto || "").toLowerCase();
+
+  if (!t.includes("bicic")) return null;
+
+  const esElectrica = /el[eé]ctrica/.test(t);
+  const esNino = /niñ|nino/.test(t);
+  const empacada = /empacad|en caja|caja/.test(t);
+  const sinEmpacar = /sin empacar|sin caja/.test(t);
+
+  if (esElectrica) {
+    if (sinEmpacar) return "bicicleta_electrica_sin_caja";
+    return "bicicleta_electrica_en_caja";
+  }
+
+  if (esNino) {
+    if (empacada) return "bicicleta_nino_empacada";
+    return "bicicleta_nino_sin_empacar";
+  }
+
+  if (empacada) return "bicicleta_adulto_empacada";
+  return "bicicleta_adulto_sin_empacar";
+}
+
+function detectarEcoflow(texto) {
+  const t = String(texto || "").toLowerCase();
+  if (!/(eco ?flow|delta pro|delta 2|delta|river)/i.test(t)) return null;
+
+  if (/delta pro ultra/i.test(t)) return "EcoFlow Delta Pro Ultra";
+  if (/delta pro/i.test(t)) return "EcoFlow Delta Pro";
+  if (/delta 2/i.test(t)) return "EcoFlow Delta 2";
+  if (/river 2 pro/i.test(t)) return "EcoFlow River 2 Pro";
+  if (/river/i.test(t)) return "EcoFlow River";
+  return "EcoFlow";
+}
+
+function detectarIntencion(texto) {
+  const t = String(texto || "").toLowerCase();
+
+  const peso = detectarPeso(t);
+  const cpkNormalizado = normalizarCPK(t);
+  const bicicleta = detectarTipoBicicleta(t);
+  const ecoflow = detectarEcoflow(t);
+
+  const esCPK = !!cpkNormalizado;
+  const esSolar = /(inversor|bater[ií]a|panel|solar|kwh|kw|generador)/i.test(t);
+  const esCaja = /(caja 12x12|caja 15x15|caja 16x16|cajas)/i.test(t);
+  const esDireccion = /(direcci[oó]n|oficina|suite 112|aloma)/i.test(t);
+  const esTiempo = /(tiempo|demora|cu[aá]nto tarda|entrega)/i.test(t);
+  const esCalculo = !!peso || /cu[aá]nto cuesta \d+/i.test(t) || /(\d+(?:\.\d+)?)\s*(lb|libras?)/i.test(t);
+
+  if (esCPK) return { intent: "rastreo", peso, cpk: cpkNormalizado };
+  if (bicicleta) return { intent: "bicicleta", bicicleta, peso };
+  if (ecoflow && peso) return { intent: "ecoflow_calculo", ecoflow, peso };
+  if (ecoflow) return { intent: "ecoflow", ecoflow, peso };
+  if (esCalculo && esSolar) return { intent: "calculo_producto", peso };
+  if (esCalculo) return { intent: "calculo", peso };
+  if (esSolar) return { intent: "solar", peso };
+  if (esCaja) return { intent: "cajas" };
+  if (esDireccion) return { intent: "direccion" };
+  if (esTiempo) return { intent: "tiempo" };
+
+  return { intent: "chat", peso };
+}
+
+// ================= CÁLCULOS =================
+function calcularEnvioGeneral(peso) {
+  const base = Number((peso * 1.99).toFixed(2));
+  const cargoEquipo = 25;
+  const total = Number((base + cargoEquipo).toFixed(2));
+
+  return {
+    tipo: "equipo",
+    peso,
+    base,
+    cargoEquipo,
+    total,
+    texto:
+      `${peso} × 1.99 = ${base.toFixed(2)}\n` +
+      `+ 25 = ${total.toFixed(2)}\n\n` +
+      `Total: $${total.toFixed(2)}`
+  };
+}
+
+function calcularBicicleta(tipo) {
+  const tabla = {
+    bicicleta_nino_sin_empacar: { nombre: "Bicicleta de niño sin empacar", total: 25 },
+    bicicleta_nino_empacada: { nombre: "Bicicleta de niño empacada", total: 15 },
+    bicicleta_adulto_sin_empacar: { nombre: "Bicicleta de adulto sin empacar", total: 45 },
+    bicicleta_adulto_empacada: { nombre: "Bicicleta de adulto empacada", total: 25 },
+    bicicleta_electrica_en_caja: { nombre: "Bicicleta eléctrica en caja", total: 35 },
+    bicicleta_electrica_sin_caja: { nombre: "Bicicleta eléctrica sin caja", total: 50 }
+  };
+
+  return tabla[tipo] || null;
+}
+
+function responderEcoflow(nombreProducto, peso = null) {
+  const intro =
+    `${nombreProducto || "EcoFlow"} es un sistema de energía portátil y solar ` +
+    `que puede servir para respaldo eléctrico, refrigeradores, ventiladores, luces y otros equipos del hogar.`;
+
+  if (!peso) {
+    return intro + `\n\nSi me dice el peso en libras, le calculo el envío exacto.`;
+  }
+
+  const calc = calcularEnvioGeneral(peso);
+
+  return (
+    intro +
+    `\n\nCálculo de envío:\n${calc.texto}`
+  );
+}
+
+// ================= HEALTH =================
 app.get("/api/health", (req, res) => {
   try {
     const db = getTrackingDb();
-
     return res.json({
       ok: true,
       mensaje: "Servidor activo",
@@ -820,6 +592,7 @@ app.get("/api/health", (req, res) => {
   }
 });
 
+// ================= RASTREO =================
 app.get("/api/rastreo/:cpk", (req, res) => {
   try {
     const cpk = normalizarCPK(req.params.cpk);
@@ -860,6 +633,7 @@ app.get("/api/rastreo/:cpk", (req, res) => {
   }
 });
 
+// ================= CHAT =================
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = String(req.body?.mensaje || "").trim();
@@ -871,12 +645,153 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
+    const sessionKey = getSessionKey(req);
+    const mem = getMemory(sessionKey);
+    const info = detectarIntencion(mensaje);
+
+    // 1) Rastreo directo
+    if (info.intent === "rastreo" && info.cpk) {
+      const item = getTrackingDb()[info.cpk];
+
+      if (!item) {
+        return res.json({
+          ok: false,
+          mensaje: "No encontramos información para ese CPK."
+        });
+      }
+
+      setMemory(sessionKey, {
+        lastIntent: "rastreo",
+        lastCPK: info.cpk
+      });
+
+      return res.json({
+        ok: true,
+        respuesta:
+          `${construirSaludo(item.embarcador, item.consignatario, item.estado)}\n\n` +
+          `Fecha: ${item.fecha || "No disponible"}\n\n` +
+          `Descripción:\n${item.descripcion || "Sin descripción disponible."}`
+      });
+    }
+
+    // 2) Cálculo general
+    if (info.intent === "calculo" && info.peso) {
+      const r = calcularEnvioGeneral(info.peso);
+
+      setMemory(sessionKey, {
+        lastIntent: "calculo",
+        lastWeight: info.peso
+      });
+
+      return res.json({
+        ok: true,
+        respuesta: r.texto
+      });
+    }
+
+    // 3) EcoFlow con cálculo
+    if (info.intent === "ecoflow_calculo" && info.peso) {
+      const respuesta = responderEcoflow(info.ecoflow, info.peso);
+
+      setMemory(sessionKey, {
+        lastIntent: "ecoflow",
+        lastWeight: info.peso,
+        lastProduct: info.ecoflow
+      });
+
+      return res.json({
+        ok: true,
+        respuesta
+      });
+    }
+
+    // 4) EcoFlow sin peso
+    if (info.intent === "ecoflow") {
+      const pesoMem = info.peso || mem.lastWeight || null;
+
+      setMemory(sessionKey, {
+        lastIntent: "ecoflow",
+        lastWeight: pesoMem,
+        lastProduct: info.ecoflow
+      });
+
+      return res.json({
+        ok: true,
+        respuesta: responderEcoflow(info.ecoflow, pesoMem)
+      });
+    }
+
+    // 5) Bicicletas
+    if (info.intent === "bicicleta") {
+      const bici = calcularBicicleta(info.bicicleta);
+
+      if (!bici) {
+        return res.json({
+          ok: false,
+          mensaje: "No pude identificar el tipo de bicicleta."
+        });
+      }
+
+      setMemory(sessionKey, {
+        lastIntent: "bicicleta",
+        lastProduct: bici.nombre
+      });
+
+      return res.json({
+        ok: true,
+        respuesta: `${bici.nombre}: $${bici.total.toFixed(2)}`
+      });
+    }
+
+    // 6) Dirección
+    if (info.intent === "direccion") {
+      return res.json({
+        ok: true,
+        respuesta: "La oficina está en 7523 Aloma Ave, Winter Park, FL 32792, Suite 112."
+      });
+    }
+
+    // 7) Tiempos
+    if (info.intent === "tiempo") {
+      return res.json({
+        ok: true,
+        respuesta: "El tiempo estimado es aproximadamente de 18 a 30 días una vez que toca puerto."
+      });
+    }
+
+    // 8) Cajas
+    if (info.intent === "cajas") {
+      return res.json({
+        ok: true,
+        respuesta:
+          "Tenemos estas cajas:\n" +
+          "- 12x12x12 hasta 60 lb: $45\n" +
+          "- 15x15x15 hasta 100 lb: $65\n" +
+          "- 16x16x16 hasta 100 lb: $85"
+      });
+    }
+
+    // 9) Memoria corta para seguimiento de cálculo
+    if (!info.peso && mem.lastIntent === "calculo" && /(y con eso|cu[aá]nto ser[ií]a|el total|entonces)/i.test(mensaje)) {
+      const r = calcularEnvioGeneral(mem.lastWeight);
+      return res.json({
+        ok: true,
+        respuesta: r.texto
+      });
+    }
+
+    // 10) Fallback a OpenAI
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         ok: false,
         mensaje: "Falta API KEY"
       });
     }
+
+    const promptExtra = [];
+    if (mem.lastProduct) promptExtra.push(`Último producto consultado: ${mem.lastProduct}`);
+    if (mem.lastWeight) promptExtra.push(`Último peso consultado: ${mem.lastWeight} lb`);
+    if (mem.lastCPK) promptExtra.push(`Último CPK consultado: ${mem.lastCPK}`);
 
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -888,9 +803,10 @@ app.post("/api/chat", async (req, res) => {
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: BUSINESS_CONTEXT },
+          ...(promptExtra.length ? [{ role: "system", content: promptExtra.join("\n") }] : []),
           { role: "user", content: mensaje }
         ],
-        temperature: 0.35
+        temperature: 0.25
       })
     });
 
@@ -903,6 +819,10 @@ app.post("/api/chat", async (req, res) => {
         mensaje: data?.error?.message || "Error al consultar OpenAI"
       });
     }
+
+    setMemory(sessionKey, {
+      lastIntent: "chat"
+    });
 
     return res.json({
       ok: true,
@@ -917,7 +837,7 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// 404
+// ================= 404 =================
 app.use((req, res) => {
   return res.status(404).json({
     ok: false,
