@@ -4,687 +4,560 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chambatina</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f59e0b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Chambatina" />
+  <link rel="apple-touch-icon" href="public/chambatinaapp.png" />
+
   <style>
-    :root{
-      --bg:#f4f7fb;
-      --card:#ffffffcc;
-      --text:#0f172a;
-      --muted:#475569;
-      --gold:#f59e0b;
-      --gold-dark:#d97706;
-      --navy:#0b1220;
-      --line:#e2e8f0;
-      --shadow: 0 20px 60px rgba(15,23,42,.12);
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f5f7;
+      color: #111827;
     }
 
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-    a{text-decoration:none;color:inherit}
-
-    body{
-      background:
-        radial-gradient(circle at 10% 20%, rgba(245,158,11,.15), transparent 25%),
-        radial-gradient(circle at 85% 15%, rgba(59,130,246,.12), transparent 22%),
-        linear-gradient(135deg,#ffffff 0%,#f8fafc 45%,#eef4ff 100%);
-      min-height:100vh;
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px 14px 50px;
     }
 
-    .shell{
-      width:min(1180px,92%);
-      margin:0 auto;
+    .top {
+      text-align: center;
+      margin-bottom: 22px;
     }
 
-    .nav{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px 0;
+    .logo-shell {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 14px;
+      border-radius: 32px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 34px rgba(0,0,0,.08);
+      border: 1px solid #ececec;
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      font-weight:700;
-      font-size:20px;
+    .logo-shell img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      display: block;
     }
 
-    .brand img{
-      width:54px;
-      height:54px;
-      object-fit:contain;
-      border-radius:16px;
-      background:#fff;
-      box-shadow:0 8px 25px rgba(15,23,42,.08);
-      padding:6px;
+    h1 {
+      margin: 0 0 8px;
+      font-size: 42px;
+      font-weight: 800;
+      color: #f59e0b;
+      letter-spacing: -0.02em;
     }
 
-    .nav-links{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
+    .subtitle {
+      margin: 0;
+      color: #6b7280;
+      font-size: 18px;
     }
 
-    .nav-links a{
-      padding:10px 14px;
-      border-radius:14px;
-      color:var(--muted);
-      font-size:14px;
+    .card {
+      background: #ffffff;
+      border-radius: 28px;
+      border: 1px solid #e9eaec;
+      box-shadow: 0 16px 38px rgba(0,0,0,.07);
+      overflow: hidden;
     }
 
-    .nav-links a:hover{
-      background:#fff;
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 22px;
+      border-bottom: 1px solid #ececec;
+      background: #ffffff;
     }
 
-    .hero{
-      display:grid;
-      grid-template-columns:1.05fr .95fr;
-      gap:28px;
-      align-items:center;
-      padding:24px 0 40px;
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: #f9fafb;
+      border: 1px solid #ececec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
-    .hero-left{
-      padding:18px 0;
+    .avatar img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
     }
 
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:999px;
-      background:#fff;
-      border:1px solid rgba(255,255,255,.8);
-      box-shadow:0 10px 30px rgba(15,23,42,.06);
-      color:var(--muted);
-      font-size:14px;
-      margin-bottom:18px;
+    .header-text h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      color: #111827;
     }
 
-    h1{
-      font-size:clamp(40px,6vw,76px);
-      line-height:0.95;
-      margin:0;
-      letter-spacing:-2px;
+    .header-text p {
+      margin: 5px 0 0;
+      font-size: 15px;
+      color: #6b7280;
     }
 
-    .gradient{
-      background:linear-gradient(90deg,#0f172a 0%,#1e293b 45%,#d97706 100%);
-      -webkit-background-clip:text;
-      background-clip:text;
-      color:transparent;
+    .card-body {
+      padding: 22px;
+      background: #fcfcfd;
     }
 
-    .subtitle{
-      font-size:clamp(18px,2vw,28px);
-      margin:20px 0 12px;
-      color:#1e293b;
-      font-weight:700;
+    .question-box {
+      width: 100%;
+      height: 64px;
+      border: 1px solid #f3c26a;
+      background: #fff7e8;
+      color: #111827;
+      border-radius: 18px;
+      padding: 0 18px;
+      font-size: 18px;
+      outline: none;
+      display: block;
+      margin-bottom: 16px;
+      transition: .2s ease;
     }
 
-    .desc{
-      color:var(--muted);
-      line-height:1.7;
-      font-size:17px;
-      max-width:620px;
+    .question-box:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.12);
+      background: #ffffff;
     }
 
-    .cta-row{
-      display:flex;
-      gap:14px;
-      flex-wrap:wrap;
-      margin-top:26px;
+    .question-box::placeholder {
+      color: #7b7280;
     }
 
-    .btn{
-      border:none;
-      border-radius:18px;
-      padding:15px 22px;
-      font-size:15px;
-      font-weight:700;
-      cursor:pointer;
-      transition:.2s ease;
+    .answer-box {
+      min-height: 260px;
+      background: #eef2f6;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 22px;
+      font-size: 18px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #111827;
     }
 
-    .btn:hover{
-      transform:translateY(-1px);
+    .answer-box.is-loading {
+      color: #6b7280;
     }
 
-    .btn-primary{
-      background:var(--navy);
-      color:white;
-      box-shadow:0 16px 30px rgba(15,23,42,.18);
+    .btn {
+      width: 100%;
+      margin-top: 16px;
+      height: 56px;
+      border: none;
+      border-radius: 18px;
+      background: #f59e0b;
+      color: #111827;
+      font-size: 19px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
     }
 
-    .btn-secondary{
-      background:white;
-      color:var(--text);
-      border:1px solid var(--line);
+    .btn:hover {
+      opacity: .96;
     }
 
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:14px;
-      margin-top:28px;
+    .btn:disabled,
+    .question-box:disabled {
+      opacity: .7;
+      cursor: not-allowed;
     }
 
-    .stat{
-      background:rgba(255,255,255,.75);
-      border:1px solid rgba(255,255,255,.85);
-      backdrop-filter:blur(10px);
-      border-radius:22px;
-      padding:18px;
-      box-shadow:0 8px 30px rgba(15,23,42,.06);
+    .helper-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
     }
 
-    .stat strong{
-      display:block;
-      font-size:28px;
-      margin-bottom:6px;
+    .chip {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #374151;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
     }
 
-    .stat span{
-      color:var(--muted);
-      font-size:14px;
+    .chip:hover {
+      border-color: #f59e0b;
+      color: #111827;
     }
 
-    .hero-right{
-      position:relative;
+    .status-badge {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #fff7e8;
+      color: #9a3412;
+      border: 1px solid #f3c26a;
     }
 
-    .panel{
-      position:relative;
-      background:linear-gradient(180deg,#0f172a 0%,#111827 100%);
-      color:white;
-      border-radius:34px;
-      padding:24px;
-      box-shadow:0 30px 70px rgba(15,23,42,.28);
-      overflow:hidden;
+    .ios-tip {
+      display: none;
+      margin-top: 14px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.45;
     }
 
-    .panel::before{
-      content:"";
-      position:absolute;
-      inset:auto -40px -70px auto;
-      width:180px;
-      height:180px;
-      background:radial-gradient(circle, rgba(245,158,11,.42), transparent 65%);
-      pointer-events:none;
-    }
-
-    .panel-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .panel-top h3{
-      margin:0;
-      font-size:28px;
-    }
-
-    .panel-top p{
-      margin:4px 0 0;
-      color:#cbd5e1;
-      font-size:14px;
-    }
-
-    .mini-badge{
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.08);
-      color:#fbbf24;
-      padding:12px 14px;
-      border-radius:18px;
-      font-weight:700;
-      white-space:nowrap;
-    }
-
-    .tracking-box{
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:28px;
-      padding:18px;
-    }
-
-    .tracking-box label{
-      display:block;
-      color:#cbd5e1;
-      font-size:14px;
-      margin-bottom:12px;
-    }
-
-    .tracking-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .tracking-row input{
-      flex:1;
-      min-width:220px;
-      border:none;
-      outline:none;
-      border-radius:18px;
-      background:rgba(255,255,255,.09);
-      color:white;
-      padding:15px 16px;
-      font-size:15px;
-    }
-
-    .tracking-row input::placeholder{
-      color:#94a3b8;
-    }
-
-    .search-btn{
-      border:none;
-      border-radius:18px;
-      background:linear-gradient(180deg,#fbbf24,#f59e0b);
-      color:#111827;
-      font-weight:800;
-      padding:15px 20px;
-      cursor:pointer;
-    }
-
-    .result{
-      margin-top:14px;
-      border-radius:20px;
-      padding:14px;
-      display:none;
-      font-size:14px;
-      line-height:1.6;
-    }
-
-    .result.show{display:block}
-    .result.ok{background:#0b3a2a;color:#dcfce7;border:1px solid #14532d}
-    .result.err{background:#3f1d1d;color:#fecaca;border:1px solid #7f1d1d}
-    .result.info{background:rgba(255,255,255,.07);color:#e2e8f0;border:1px solid rgba(255,255,255,.08)}
-
-    .panel-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-      margin-top:18px;
-    }
-
-    .panel-card{
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:24px;
-      padding:16px;
-    }
-
-    .panel-card h4{
-      margin:0 0 10px;
-      font-size:15px;
-      color:#f8fafc;
-    }
-
-    .panel-card ul{
-      margin:0;
-      padding-left:18px;
-      color:#cbd5e1;
-      font-size:14px;
-      line-height:1.7;
-    }
-
-    .services{
-      padding:18px 0 40px;
-    }
-
-    .section-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:end;
-      gap:20px;
-      margin-bottom:20px;
-      flex-wrap:wrap;
-    }
-
-    .section-head h2{
-      margin:0;
-      font-size:34px;
-    }
-
-    .section-head p{
-      margin:0;
-      color:var(--muted);
-      max-width:620px;
-      line-height:1.7;
-    }
-
-    .cards{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:18px;
-    }
-
-    .card{
-      background:rgba(255,255,255,.78);
-      border:1px solid rgba(255,255,255,.85);
-      backdrop-filter:blur(10px);
-      border-radius:26px;
-      padding:22px;
-      box-shadow:var(--shadow);
-    }
-
-    .icon{
-      width:52px;
-      height:52px;
-      border-radius:18px;
-      display:grid;
-      place-items:center;
-      font-size:24px;
-      background:linear-gradient(180deg,#fff7e6,#fde68a);
-      margin-bottom:16px;
-    }
-
-    .card h3{
-      margin:0 0 10px;
-      font-size:18px;
-    }
-
-    .card p{
-      margin:0;
-      color:var(--muted);
-      line-height:1.7;
-      font-size:14px;
-    }
-
-    .trust{
-      padding:10px 0 60px;
-    }
-
-    .trust-box{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:20px;
-      background:linear-gradient(135deg,#fff,#f8fafc);
-      border:1px solid rgba(255,255,255,.9);
-      border-radius:32px;
-      padding:28px;
-      box-shadow:var(--shadow);
-    }
-
-    .trust-box h2{
-      margin:0 0 12px;
-      font-size:32px;
-    }
-
-    .trust-box p{
-      color:var(--muted);
-      line-height:1.8;
-    }
-
-    .trust-list{
-      display:grid;
-      gap:12px;
-    }
-
-    .trust-item{
-      background:white;
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:16px 18px;
-    }
-
-    .trust-item strong{
-      display:block;
-      margin-bottom:4px;
-    }
-
-    footer{
-      padding:0 0 50px;
-      color:var(--muted);
-      font-size:14px;
-      text-align:center;
-    }
-
-    @media (max-width: 980px){
-      .hero,
-      .trust-box{
-        grid-template-columns:1fr;
+    @media (max-width: 700px) {
+      .wrap {
+        padding: 16px 10px 36px;
       }
-      .cards{
-        grid-template-columns:repeat(2,1fr);
-      }
-    }
 
-    @media (max-width: 640px){
-      .nav{gap:20px;flex-direction:column;align-items:flex-start}
-      .stats,
-      .cards,
-      .panel-grid{
-        grid-template-columns:1fr;
+      .logo-shell {
+        width: 110px;
+        height: 110px;
+        border-radius: 26px;
       }
-      h1{letter-spacing:-1px}
-      .tracking-row{
-        flex-direction:column;
+
+      .logo-shell img {
+        width: 66px;
+        height: 66px;
       }
-      .tracking-row input,
-      .search-btn{
-        width:100%;
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .card-header {
+        padding: 16px;
+      }
+
+      .avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+      }
+
+      .avatar img {
+        width: 34px;
+        height: 34px;
+      }
+
+      .header-text h2 {
+        font-size: 20px;
+      }
+
+      .header-text p {
+        font-size: 14px;
+      }
+
+      .card-body {
+        padding: 16px;
+      }
+
+      .question-box {
+        height: 58px;
+        font-size: 16px;
+        border-radius: 16px;
+      }
+
+      .answer-box {
+        min-height: 220px;
+        font-size: 16px;
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .btn {
+        height: 52px;
+        font-size: 17px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <nav class="nav">
-      <div class="brand">
-        <img src="chambita.png" alt="Logo Chambatina" onerror="this.src='chambatinaapp.png'">
-        <div>
-          <div>Chambatina</div>
-          <small style="color:#64748b;font-weight:600;">Logística y energía inteligente</small>
+  <div class="wrap">
+    <div class="top">
+      <div class="logo-shell">
+        <img src="public/chambita.png" alt="Chambatina" />
+      </div>
+      <h1>Chambatina</h1>
+      <p class="subtitle">Consulte su paquete o haga su pregunta</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="avatar">
+          <img src="public/chambita.png" alt="Chambita" />
+        </div>
+        <div class="header-text">
+          <h2>Chambita</h2>
+          <p>Asistente virtual</p>
         </div>
       </div>
 
-      <div class="nav-links">
-        <a href="#servicios">Servicios</a>
-        <a href="#rastreo">Rastreo</a>
-        <a href="#confianza">Confianza</a>
-      </div>
-    </nav>
+      <div class="card-body">
+        <input
+          id="mensaje"
+          class="question-box"
+          type="text"
+          placeholder="Escriba su CPK o su pregunta"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
 
-    <section class="hero">
-      <div class="hero-left">
-        <div class="pill">⚡ Envíos a Cuba y soluciones energéticas con imagen moderna</div>
+        <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
 
-        <h1>
-          Una web más
-          <span class="gradient">inteligente</span>
-          y confiable
-        </h1>
+        <button id="btnEnviar" class="btn" type="button">Enviar</button>
 
-        <div class="subtitle">
-          Rastrea tus paquetes, consulta servicios y transmite confianza desde el primer segundo.
+        <div class="helper-row">
+          <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
+          <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">Precio por libra</button>
+          <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">Tiempo de envío</button>
         </div>
 
-        <p class="desc">
-          Chambatina combina logística, atención clara y orientación sobre sistemas solares en una experiencia visual más seria, más tecnológica y más profesional.
-        </p>
-
-        <div class="cta-row">
-          <button class="btn btn-primary" onclick="document.getElementById('cpkInput').focus()">Rastrear paquete</button>
-          <button class="btn btn-secondary" onclick="document.getElementById('servicios').scrollIntoView({behavior:'smooth'})">Ver servicios</button>
-        </div>
-
-        <div class="stats">
-          <div class="stat">
-            <strong>CPK</strong>
-            <span>Seguimiento rápido y claro</span>
-          </div>
-          <div class="stat">
-            <strong>Solar</strong>
-            <span>Orientación en equipos y soluciones</span>
-          </div>
-          <div class="stat">
-            <strong>Confianza</strong>
-            <span>Imagen profesional y útil</span>
-          </div>
+        <div id="iosTip" class="ios-tip">
+          En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
         </div>
       </div>
-
-      <div class="hero-right" id="rastreo">
-        <div class="panel">
-          <div class="panel-top">
-            <div>
-              <p>Centro de atención</p>
-              <h3>Panel Chambatina</h3>
-            </div>
-            <div class="mini-badge">Futurista + clara</div>
-          </div>
-
-          <div class="tracking-box">
-            <label>Rastreo rápido por CPK</label>
-            <div class="tracking-row">
-              <input id="cpkInput" type="text" placeholder="Ejemplo: CPK-0255139">
-              <button class="search-btn" onclick="buscarCPK()">Buscar</button>
-            </div>
-            <div id="trackingResult" class="result info">Escribe un CPK para consultar el estado.</div>
-          </div>
-
-          <div class="panel-grid">
-            <div class="panel-card">
-              <h4>Servicios principales</h4>
-              <ul>
-                <li>Envíos a Cuba</li>
-                <li>Compras orientadas</li>
-                <li>Sistemas solares</li>
-              </ul>
-            </div>
-
-            <div class="panel-card">
-              <h4>Ventajas</h4>
-              <ul>
-                <li>Imagen más profesional</li>
-                <li>Consulta clara</li>
-                <li>Diseño más confiable</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="services" id="servicios">
-      <div class="section-head">
-        <div>
-          <h2>Servicios</h2>
-        </div>
-        <p>
-          Una presentación más elegante y moderna ayuda a que Chambatina se vea como una empresa real, organizada y segura.
-        </p>
-      </div>
-
-      <div class="cards">
-        <div class="card">
-          <div class="icon">📦</div>
-          <h3>Envíos a Cuba</h3>
-          <p>Consulta información clara sobre envíos, entregas y seguimiento de paquetes mediante CPK.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">🛒</div>
-          <h3>Compras orientadas</h3>
-          <p>Apoyo y orientación sobre compras desde plataformas como Amazon o enlaces compartidos.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">⚡</div>
-          <h3>Sistemas solares</h3>
-          <p>Asesoría sobre equipos, componentes y productos relacionados con energía renovable.</p>
-        </div>
-
-        <div class="card">
-          <div class="icon">🔍</div>
-          <h3>Rastreo confiable</h3>
-          <p>Una búsqueda rápida por CPK con respuesta visual más clara y útil para el cliente.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="trust" id="confianza">
-      <div class="trust-box">
-        <div>
-          <h2>Una imagen que inspire confianza</h2>
-          <p>
-            Esta versión está pensada para que Chambatina no se vea como una página improvisada, sino como una web seria, moderna y con identidad propia.
-          </p>
-          <p>
-            El objetivo no es solo mostrar información. Es transmitir orden, tecnología, seguridad y atención profesional.
-          </p>
-        </div>
-
-        <div class="trust-list">
-          <div class="trust-item">
-            <strong>Dirección</strong>
-            7523 Aloma Ave, Winter Park, FL 32792, Suite 112
-          </div>
-          <div class="trust-item">
-            <strong>Contacto</strong>
-            786-942-6904 · 786-784-6421
-          </div>
-          <div class="trust-item">
-            <strong>Enfoque</strong>
-            Claridad, utilidad y mejor presencia visual
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      Chambatina · envíos, rastreo y orientación con una imagen más moderna
-    </footer>
+    </div>
   </div>
 
   <script>
-    const API_BASE = "https://rastreador-tj5b.onrender.com";
+    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-    async function buscarCPK() {
-      const input = document.getElementById("cpkInput");
-      const box = document.getElementById("trackingResult");
-      const cpk = input.value.trim();
+    const mensaje = document.getElementById("mensaje");
+    const respuesta = document.getElementById("respuesta");
+    const btnEnviar = document.getElementById("btnEnviar");
+    const iosTip = document.getElementById("iosTip");
 
-      if (!cpk) {
-        box.className = "result err show";
-        box.textContent = "Debes escribir un CPK para hacer la consulta.";
-        return;
-      }
+    let procesando = false;
 
-      box.className = "result info show";
-      box.textContent = "Consultando información...";
+    function normalizarNumero(texto) {
+      return String(texto || "").replace(/\D/g, "");
+    }
 
+    function esCPK(texto) {
+      const limpio = normalizarNumero(texto);
+      return limpio.length >= 6 && limpio.length <= 10;
+    }
+
+    function setProcesando(valor) {
+      procesando = valor;
+      mensaje.disabled = valor;
+      btnEnviar.disabled = valor;
+      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
+      respuesta.classList.toggle("is-loading", valor);
+    }
+
+    function ponerRespuesta(texto) {
+      respuesta.textContent = texto;
+      respuesta.classList.remove("is-loading");
+    }
+
+    function ponerRespuestaHTML(html) {
+      respuesta.innerHTML = html;
+      respuesta.classList.remove("is-loading");
+    }
+
+    function usarEjemplo(texto) {
+      if (procesando) return;
+      mensaje.value = texto;
+      mensaje.focus();
+    }
+
+    function construirRespuestaRastreo(data) {
+      const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
+      const fecha = data.fecha || "No disponible";
+      const descripcion = data.descripcion || "Sin descripción disponible.";
+      const estado = data.estado || "SIN ESTADO";
+
+      return `
+        <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
+        <strong>${escapeHtml(saludo)}</strong>
+
+        Fecha: ${escapeHtml(fecha)}
+
+        Descripción:
+        ${escapeHtml(descripcion)}
+      `;
+    }
+
+    function escapeHtml(texto) {
+      return String(texto || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    async function enviarChat(texto) {
       try {
-        const res = await fetch(`${API_BASE}/api/tracking/${encodeURIComponent(cpk)}`);
-        const data = await res.json();
+        const res = await fetch(`${BACKEND_URL}/api/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ mensaje: texto })
+        });
 
-        if (!res.ok || !data.ok) {
-          box.className = "result err show";
-          box.textContent = data.error || "No se encontró información para ese CPK.";
+        const raw = await res.text();
+        let data = null;
+
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
           return;
         }
 
-        box.className = "result ok show";
-
-        if (data.data && typeof data.data === "object") {
-          box.innerHTML = `
-            <strong>Consulta encontrada</strong><br><br>
-            <strong>CPK:</strong> ${data.data.cpk || cpk}<br>
-            <strong>Detalle:</strong><br>
-            <small style="display:block;margin-top:8px;white-space:pre-wrap;">${data.data.raw || "Resultado recibido."}</small>
-          `;
-        } else {
-          box.textContent = "Consulta realizada correctamente.";
+        if (!data) {
+          ponerRespuesta("El servidor respondió con un formato no válido.");
+          return;
         }
+
+        if (!data.ok) {
+          ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
+          return;
+        }
+
+        ponerRespuesta(
+          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
+        );
+
       } catch (error) {
-        box.className = "result err show";
-        box.textContent = "No se pudo conectar con el servidor. Revisa la URL del backend o el endpoint de rastreo.";
+        ponerRespuesta("No fue posible conectar con el servidor.");
+        console.error("Error chat:", error);
       }
     }
+
+    async function buscarCPK(codigo) {
+      const cpk = normalizarNumero(codigo);
+
+      if (!cpk) {
+        ponerRespuesta("Escriba un CPK válido.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
+        const raw = await res.text();
+        let data = null;
+
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          return;
+        }
+
+        if (!data) {
+          ponerRespuesta("El servidor respondió con un formato no válido.");
+          return;
+        }
+
+        if (!data.ok) {
+          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
+          return;
+        }
+
+        ponerRespuestaHTML(construirRespuestaRastreo(data));
+
+      } catch (error) {
+        ponerRespuesta("No fue posible conectar con el servidor.");
+        console.error("Error rastreo:", error);
+      }
+    }
+
+    async function procesar() {
+      if (procesando) return;
+
+      const texto = mensaje.value.trim();
+      if (!texto) return;
+
+      setProcesando(true);
+      ponerRespuesta("Consultando...");
+
+      try {
+        if (esCPK(texto)) {
+          await buscarCPK(texto);
+        } else {
+          await enviarChat(texto);
+        }
+      } finally {
+        setProcesando(false);
+        mensaje.focus();
+      }
+    }
+
+    btnEnviar.addEventListener("click", procesar);
+
+    mensaje.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        procesar();
+      }
+    });
+
+    function esIOS() {
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    }
+
+    function esSafari() {
+      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+    }
+
+    function estaInstalada() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    if (esIOS() && esSafari() && !estaInstalada()) {
+      iosTip.style.display = "block";
+    }
+
+    window.addEventListener("load", function() {
+      mensaje.disabled = false;
+      mensaje.focus();
+    });
   </script>
 </body>
 </html>
