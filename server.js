@@ -1026,7 +1026,7 @@ app.get("/api/tracking/:cpk", (req, res) => {
   try {
     const { cpk } = req.params;
 
-    // 🔴 validar primero
+    // validar primero
     if (!cpk) {
       return res.json({
         ok: false,
@@ -1034,22 +1034,19 @@ app.get("/api/tracking/:cpk", (req, res) => {
       });
     }
 
-    // 🔴 detectar atrasado (ANTES de todo)
+    // detectar atrasado antes de la lógica normal
     const atraso = obtenerAtraso(cpk);
 
-if (atraso) {
-  return res.json({
-    ok: true,
-    tipo: "atrasado",
-    cpk: atraso.cpk,
-    fechaOriginal: atraso.fechaOriginal,
-    mensaje: `
-Este envío se encuentra en puerto con atraso.
-
-Tiene un período estimado de hasta 10 días de atraso.
-A partir de los 6 días hábiles desde la fecha original ${atraso.fechaOriginal || ""},
-el recorrido logístico comienza nuevamente tomando como base la nueva fecha generada.
-    `
+    if (atraso) {
+      return res.json({
+        ok: true,
+        tipo: "atrasado",
+        cpk: atraso.cpk,
+        fechaOriginal: atraso.fechaOriginal,
+        mensaje:
+          `Este envío se encuentra en puerto con atraso.\n\n` +
+          `Tiene un período estimado de hasta 10 días de atraso.\n` +
+          `A    `
   });
 }
     const db = getTrackingDb();
