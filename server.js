@@ -16,11 +16,40 @@ const BUSINESS_CONTEXT = `
 ========================================
 ASISTENTE OFICIAL CHAMBATINA
 ========================================
+// ================= ALERTA DE ATRASO PUERTO =================
 
 Responde siempre en español claro, directo y profesional.
 No inventes precios ni condiciones.
 Si no sabes algo con certeza, dilo claramente.
+`;
+const ALERTA_MARIEL = {
+  desde: "2026-03-28",
+  hasta: "2026-04-05",
+  retrasoDias: 10,
+  puerto: "Mariel",
+  motivo: "dificultades con la grúa"
+};
+function fechaEnRango(fechaTexto, desde, hasta) {
+  if (!fechaTexto) return false;
+  return fechaTexto >= desde && fechaTexto <= hasta;
+}
 
+function obtenerAlertaPuerto(item) {
+  if (!item || !item.fecha) return null;
+
+  const aplica = fechaEnRango(
+    item.fecha,
+    ALERTA_MARIEL.desde,
+    ALERTA_MARIEL.hasta
+  );
+
+  if (!aplica) return null;
+
+  return {
+    tipo: "atraso_portuario",
+    mensaje: `Le informamos que este envío presenta un atraso aproximado de ${ALERTA_MARIEL.retrasoDias} días en el puerto del ${ALERTA_MARIEL.puerto}, debido a ${ALERTA_MARIEL.motivo}.`
+  };
+}
 IDENTIDAD
 Chambatina es una empresa logística especializada en envíos a Cuba
 y en la orientación sobre equipos de energía renovable, especialmente sistemas solares.
@@ -990,6 +1019,9 @@ app.get("/api/rastreo/:cpk", (req, res) => {
       });
     }
 
+    // ✅ AHORA SÍ EN EL LUGAR CORRECTO
+    const alerta = obtenerAlertaPuerto(item);
+
     return res.json({
       ok: true,
       cpk: item.cpk,
@@ -998,8 +1030,10 @@ app.get("/api/rastreo/:cpk", (req, res) => {
       descripcion: item.descripcion,
       embarcador: item.embarcador,
       consignatario: item.consignatario,
-      saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
+      saludo: construirSaludo(item.embarcador, item.consignatario, item.estado),
+      alerta // ✅ ESTO ES LO QUE TE FALTABA
     });
+
   } catch (error) {
     console.error("Error en /api/rastreo/:cpk:", error);
     return res.status(500).json({
@@ -1008,7 +1042,6 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     });
   }
 });
-
 // ================= CHAT =================
 app.post("/api/chat", async (req, res) => {
   try {
