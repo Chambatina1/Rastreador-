@@ -1,20 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Chambatina</title>
 
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#f59e0b" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Chambatina" />
-  <link rel="apple-touch-icon" href="public/chambatinaapp.png" />
-
   <style>
-    * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -22,542 +12,114 @@
       color: #111827;
     }
 
-    .wrap {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 28px 14px 50px;
-    }
-
-    .top {
-      text-align: center;
-      margin-bottom: 22px;
-    }
-
-    .logo-shell {
-      width: 128px;
-      height: 128px;
-      margin: 0 auto 14px;
-      border-radius: 32px;
-      background: #ffffff;
+    .hero {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 14px 34px rgba(0,0,0,.08);
-      border: 1px solid #ececec;
+      padding: 40px;
+      background: linear-gradient(135deg, #ffffff, #f9fafb, #fff7e6);
     }
 
-    .logo-shell img {
-      width: 76px;
-      height: 76px;
-      object-fit: contain;
-      display: block;
+    .container {
+      max-width: 900px;
+      text-align: center;
     }
 
     h1 {
-      margin: 0 0 8px;
-      font-size: 42px;
-      font-weight: 800;
-      color: #f59e0b;
-      letter-spacing: -0.02em;
+      font-size: 60px;
+      margin: 0;
     }
 
-    .subtitle {
-      margin: 0;
-      color: #6b7280;
-      font-size: 18px;
+    h2 {
+      font-size: 24px;
+      margin-top: 10px;
+      color: #1f2937;
+    }
+
+    p {
+      margin-top: 20px;
+      color: #4b5563;
+    }
+
+    .buttons {
+      margin-top: 30px;
+    }
+
+    button {
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin: 10px;
+      font-size: 16px;
+    }
+
+    .primary {
+      background: #111827;
+      color: white;
+    }
+
+    .secondary {
+      background: white;
+      border: 1px solid #ddd;
     }
 
     .card {
-      background: #ffffff;
-      border-radius: 28px;
-      border: 1px solid #e9eaec;
-      box-shadow: 0 16px 38px rgba(0,0,0,.07);
-      overflow: hidden;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 20px 22px;
-      border-bottom: 1px solid #ececec;
-      background: #ffffff;
-    }
-
-    .avatar {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      background: #f9fafb;
-      border: 1px solid #ececec;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .avatar img {
-      width: 38px;
-      height: 38px;
-      object-fit: contain;
-    }
-
-    .header-text h2 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 800;
-      color: #111827;
-    }
-
-    .header-text p {
-      margin: 5px 0 0;
-      font-size: 15px;
-      color: #6b7280;
-    }
-
-    .card-body {
-      padding: 22px;
-      background: #fcfcfd;
-    }
-
-    .question-box {
-      width: 100%;
-      height: 64px;
-      border: 1px solid #f3c26a;
-      background: #fff7e8;
-      color: #111827;
-      border-radius: 18px;
-      padding: 0 18px;
-      font-size: 18px;
-      outline: none;
-      display: block;
-      margin-bottom: 16px;
-      transition: .2s ease;
-    }
-
-    .question-box:focus {
-      border-color: #f59e0b;
-      box-shadow: 0 0 0 4px rgba(245,158,11,.12);
-      background: #ffffff;
-    }
-
-    .question-box::placeholder {
-      color: #7b7280;
-    }
-
-    .answer-box {
-      min-height: 260px;
-      background: #eef2f6;
-      border: 1px solid #e2e8f0;
+      margin-top: 40px;
+      padding: 20px;
       border-radius: 20px;
-      padding: 22px;
-      font-size: 18px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-      color: #111827;
+      background: #0f172a;
+      color: white;
     }
 
-    .answer-box.is-loading {
-      color: #6b7280;
-    }
-
-    .btn {
-      width: 100%;
-      margin-top: 16px;
-      height: 56px;
+    input {
+      padding: 10px;
+      border-radius: 8px;
       border: none;
-      border-radius: 18px;
+      width: 60%;
+      margin-right: 10px;
+    }
+
+    .search-btn {
       background: #f59e0b;
-      color: #111827;
-      font-size: 19px;
-      font-weight: 800;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: .2s ease;
-    }
-
-    .btn:hover {
-      opacity: .96;
-    }
-
-    .btn:disabled,
-    .question-box:disabled {
-      opacity: .7;
-      cursor: not-allowed;
-    }
-
-    .helper-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .chip {
-      border: 1px solid #e5e7eb;
-      background: #fff;
-      color: #374151;
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .chip:hover {
-      border-color: #f59e0b;
-      color: #111827;
-    }
-
-    .status-badge {
-      display: inline-block;
-      margin-bottom: 12px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      background: #fff7e8;
-      color: #9a3412;
-      border: 1px solid #f3c26a;
-    }
-
-    .ios-tip {
-      display: none;
-      margin-top: 14px;
-      background: #fff7ed;
-      border: 1px solid #fdba74;
-      color: #9a3412;
-      border-radius: 16px;
-      padding: 14px 16px;
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    @media (max-width: 700px) {
-      .wrap {
-        padding: 16px 10px 36px;
-      }
-
-      .logo-shell {
-        width: 110px;
-        height: 110px;
-        border-radius: 26px;
-      }
-
-      .logo-shell img {
-        width: 66px;
-        height: 66px;
-      }
-
-      h1 {
-        font-size: 32px;
-      }
-
-      .subtitle {
-        font-size: 16px;
-      }
-
-      .card-header {
-        padding: 16px;
-      }
-
-      .avatar {
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
-      }
-
-      .avatar img {
-        width: 34px;
-        height: 34px;
-      }
-
-      .header-text h2 {
-        font-size: 20px;
-      }
-
-      .header-text p {
-        font-size: 14px;
-      }
-
-      .card-body {
-        padding: 16px;
-      }
-
-      .question-box {
-        height: 58px;
-        font-size: 16px;
-        border-radius: 16px;
-      }
-
-      .answer-box {
-        min-height: 220px;
-        font-size: 16px;
-        padding: 18px;
-        border-radius: 18px;
-      }
-
-      .btn {
-        height: 52px;
-        font-size: 17px;
-      }
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="logo-shell">
-        <img src="public/chambita.png" alt="Chambatina" />
-      </div>
-      <h1>Chambatina</h1>
-      <p class="subtitle">Consulte su paquete o haga su pregunta</p>
+
+<div class="hero">
+  <div class="container">
+
+    <h1>Chambatina</h1>
+
+    <h2>Envíos a Cuba y soluciones de energía con confianza</h2>
+
+    <p>
+      Rastrea tus paquetes, consulta servicios y recibe orientación clara
+      sobre logística y sistemas solares.
+    </p>
+
+    <div class="buttons">
+      <button class="primary">Rastrear paquete</button>
+      <button class="secondary">Ver servicios</button>
     </div>
 
     <div class="card">
-      <div class="card-header">
-        <div class="avatar">
-          <img src="public/chambita.png" alt="Chambita" />
-        </div>
-        <div class="header-text">
-          <h2>Chambita</h2>
-          <p>Asistente virtual</p>
-        </div>
-      </div>
+      <h3>Rastreo rápido</h3>
 
-      <div class="card-body">
-        <input
-          id="mensaje"
-          class="question-box"
-          type="text"
-          placeholder="Escriba su CPK o su pregunta"
-          autocomplete="off"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-        />
+      <input placeholder="Introduce tu CPK">
+      <button class="search-btn">Buscar</button>
 
-        <div id="respuesta" class="answer-box">Escriba su número CPK o su pregunta y toque Enviar.</div>
-
-        <button id="btnEnviar" class="btn" type="button">Enviar</button>
-
-        <div class="helper-row">
-          <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
-          <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">Precio por libra</button>
-          <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">Tiempo de envío</button>
-        </div>
-
-        <div id="iosTip" class="ios-tip">
-          En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
-        </div>
-      </div>
     </div>
+
   </div>
+</div>
 
-  <script>
-    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
-
-    const mensaje = document.getElementById("mensaje");
-    const respuesta = document.getElementById("respuesta");
-    const btnEnviar = document.getElementById("btnEnviar");
-    const iosTip = document.getElementById("iosTip");
-
-    let procesando = false;
-
-    function normalizarNumero(texto) {
-      return String(texto || "").replace(/\D/g, "");
-    }
-
-    function esCPK(texto) {
-      const limpio = normalizarNumero(texto);
-      return limpio.length >= 6 && limpio.length <= 10;
-    }
-
-    function setProcesando(valor) {
-      procesando = valor;
-      mensaje.disabled = valor;
-      btnEnviar.disabled = valor;
-      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
-      respuesta.classList.toggle("is-loading", valor);
-    }
-
-    function ponerRespuesta(texto) {
-      respuesta.textContent = texto;
-      respuesta.classList.remove("is-loading");
-    }
-
-    function ponerRespuestaHTML(html) {
-      respuesta.innerHTML = html;
-      respuesta.classList.remove("is-loading");
-    }
-
-    function usarEjemplo(texto) {
-      if (procesando) return;
-      mensaje.value = texto;
-      mensaje.focus();
-    }
-
-    function construirRespuestaRastreo(data) {
-      const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
-      const fecha = data.fecha || "No disponible";
-      const descripcion = data.descripcion || "Sin descripción disponible.";
-      const estado = data.estado || "SIN ESTADO";
-
-      return `
-        <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
-        <strong>${escapeHtml(saludo)}</strong>
-
-        Fecha: ${escapeHtml(fecha)}
-
-        Descripción:
-        ${escapeHtml(descripcion)}
-      `;
-    }
-
-    function escapeHtml(texto) {
-      return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    async function enviarChat(texto) {
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ mensaje: texto })
-        });
-
-        const raw = await res.text();
-        let data = null;
-
-        try {
-          data = JSON.parse(raw);
-        } catch (e) {
-          data = null;
-        }
-
-        if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-          return;
-        }
-
-        if (!data) {
-          ponerRespuesta("El servidor respondió con un formato no válido.");
-          return;
-        }
-
-        if (!data.ok) {
-          ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
-          return;
-        }
-
-        ponerRespuesta(
-          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
-        );
-
-      } catch (error) {
-        ponerRespuesta("No fue posible conectar con el servidor.");
-        console.error("Error chat:", error);
-      }
-    }
-
-    async function buscarCPK(codigo) {
-      const cpk = normalizarNumero(codigo);
-
-      if (!cpk) {
-        ponerRespuesta("Escriba un CPK válido.");
-        return;
-      }
-
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
-        const raw = await res.text();
-        let data = null;
-
-        try {
-          data = JSON.parse(raw);
-        } catch (e) {
-          data = null;
-        }
-
-        if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-          return;
-        }
-
-        if (!data) {
-          ponerRespuesta("El servidor respondió con un formato no válido.");
-          return;
-        }
-
-        if (!data.ok) {
-          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
-          return;
-        }
-
-        ponerRespuestaHTML(construirRespuestaRastreo(data));
-
-      } catch (error) {
-        ponerRespuesta("No fue posible conectar con el servidor.");
-        console.error("Error rastreo:", error);
-      }
-    }
-
-    async function procesar() {
-      if (procesando) return;
-
-      const texto = mensaje.value.trim();
-      if (!texto) return;
-
-      setProcesando(true);
-      ponerRespuesta("Consultando...");
-
-      try {
-        if (esCPK(texto)) {
-          await buscarCPK(texto);
-        } else {
-          await enviarChat(texto);
-        }
-      } finally {
-        setProcesando(false);
-        mensaje.focus();
-      }
-    }
-
-    btnEnviar.addEventListener("click", procesar);
-
-    mensaje.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        procesar();
-      }
-    });
-
-    function esIOS() {
-      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-    }
-
-    function esSafari() {
-      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
-    }
-
-    function estaInstalada() {
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }
-
-    if (esIOS() && esSafari() && !estaInstalada()) {
-      iosTip.style.display = "block";
-    }
-
-    window.addEventListener("load", function() {
-      mensaje.disabled = false;
-      mensaje.focus();
-    });
-  </script>
 </body>
 </html>
