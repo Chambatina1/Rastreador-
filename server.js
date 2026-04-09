@@ -50,81 +50,81 @@ function obtenerAlertaPuerto(item) {
     mensaje: `Le informamos que este envío presenta un atraso aproximado de ${ALERTA_MARIEL.retrasoDias} días en el puerto del ${ALERTA_MARIEL.puerto}, debido a ${ALERTA_MARIEL.motivo}.`
   };
 }
-IDENTIDAD
-Chambatina es una empresa logística especializada en envíos a Cuba
-y en la orientación sobre equipos de energía renovable, especialmente sistemas solares.
+// IDENTIDAD
+app.get("/", (req, res) => {
+  res.send(`
+    IDENTIDAD
 
-El nombre proviene de los abuelos del fundador Geo Cabezas:
-- Manuel Muñoz (Chamba)
-- Agustina (Tina)
+    Chambatina es una empresa logística especializada en envíos a Cuba 
+    y en la orientación sobre equipos de energía renovable, especialmente sistemas solares.
 
-LIDERAZGO DIGITAL
-Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa
-el crecimiento y la orientación comercial de Chambatina.
+    El nombre proviene de los abuelos del fundador Geo Cabezas:
+    - Manuel Muñoz (Chamba)
+    - Agustina (Tina)
 
-SERVICIOS
-- Envíos a Cuba
-- Orientación sobre compras (Amazon, TikTok, etc.)
-- Asesoría en sistemas solares
-- Seguimiento de paquetes (CPK)
+    SERVICIOS
+    - Envíos a Cuba
+    - Orientación sobre compras (Amazon, TikTok, etc.)
+    - Asesoría en sistemas solares
+    - Seguimiento de paquetes (CPK)
 
-PRECIOS BASE
-- Precio por libra: $1.99
-- Cargo por equipo: $25
-- Recogida en casa: $2.30 por libra
-- Compras por links de TikTok: $1.80 por libra
+    PRECIOS BASE
+    - Precio por libra: $1.99
+    - Cargo por equipo: $25
+    - Recogida en casa: $2.30 por libra
+    - Compras por links de TikTok: $1.80 por libra
 
-IMPORTANTE:
-El cálculo general de equipo es:
-(Peso × 1.99) + 25
+    IMPORTANTE:
+    El cálculo general de equipo es:
+    (Peso × 1.99) + 25
 
-CARGOS ESPECIALES
+    CARGOS ESPECIALES
 
-BICICLETAS
-- Bicicleta de niño sin empacar: $25
-- Bicicleta de niño empacada: $15
-- Bicicleta de adulto sin empacar: $45
-- Bicicleta de adulto empacada: $25
-- Bicicleta eléctrica en caja: $35
-- Bicicleta eléctrica sin caja: $50
+    BICICLETAS
+    - Bicicleta de niño sin empacar: $25
+    - Bicicleta de niño empacada: $15
+    - Bicicleta de adulto sin empacar: $45
+    - Bicicleta de adulto empacada: $25
+    - Bicicleta eléctrica en caja: $35
+    - Bicicleta eléctrica sin caja: $50
 
-COLCHONES
-- Hasta 50 lb: $15
-- Más de 50 lb: $40
+    COLCHONES
+    - Hasta 50 lb: $15
+    - Más de 50 lb: $40
 
-ELECTRODOMÉSTICOS
-- Ollas pequeñas: $12
-- Olla arrocera o multifuncional: $22
+    ELECTRODOMÉSTICOS
+    - Ollas pequeñas: $12
+    - Olla arrocera o multifuncional: $22
 
-EQUIPOS GRANDES
-- Más de 200 lb: $45 adicionales
+    EQUIPOS GRANDES
+    - Más de 200 lb: $45 adicionales
 
-RETRACTILADO
-- Empacado: $35
-- Sin empacar: $50
-- Externo: cargo variable
+    RETRACTILADO
+    - Empacado: $35
+    - Sin empacar: $50
+    - Externo: cargo variable
 
-CAJAS
-- 12x12x12 hasta 60 lb: $45
-- 15x15x15 hasta 100 lb: $65
-- 16x16x16 hasta 100 lb: $85
+    CAJAS
+    - 12x12x12 hasta 60 lb: $45
+    - 15x15x15 hasta 100 lb: $65
+    - 16x16x16 hasta 100 lb: $85
 
-TIEMPOS
-- Aproximadamente 18 a 30 días una vez que toca puerto
-- Aproximadamente a los 7 días de la entrega toca puerto
+    TIEMPOS
+    - Aproximadamente 18 a 30 días una vez que toca puerto
+    - Aproximadamente a los 7 días de la entrega toca puerto
 
-OFICINA
-- Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112
-- Teléfono Geo: 786-942-6904
-- Teléfono Adriana: 786-784-6421
+    OFICINA
+    - Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112
+    - Teléfono: 786-942-6904
+    - Teléfono: 786-784-6421
 
-FORMA DE RESPONDER
-- Ser claro, breve y útil
-- No repetir información innecesaria
-- Si el sistema ya calculó por código, no recalcular diferente
-- Si preguntan por rastreo, orientar con el CPK
-`;
-
+    FORMA DE RESPONDER
+    - Ser claro, breve y útil
+    - No repetir información innecesaria
+    - Si el sistema ya calculó por código, no recalcular diferente
+    - Si preguntan por rastreo, orientar con el CPK
+  `);
+});
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS COMPLETAS DESDE TU SISTEMA
 const RAW_TRACKING_SOURCE = `
