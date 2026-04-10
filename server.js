@@ -240,23 +240,21 @@ CHAMBATINA MIAMI	GEO MIA		CPK-0261876	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FAC
 CHAMBATINA MIAMI	GEO MIA		CPK-0262009	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-31	YORDANKA ODUARDO CABALLERO		96101018736	CALLE ZONA INDUSTRIAL SIN NUMERO Rpto. BARRIO VERSALLES, MATANZAS, MATANZAS	50697082	LICET LEYVA LEYVA			2.99	0	1	15.66	0.003	0.5	0	0		
 
 `;
-
 function obtenerAtraso(cpk) {
-  const lineas = RAW_DELAYED_SOURCE
-  .split("\n")
-  .flatMap(l => l.split("CHAMBATINA").map((x, i) => i === 0 ? x : "CHAMBATINA" + x))
-  .map(l => l.trim())
-  .filter(Boolean);
-  
-  const linea = lineas.find(linea => linea.toUpperCase().includes(objetivo));
+  const objetivo = `CPK-${cpk}`; // 👈 ESTA LÍNEA FALTABA
+
+  const linea = RAW_DELAYED_SOURCE
+    .split("\n")
+    .find(l => l.includes(objetivo));
 
   if (!linea) return null;
 
-  const fechaMatch = linea.match(/\b\d{4}-\d{2}-\d{2}\b/);
+  const partes = linea.split("\t");
+  const fecha = partes[10];
 
   return {
-    cpk: String(cpk).trim(),
-    fechaOriginal: fechaMatch ? fechaMatch[0] : null,
+    cpk,
+    fechaOriginal: fecha,
     raw: linea
   };
 }
