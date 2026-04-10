@@ -1,3 +1,6 @@
+Index 9.4.26
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -18,7 +21,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #f4f5f7 0%, #eef2f7 100%);
+      background: #f4f5f7;
       color: #111827;
     }
 
@@ -220,18 +223,6 @@
       border: 1px solid #f3c26a;
     }
 
-    .delay-badge {
-      display: inline-block;
-      margin-bottom: 12px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
     .ios-tip {
       display: none;
       margin-top: 14px;
@@ -408,15 +399,6 @@
       mensaje.focus();
     }
 
-    function escapeHtml(texto) {
-      return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
     function construirRespuestaRastreo(data) {
       const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
       const fecha = data.fecha || "No disponible";
@@ -434,14 +416,13 @@
       `;
     }
 
-    function construirRespuestaAtraso(data) {
-      return `
-        <div class="delay-badge">Envío con atraso</div>
-        <strong>${escapeHtml(data.mensaje || "Este envío presenta atraso.")}</strong>
-        ${data.fechaOriginal ? `
-
-Fecha original: ${escapeHtml(data.fechaOriginal)}` : ""}
-      `;
+    function escapeHtml(texto) {
+      return String(texto || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     async function enviarChat(texto) {
@@ -481,6 +462,7 @@ Fecha original: ${escapeHtml(data.fechaOriginal)}` : ""}
         ponerRespuesta(
           data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
         );
+
       } catch (error) {
         ponerRespuesta("No fue posible conectar con el servidor.");
         console.error("Error chat:", error);
@@ -496,7 +478,7 @@ Fecha original: ${escapeHtml(data.fechaOriginal)}` : ""}
       }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/api/tracking/${encodeURIComponent(cpk)}`);
+        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
         const raw = await res.text();
         let data = null;
 
@@ -521,12 +503,8 @@ Fecha original: ${escapeHtml(data.fechaOriginal)}` : ""}
           return;
         }
 
-        if (data.tipo === "atrasado") {
-          ponerRespuestaHTML(construirRespuestaAtraso(data));
-          return;
-        }
-
         ponerRespuestaHTML(construirRespuestaRastreo(data));
+
       } catch (error) {
         ponerRespuesta("No fue posible conectar con el servidor.");
         console.error("Error rastreo:", error);
