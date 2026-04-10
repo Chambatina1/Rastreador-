@@ -240,32 +240,63 @@ CHAMBATINA MIAMI	GEO MIA		CPK-0261876	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FAC
 CHAMBATINA MIAMI	GEO MIA		CPK-0262009	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-31	YORDANKA ODUARDO CABALLERO		96101018736	CALLE ZONA INDUSTRIAL SIN NUMERO Rpto. BARRIO VERSALLES, MATANZAS, MATANZAS	50697082	LICET LEYVA LEYVA			2.99	0	1	15.66	0.003	0.5	0	0		
 
 `;
-function obtenerAtraso(cpk) {
-  const objetivo = `CPK-${cpk}`;
+const db = getTrackingDb();
+const item = db[cpk];
+const atraso = obtenerAtraso(cpk);
 
-  const lineas = RAW_DELAYED_SOURCE
-    .split("\n")
-    .flatMap(l => l.split("CHAMBATINA").map((x, i) => i === 0 ? x : "CHAMBATINA" + x))
-    .map(l => l.trim())
-    .filter(Boolean);
-
-  const linea = lineas.find(l => {
-    const partes = l.split(/\s+/);
-    return partes.includes(objetivo);
+if (!item && !atraso) {
+  return res.json({
+    ok: false,
+    mensaje: "No encontramos información para ese CPK."
   });
-
-  if (!linea) return null;
-
-  const fechaMatch = linea.match(/\b\d{4}-\d{2}-\d{2}\b/);
-
-  return {
-    cpk,
-    fechaOriginal: fechaMatch ? fechaMatch[0] : null,
-    raw: linea
-  };
 }
 
-app.use(express.json({ limit: "2mb" }));
+if (
+  atraso &&
+  item &&
+  String(item.estado || "").trim().toUpperCase() === "EN AGENCIA"
+) {
+  return res.json({
+    ok: true,
+    tipo: "atrasado",
+    cpk: atraso.cpk,
+    fechaOriginal: atraso.fechaOriginal || "",
+    mensaje:
+      `Este envío se encuentra en puerto con atraso.\n\n` +
+      `Tiene un período estimado de hasta 10 días de atraso.`
+  });
+}
+
+if (atraso && !item) {
+  return res.json({
+    ok: true,
+    tipo: "atrasado",
+    cpk: atraso.cpk,
+    fechaOriginal: atraso.fechaOriginal || "",
+    mensaje:
+      `Este envío se encuentra en puerto con atraso.\n\n` +
+      `Tiene un período estimado de hasta 10 días de atraso.`
+  });
+}
+const alerta = obtenerAlertaPuerto(item);
+
+return res.json({
+  ok: true,
+  tipo: "normal",
+  cpk: item.cpk || cpk,
+  fecha: item.fecha || "",
+  estado: item.estado || "",
+  descripcion: item.descripcion || "",
+  embarcador: item.embarcador || "",
+  consignatario: item.consignatario || "",
+  saludo: construirSaludo(
+    item.embarcador || "",
+    item.consignatario || "",
+    item.estado || ""
+  ),
+  alerta
+});
+
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
 ========================================
