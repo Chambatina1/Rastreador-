@@ -1247,11 +1247,11 @@ app.get("/api/health", (req, res) => {
 });
 
 // ================= RASTREO =================
+// ================= RASTREO =================
 app.get("/api/tracking/:cpk", (req, res) => {
   try {
-    const cpk = String(req.params.cpk).trim().padStart(7, "0");
-  
-    // validar primero
+    const cpk = String(req.params.cpk || "").trim().padStart(7, "0");
+
     if (!cpk) {
       return res.json({
         ok: false,
@@ -1259,7 +1259,7 @@ app.get("/api/tracking/:cpk", (req, res) => {
       });
     }
 
-    // detectar atrasado antes de la lógica normal
+    // 1) Revisar atraso primero
     const atraso = obtenerAtraso(cpk);
 
     if (atraso) {
@@ -1267,13 +1267,14 @@ app.get("/api/tracking/:cpk", (req, res) => {
         ok: true,
         tipo: "atrasado",
         cpk: atraso.cpk,
-        fechaOriginal: atraso.fechaOriginal,
+        fechaOriginal: atraso.fechaOriginal || "",
         mensaje:
           `Este envío se encuentra en puerto con atraso.\n\n` +
-          `Tiene un período estimado de hasta 10 días de atraso.\n` +
-          `A    `
-  });
-}
+          `Tiene un período estimado de hasta 10 días de atraso.`
+      });
+    }
+
+    // 2) Si no está atrasado, buscar en la base normal
     const db = getTrackingDb();
     const item = db[cpk];
 
@@ -1289,16 +1290,19 @@ app.get("/api/tracking/:cpk", (req, res) => {
     return res.json({
       ok: true,
       tipo: "normal",
-      cpk: item.cpk,
+      cpk: item.cpk || cpk,
       fecha: item.fecha || "",
-      estado: item.estado,
-      descripcion: item.descripcion,
-      embarcador: item.embarcador,
-      consignatario: item.consignatario,
-      saludo: construirSaludo(item.embarcador, item.consignatario, item.estado),
+      estado: item.estado || "",
+      descripcion: item.descripcion || "",
+      embarcador: item.embarcador || "",
+      consignatario: item.consignatario || "",
+      saludo: construirSaludo(
+        item.embarcador || "",
+        item.consignatario || "",
+        item.estado || ""
+      ),
       alerta
     });
-
   } catch (error) {
     console.error("Error en /api/tracking/:cpk:", error);
 
