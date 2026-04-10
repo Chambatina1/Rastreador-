@@ -251,33 +251,31 @@ if (!item && !atraso) {
   });
 }
 
-if (
-  atraso &&
-  item &&
-  String(item.estado || "").trim().toUpperCase() === "EN AGENCIA"
-) {
+// si está en la lista manual de atrasados
+if (atraso) {
   return res.json({
     ok: true,
     tipo: "atrasado",
-    cpk: atraso.cpk,
+    cpk: item?.cpk || atraso.cpk || cpk,
     fechaOriginal: atraso.fechaOriginal || "",
+    fecha: item?.fecha || "",
+    estado: item?.estado || "",
+    descripcion: item?.descripcion || "",
+    embarcador: item?.embarcador || "",
+    consignatario: item?.consignatario || "",
+    saludo: item
+      ? construirSaludo(
+          item.embarcador || "",
+          item.consignatario || "",
+          item.estado || ""
+        )
+      : "Este envío presenta atraso.",
     mensaje:
       `Este envío se encuentra en puerto con atraso.\n\n` +
       `Tiene un período estimado de hasta 10 días de atraso.`
   });
 }
 
-if (atraso && !item) {
-  return res.json({
-    ok: true,
-    tipo: "atrasado",
-    cpk: atraso.cpk,
-    fechaOriginal: atraso.fechaOriginal || "",
-    mensaje:
-      `Este envío se encuentra en puerto con atraso.\n\n` +
-      `Tiene un período estimado de hasta 10 días de atraso.`
-  });
-}
 const alerta = obtenerAlertaPuerto(item);
 
 return res.json({
@@ -296,7 +294,6 @@ return res.json({
   ),
   alerta
 });
-
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
 ========================================
@@ -838,7 +835,30 @@ function sumarDiasNaturales(fechaTexto, dias) {
   d.setDate(d.getDate() + dias);
   return d;
 }
+function obtenerAtraso(cpk) {
+  const objetivo = `CPK-${cpk}`;
 
+  const lineas = RAW_DELAYED_SOURCE
+    .split("\n")
+    .flatMap(l => l.split("CHAMBATINA").map((x, i) => i === 0 ? x : "CHAMBATINA" + x))
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  const linea = lineas.find(l => {
+    const partes = l.split(/\s+/);
+    return partes.includes(objetivo);
+  });
+
+  if (!linea) return null;
+
+  const fechaMatch = linea.match(/\b\d{4}-\d{2}-\d{2}\b/);
+
+  return {
+    cpk,
+    fechaOriginal: fechaMatch ? fechaMatch[0] : null,
+    raw: linea
+  };
+}
 function diasHabilesEntre(desdeTexto, hastaFecha = new Date()) {
   const desde = parseFechaSegura(desdeTexto);
   if (!desde) return 0;
@@ -1285,6 +1305,7 @@ app.get("/api/health", (req, res) => {
 
 // ================= RASTREO =================
 // ================= RASTREO =================
+// ================= RASTREO =================
 app.get("/api/tracking/:cpk", (req, res) => {
   try {
     const cpk = String(req.params.cpk || "").trim().padStart(7, "0");
@@ -1296,32 +1317,44 @@ app.get("/api/tracking/:cpk", (req, res) => {
       });
     }
 
-    // 1) Revisar atraso primero
-    const atraso = obtenerAtraso(cpk);
-
-    if (atraso) {
-      return res.json({
-        ok: true,
-        tipo: "atrasado",
-        cpk: atraso.cpk,
-        fechaOriginal: atraso.fechaOriginal || "",
-        mensaje:
-          `Este envío se encuentra en puerto con atraso.\n\n` +
-          `Tiene un período estimado de hasta 10 días de atraso.`
-      });
-    }
-
-    // 2) Si no está atrasado, buscar en la base normal
     const db = getTrackingDb();
     const item = db[cpk];
+    const atraso = obtenerAtraso(cpk);
 
-    if (!item) {
+    // ❌ no existe en ningún lado
+    if (!item && !atraso) {
       return res.json({
         ok: false,
         mensaje: "No encontramos información para ese CPK."
       });
     }
 
+    // 🔴 atraso manual (SIN mezclar con estado)
+    if (atraso) {
+      return res.json({
+        ok: true,
+        tipo: "atrasado",
+        cpk: item?.cpk || atraso.cpk || cpk,
+        fechaOriginal: atraso.fechaOriginal || "",
+        fecha: item?.fecha || "",
+        estado: item?.estado || "",
+        descripcion: item?.descripcion || "",
+        embarcador: item?.embarcador || "",
+        consignatario: item?.consignatario || "",
+        saludo: item
+          ? construirSaludo(
+              item.embarcador || "",
+              item.consignatario || "",
+              item.estado || ""
+            )
+          : "Este envío presenta atraso.",
+        mensaje:
+          `Este envío se encuentra en puerto con atraso.\n\n` +
+          `Tiene un período estimado de hasta 10 días de atraso.`
+      });
+    }
+
+    // 🟢 lógica normal
     const alerta = obtenerAlertaPuerto(item);
 
     return res.json({
@@ -1340,6 +1373,7 @@ app.get("/api/tracking/:cpk", (req, res) => {
       ),
       alerta
     });
+
   } catch (error) {
     console.error("Error en /api/tracking/:cpk:", error);
 
