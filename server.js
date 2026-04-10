@@ -1,7 +1,4 @@
 
-SERVER.JS RASTREADOR 9.4.2025
-
-
 import express from "express";
 import cors from "cors";
 
