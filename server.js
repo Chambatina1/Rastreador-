@@ -1306,6 +1306,7 @@ app.get("/api/health", (req, res) => {
 // ================= RASTREO =================
 // ================= RASTREO =================
 // ================= RASTREO =================
+// ================= RASTREO =================
 app.get("/api/tracking/:cpk", (req, res) => {
   try {
     const cpk = String(req.params.cpk || "").trim().padStart(7, "0");
@@ -1354,6 +1355,35 @@ app.get("/api/tracking/:cpk", (req, res) => {
       });
     }
 
+    // 🟢 lógica normal
+    const alerta = obtenerAlertaPuerto(item);
+
+    return res.json({
+      ok: true,
+      tipo: "normal",
+      cpk: item.cpk || cpk,
+      fecha: item.fecha || "",
+      estado: item.estado || "",
+      descripcion: item.descripcion || "",
+      embarcador: item.embarcador || "",
+      consignatario: item.consignatario || "",
+      saludo: construirSaludo(
+        item.embarcador || "",
+        item.consignatario || "",
+        item.estado || ""
+      ),
+      alerta
+    });
+
+  } catch (error) {
+    console.error("Error en /api/tracking/:cpk:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
+    });
+  }
+});
     // 🟢 lógica normal
     const alerta = obtenerAlertaPuerto(item);
 
