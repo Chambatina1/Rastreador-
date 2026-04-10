@@ -1244,8 +1244,8 @@ app.get("/api/health", (req, res) => {
 // ================= RASTREO =================
 app.get("/api/tracking/:cpk", (req, res) => {
   try {
-    const { cpk } = req.params;
-
+    const cpk = String(req.params.cpk).trim().padStart(7, "0");
+  
     // validar primero
     if (!cpk) {
       return res.json({
