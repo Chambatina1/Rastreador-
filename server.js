@@ -241,25 +241,31 @@ CHAMBATINA MIAMI	GEO MIA		CPK-0262009	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FAC
 
 `;
 function obtenerAtraso(cpk) {
-  const objetivo = `CPK-${cpk}`; // 👈 ESTA LÍNEA FALTABA
+  const objetivo = `CPK-${cpk}`;
 
-  const linea = RAW_DELAYED_SOURCE
+  const lineas = RAW_DELAYED_SOURCE
     .split("\n")
-    .find(l => l.includes(objetivo));
+    .flatMap(l => l.split("CHAMBATINA").map((x, i) => i === 0 ? x : "CHAMBATINA" + x))
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  const linea = lineas.find(l => {
+    const partes = l.split(/\s+/);
+    return partes.includes(objetivo);
+  });
 
   if (!linea) return null;
 
-  const partes = linea.split("\t");
-  const fecha = partes[10];
+  const fechaMatch = linea.match(/\b\d{4}-\d{2}-\d{2}\b/);
 
   return {
     cpk,
-    fechaOriginal: fecha,
+    fechaOriginal: fechaMatch ? fechaMatch[0] : null,
     raw: linea
   };
 }
-app.use(express.json({ limit: "2mb" }));
 
+app.use(express.json({ limit: "2mb" }));
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
 ========================================
