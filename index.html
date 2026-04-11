@@ -356,211 +356,291 @@ Index 9.4.26
     </div>
   </div>
 
-  <script>
-    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
+ <script>
+  const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-    const mensaje = document.getElementById("mensaje");
-    const respuesta = document.getElementById("respuesta");
-    const btnEnviar = document.getElementById("btnEnviar");
-    const iosTip = document.getElementById("iosTip");
+  const mensaje = document.getElementById("mensaje");
+  const respuesta = document.getElementById("respuesta");
+  const btnEnviar = document.getElementById("btnEnviar");
+  const iosTip = document.getElementById("iosTip");
 
-    let procesando = false;
+  let procesando = false;
 
-    function normalizarNumero(texto) {
-      return String(texto || "").replace(/\D/g, "");
+  function normalizarNumero(texto) {
+    return String(texto || "").replace(/\D/g, "");
+  }
+
+ function esCPK(texto) {
+  const limpio = normalizarNumero(texto);
+  return limpio.length >= 6 && limpio.length <= 10;
+}
+
+function esCarnet(texto) {
+  const limpio = normalizarNumero(texto);
+  return limpio.length === 11;
+}
+   
+  function setProcesando(valor) {
+    procesando = valor;
+    mensaje.disabled = valor;
+    btnEnviar.disabled = valor;
+    btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
+    respuesta.classList.toggle("is-loading", valor);
+  }
+
+  function ponerRespuesta(texto) {
+    respuesta.textContent = texto;
+    respuesta.classList.remove("is-loading");
+  }
+
+  function ponerRespuestaHTML(html) {
+    respuesta.innerHTML = html;
+    respuesta.classList.remove("is-loading");
+  }
+
+  function usarEjemplo(texto) {
+    if (procesando) return;
+    mensaje.value = texto;
+    mensaje.focus();
+  }
+
+  function escapeHtml(texto) {
+    return String(texto || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function construirRespuestaRastreo(data) {
+    const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
+    const fecha = data.fecha || "No disponible";
+    const descripcion = data.descripcion || "Sin descripción disponible.";
+    const estado = data.estado || "SIN ESTADO";
+
+    return `
+      <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
+      <strong>${escapeHtml(saludo)}</strong>
+      <br><br>
+      <strong>Fecha:</strong> ${escapeHtml(fecha)}
+      <br><br>
+      <strong>Descripción:</strong><br>
+      ${escapeHtml(descripcion)}
+    `;
+  }
+
+  function construirTarjetasCarnet(data) {
+    const registros = Array.isArray(data)
+      ? data
+      : Array.isArray(data.resultados)
+        ? data.resultados
+        : data.data && Array.isArray(data.data)
+          ? data.data
+          : data.items && Array.isArray(data.items)
+            ? data.items
+            : [];
+
+    if (!registros.length) {
+      return `<div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>`;
     }
 
-    function esCPK(texto) {
-      const limpio = normalizarNumero(texto);
-      return limpio.length >= 6 && limpio.length <= 10;
-    }
+    return `
+      <div class="tarjetas-carnet">
+        ${registros.map(item => `
+          <div class="tarjeta-carnet">
+            <div class="tarjeta-carnet__fila"><strong>Nombre:</strong> ${escapeHtml(item.nombre || item.name || "-")}</div>
+            <div class="tarjeta-carnet__fila"><strong>Carnet:</strong> ${escapeHtml(item.carnet || "-")}</div>
+            <div class="tarjeta-carnet__fila"><strong>CPK:</strong> ${escapeHtml(item.cpk || item.codigo || "-")}</div>
+            <div class="tarjeta-carnet__fila"><strong>Centro:</strong> ${escapeHtml(item.centro || item.sucursal || "-")}</div>
+            <div class="tarjeta-carnet__fila"><strong>Estado:</strong> ${escapeHtml(item.estado || "-")}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
 
-    function setProcesando(valor) {
-      procesando = valor;
-      mensaje.disabled = valor;
-      btnEnviar.disabled = valor;
-      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
-      respuesta.classList.toggle("is-loading", valor);
-    }
+  async function enviarChat(texto) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ mensaje: texto })
+      });
 
-    function ponerRespuesta(texto) {
-      respuesta.textContent = texto;
-      respuesta.classList.remove("is-loading");
-    }
+      const raw = await res.text();
+      let data = null;
 
-    function ponerRespuestaHTML(html) {
-      respuesta.innerHTML = html;
-      respuesta.classList.remove("is-loading");
-    }
-
-    function usarEjemplo(texto) {
-      if (procesando) return;
-      mensaje.value = texto;
-      mensaje.focus();
-    }
-
-    function construirRespuestaRastreo(data) {
-      const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
-      const fecha = data.fecha || "No disponible";
-      const descripcion = data.descripcion || "Sin descripción disponible.";
-      const estado = data.estado || "SIN ESTADO";
-
-      return `
-        <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
-        <strong>${escapeHtml(saludo)}</strong>
-
-        Fecha: ${escapeHtml(fecha)}
-
-        Descripción:
-        ${escapeHtml(descripcion)}
-      `;
-    }
-
-    function escapeHtml(texto) {
-      return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    async function enviarChat(texto) {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ mensaje: texto })
-        });
-
-        const raw = await res.text();
-        let data = null;
-
-        try {
-          data = JSON.parse(raw);
-        } catch (e) {
-          data = null;
-        }
-
-        if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-          return;
-        }
-
-        if (!data) {
-          ponerRespuesta("El servidor respondió con un formato no válido.");
-          return;
-        }
-
-        if (!data.ok) {
-          ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
-          return;
-        }
-
-        ponerRespuesta(
-          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
-        );
-
-      } catch (error) {
-        ponerRespuesta("No fue posible conectar con el servidor.");
-        console.error("Error chat:", error);
+        data = JSON.parse(raw);
+      } catch (e) {
+        data = null;
       }
-    }
 
-    async function buscarCPK(codigo) {
-      const cpk = normalizarNumero(codigo);
-
-      if (!cpk) {
-        ponerRespuesta("Escriba un CPK válido.");
+      if (!res.ok) {
+        ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
         return;
       }
 
+      if (!data) {
+        ponerRespuesta("El servidor respondió con un formato no válido.");
+        return;
+      }
+
+      if (!data.ok) {
+        ponerRespuesta(data.mensaje || "No se pudo procesar la solicitud.");
+        return;
+      }
+
+      ponerRespuesta(
+        data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
+      );
+
+    } catch (error) {
+      ponerRespuesta("No fue posible conectar con el servidor.");
+      console.error("Error chat:", error);
+    }
+  }
+
+  async function buscarCPK(codigo) {
+    const cpk = normalizarNumero(codigo);
+
+    if (!cpk) {
+      ponerRespuesta("Escriba un CPK válido.");
+      return null;
+    }
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
+      const raw = await res.text();
+      let data = null;
+
       try {
-        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
-        const raw = await res.text();
-        let data = null;
+        data = JSON.parse(raw);
+      } catch (e) {
+        data = null;
+      }
 
-        try {
-          data = JSON.parse(raw);
-        } catch (e) {
-          data = null;
-        }
+      if (!res.ok) {
+        ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+        return null;
+      }
 
-        if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
-          return;
-        }
+      if (!data) {
+        ponerRespuesta("El servidor respondió con un formato no válido.");
+        return null;
+      }
 
-        if (!data) {
-          ponerRespuesta("El servidor respondió con un formato no válido.");
-          return;
-        }
+      if (!data.ok) {
+        ponerRespuesta(data.mensaje || "No se encontró el CPK.");
+        return null;
+      }
 
-        if (!data.ok) {
-          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
-          return;
-        }
+      return data;
+    } catch (error) {
+      console.error("Error buscarCPK:", error);
+      ponerRespuesta("Error de conexión con el servidor.");
+      return null;
+    }
+  }
 
+  async function buscarCarnet(codigo) {
+    const carnet = normalizarNumero(codigo);
+
+    if (!carnet) {
+      ponerRespuesta("Escriba un carnet válido.");
+      return null;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/buscar-carnet?carnet=${encodeURIComponent(carnet)}`);
+      const raw = await response.text();
+      let data = null;
+
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        data = null;
+      }
+
+      if (!response.ok) {
+        ponerRespuesta(data?.mensaje || `Error del servidor (${response.status})`);
+        return null;
+      }
+
+      if (!data) {
+        ponerRespuesta("El servidor respondió con un formato no válido.");
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error buscarCarnet:", error);
+      ponerRespuesta("Error de conexión con el servidor.");
+      return null;
+    }
+  }
+
+async function procesar() {
+  if (procesando) return;
+
+  const texto = mensaje.value.trim();
+  if (!texto) return;
+
+  setProcesando(true);
+  ponerRespuesta("Consultando...");
+
+  try {
+    if (esCarnet(texto)) {
+      const data = await buscarCarnet(texto);
+      if (data) {
+        ponerRespuestaHTML(construirTarjetasCarnet(data));
+      }
+    } else if (esCPK(texto)) {
+      const data = await buscarCPK(texto);
+      if (data) {
         ponerRespuestaHTML(construirRespuestaRastreo(data));
-
-      } catch (error) {
-        ponerRespuesta("No fue posible conectar con el servidor.");
-        console.error("Error rastreo:", error);
       }
+    } else {
+      await enviarChat(texto);
     }
+  } finally {
+    setProcesando(false);
+    mensaje.focus();
+  }
+}
+  btnEnviar.addEventListener("click", procesar);
 
-    async function procesar() {
-      if (procesando) return;
-
-      const texto = mensaje.value.trim();
-      if (!texto) return;
-
-      setProcesando(true);
-      ponerRespuesta("Consultando...");
-
-      try {
-        if (esCPK(texto)) {
-          await buscarCPK(texto);
-        } else {
-          await enviarChat(texto);
-        }
-      } finally {
-        setProcesando(false);
-        mensaje.focus();
-      }
+  mensaje.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      procesar();
     }
+  });
 
-    btnEnviar.addEventListener("click", procesar);
+  function esIOS() {
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  }
 
-    mensaje.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        procesar();
-      }
-    });
+  function esSafari() {
+    return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+  }
 
-    function esIOS() {
-      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-    }
+  function estaInstalada() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
 
-    function esSafari() {
-      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
-    }
+  if (esIOS() && esSafari() && !estaInstalada()) {
+    iosTip.style.display = "block";
+  }
 
-    function estaInstalada() {
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }
+  window.addEventListener("load", function() {
+    mensaje.disabled = false;
+    mensaje.focus();
+  });
+</script>
 
-    if (esIOS() && esSafari() && !estaInstalada()) {
-      iosTip.style.display = "block";
-    }
-
-    window.addEventListener("load", function() {
-      mensaje.disabled = false;
-      mensaje.focus();
-    });
-  </script>
 </body>
 </html>
