@@ -954,6 +954,7 @@ function responderEcoflow(nombreProducto, peso = null) {
 }
 
 // ================= HEALTH =================
+// ================= HEALTH =================
 app.get("/api/health", (req, res) => {
   try {
     const db = getTrackingDb();
@@ -1006,6 +1007,128 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     });
   } catch (error) {
     console.error("Error en /api/rastreo/:cpk:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
+    });
+  }
+});
+
+// ================= BUSCAR POR CARNET =================
+app.get("/api/buscar-carnet", (req, res) => {
+  const carnet = String(req.query.carnet || "").replace(/\D/g, "");
+
+  if (!carnet) {
+    return res.status(400).json({
+      ok: false,
+      mensaje: "Carnet requerido"
+    });
+  }
+
+  try {
+    const lineas = RAW_TRACKING_SOURCE
+      .split("\n")
+      .map(l => l.trim())
+      .filter(Boolean);
+
+    const resultados = [];
+
+    for (const linea of lineas) {
+      if (!linea.includes("CPK-")) continue;
+      if (!linea.includes(carnet)) continue;
+
+      const partes = linea.split("\t");
+
+      resultados.push({
+        cpk: (partes[3] || "").replace("CPK-", "").trim(),
+        estado: (partes[4] || "").trim(),
+        fecha: (partes[11] || "").trim(),
+        nombre: (partes[12] || "").trim(),
+        carnet: (partes[14] || "").trim(),
+        direccion: (partes[15] || "").trim(),
+        telefono: (partes[16] || "").trim(),
+        destinatario: (partes[17] || "").trim(),
+        descripcion: (partes[9] || "").trim(),
+        centro: (partes[0] || "").trim()
+      });
+    }
+
+    return res.json({
+      ok: true,
+      resultados
+    });
+  } catch (error) {
+    console.error("Error en /api/buscar-carnet:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
+    });
+  }
+});
+
+// ================= BUSQUEDA GENERAL =================
+app.get("/api/buscar/:termino", (req, res) => {
+  try {
+    const termino = limpiarNumero(req.params.termino || "");
+
+    if (!termino) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Debe escribir un CPK o carnet válido."
+      });
+    }
+
+    // 1. Buscar como CPK
+    const encontrado = RAW_TRACKING_SOURCE.split("\n").find(line =>
+      line.includes(`CPK-${termino}`)
+    );
+
+    if (encontrado) {
+      const cols = encontrado.split("\t");
+
+      return res.json({
+        ok: true,
+        tipoBusqueda: "cpk",
+        cpk: termino,
+        estado: cols[4] || "SIN ESTADO",
+        fecha: cols[11] || "No disponible",
+        descripcion: cols[9] || "Sin descripción",
+        nombre: cols[12] || "No disponible",
+        saludo: `Hola, tu mercancía se encuentra en: ${cols[4] || "SIN ESTADO"}`
+      });
+    }
+
+    // 2. Buscar como carnet
+    const resultadosCarnet = RAW_TRACKING_SOURCE
+      .split("\n")
+      .filter(line => line.includes("CPK-") && line.includes(termino))
+      .map(line => {
+        const cols = line.split("\t");
+
+        return {
+          cpk: (cols[3] || "").replace("CPK-", "").trim(),
+          estado: cols[4] || "",
+          fecha: cols[11] || "",
+          descripcion: cols[9] || "",
+          nombre: cols[12] || "",
+          carnet: cols[14] || ""
+        };
+      });
+
+    if (resultadosCarnet.length > 0) {
+      return res.json({
+        ok: true,
+        tipoBusqueda: "carnet",
+        resultados: resultadosCarnet
+      });
+    }
+
+    return res.status(404).json({
+      ok: false,
+      mensaje: "No se encontró en Chambatina ni en base externa."
+    });
+  } catch (error) {
+    console.error("Error en /api/buscar/:termino:", error);
     return res.status(500).json({
       ok: false,
       mensaje: "Error interno del servidor"
@@ -1084,72 +1207,7 @@ app.post("/api/chat", async (req, res) => {
         respuesta
       });
     }
-app.get("/api/buscar/:termino", async (req, res) => {
-  const termino = limpiarNumero(req.params.termino || "");
 
-  if (!termino) {
-    return res.status(400).json({
-      ok: false,
-      mensaje: "Debe escribir un CPK o carnet válido."
-    });
-  }
-
-  // =============================
-  // 1. BUSCAR EN TU BASE LOCAL (CPK)
-  // =============================
-  const encontrado = RAW_TRACKING_SOURCE.split("\n").find(line =>
-    line.includes(`CPK-${termino}`)
-  );
-
-  if (encontrado) {
-    const cols = encontrado.split("\t");
-
-    return res.json({
-      ok: true,
-      tipoBusqueda: "cpk",
-      cpk: termino,
-      estado: cols[4] || "SIN ESTADO",
-      fecha: cols[11] || "No disponible",
-      descripcion: cols[9] || "Sin descripción",
-      nombre: cols[12] || "No disponible",
-      saludo: `Hola, tu mercancía se encuentra en: ${cols[4] || "SIN ESTADO"}`
-    });
-  }
-
-  // =============================
-  // 2. BUSCAR EN TU BASE LOCAL (CARNET)
-  // =============================
-  const resultadosCarnet = RAW_TRACKING_SOURCE
-    .split("\n")
-    .filter(line => line.includes(termino))
-    .map(line => {
-      const cols = line.split("\t");
-
-      return {
-        cpk: (cols[3] || "").replace("CPK-", ""),
-        estado: cols[4] || "",
-        fecha: cols[11] || "",
-        descripcion: cols[9] || "",
-        nombre: cols[12] || ""
-      };
-    });
-
-  if (resultadosCarnet.length > 0) {
-    return res.json({
-      ok: true,
-      tipoBusqueda: "carnet",
-      resultados: resultadosCarnet
-    });
-  }
-
-  // =============================
-  // 3. INTENTO EXTERNO (SIMULADO)
-  // =============================
-  return res.status(404).json({
-    ok: false,
-    mensaje: "No se encontró en Chambatina ni en base externa."
-  });
-});    
     // 4) EcoFlow sin peso
     if (info.intent === "ecoflow") {
       const pesoMem = info.peso || mem.lastWeight || null;
@@ -1281,7 +1339,6 @@ app.get("/api/buscar/:termino", async (req, res) => {
     });
   }
 });
-
 // ================= 404 =================
 app.use((req, res) => {
   return res.status(404).json({
