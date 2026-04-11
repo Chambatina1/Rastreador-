@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import axios from "axios";
+import * as cheerio from "cheerio";
 
 const app = express();
 
@@ -96,14 +98,59 @@ FORMA DE RESPONDER
 - Si preguntan por rastreo, orientar con el CPK
 `;
 
-// ================= BASE MANUAL =================
-// PEGA AQUÍ TUS LÍNEAS COMPLETAS DESDE TU SISTEMA
-const RAW_TRACKING_SOURCE = `
+// ================= UTILIDADES =================
 function limpiarNumero(texto = "") {
   return String(texto).replace(/\D/g, "");
 }
 
-PEGA_AQUI_TU_BLOQUE_COMPLETO_DE_CPK
+function normalizarCPK(texto = "") {
+  const limpio = limpiarNumero(texto);
+  return limpio || "";
+}
+
+function parseFechaSegura(fechaTexto = "") {
+  if (!fechaTexto) return null;
+  const d = new Date(fechaTexto);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function mapearEstadoTexto(estado = "") {
+  const e = String(estado || "").toUpperCase();
+
+  if (e.includes("ENTREGADO")) return "ENTREGADO";
+  if (e.includes("DISTRIBUC")) return "EN DISTRIBUCION";
+  if (e.includes("DESPACH")) return "DESPACHADO";
+  if (e.includes("EMBARC")) return "EMBARCADO";
+  if (e.includes("ARRIBO")) return "ARRIBO";
+  if (e.includes("CLASIFIC")) return "CLASIFICADO";
+  if (e.includes("AGENCIA")) return "EN AGENCIA";
+  if (e.includes("ADUANA")) return "ADUANA";
+
+  return "";
+}
+
+function estadoPorTiempo(fechaTexto = "") {
+  if (!fechaTexto) return "SIN ESTADO";
+
+  const fecha = parseFechaSegura(fechaTexto);
+  if (!fecha) return "SIN ESTADO";
+
+  const dias = Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (dias >= 30) return "ENTREGADO";
+  if (dias >= 20) return "EN DISTRIBUCION";
+  if (dias >= 14) return "DESPACHADO";
+  if (dias >= 7) return "EMBARCADO";
+  return "EN AGENCIA";
+}
+
+function construirSaludo(embarcador = "", consignatario = "", estado = "") {
+  return `Hola, tu mercancía se encuentra en: ${estado || "SIN ESTADO"}`;
+}
+
+// ================= BASE MANUAL =================
+// PEGA AQUÍ TUS LÍNEAS REALES DEL TRACKING, NO CÓDIGO
+const RAW_TRACKING_SOURCE = `
 CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
 CHAMBATINA MIAMI	GEO MIA		CPK-0264373	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	GENERADOR ELECTRICO DELTA 3 MAX/2400 WATTS		2026-04-07	PABLO ENRIQUE CABRERA FIGUERAS		00012068886	CALLE 139 # 14802 A Rpto. REYNOLD GARCIA e/ 148 y 154, MATANZAS, MATANZAS	56469740	RAFA JIMENEZ			0	0	1	49.5	1.588	0	0	0		
 CHAMBATINA MIAMI	GEO MIA		CPK-0260440	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEAS		2026-03-26	YURISLEIDI TAPIA ALVAREZ		92110940512	CALLE 16 # 112 E Rpto. PIEDRECITA e/ 13 y 15, CESPEDES, CAMAGUEY	56244435	YISEL LOPEZ ALVAREZ			2.99	0	1	26	3.375	0.5	0	0		
@@ -635,6 +682,7 @@ function construirSaludo(embarcador, consignatario, estado) {
 }
 
 // ================= PARSER Y LIMPIEZA DE CPK =================
+// ================= PARSER Y LIMPIEZA DE CPK =================
 function normalizarLinea(linea) {
   return String(linea || "").replace(/\r/g, "").trim();
 }
@@ -687,6 +735,7 @@ function extraerNombreProbable(linea, fechaTexto) {
       return p;
     }
   }
+
   return "";
 }
 
@@ -695,8 +744,21 @@ function esTextoDescripcionUtil(p) {
   if (!up) return false;
   if (up.startsWith("CPK-")) return false;
   if (/\b20\d{2}-\d{2}-\d{2}\b/.test(up)) return false;
-  if (["ENTREGADO","EN AGENCIA","EMBARCADO","DESPACHADO","EN DISTRIBUCION","DISTRIBUCION","SI","NO","ENVIO"].includes(up)) return false;
+  if (
+    [
+      "ENTREGADO",
+      "EN AGENCIA",
+      "EMBARCADO",
+      "DESPACHADO",
+      "EN DISTRIBUCION",
+      "DISTRIBUCION",
+      "SI",
+      "NO",
+      "ENVIO"
+    ].includes(up)
+  ) return false;
   if (/^[0-9.\-]+$/.test(up)) return false;
+
   return /[A-ZÁÉÍÓÚÑ]/i.test(up) && up.length >= 4;
 }
 
@@ -844,6 +906,7 @@ function detectarPeso(texto) {
   const m =
     t.match(/(\d+(?:\.\d+)?)\s*(lb|libras?)/i) ||
     t.match(/peso\s*(\d+(?:\.\d+)?)/i);
+
   return m ? Number(m[1]) : null;
 }
 
@@ -896,7 +959,10 @@ function detectarIntencion(texto) {
   const esCaja = /(caja 12x12|caja 15x15|caja 16x16|cajas)/i.test(t);
   const esDireccion = /(direcci[oó]n|oficina|suite 112|aloma)/i.test(t);
   const esTiempo = /(tiempo|demora|cu[aá]nto tarda|entrega)/i.test(t);
-  const esCalculo = !!peso || /cu[aá]nto cuesta \d+/i.test(t) || /(\d+(?:\.\d+)?)\s*(lb|libras?)/i.test(t);
+  const esCalculo =
+    !!peso ||
+    /cu[aá]nto cuesta \d+/i.test(t) ||
+    /(\d+(?:\.\d+)?)\s*(lb|libras?)/i.test(t);
 
   if (esCPK) return { intent: "rastreo", peso, cpk: cpkNormalizado };
   if (bicicleta) return { intent: "bicicleta", bicicleta, peso };
@@ -955,13 +1021,9 @@ function responderEcoflow(nombreProducto, peso = null) {
 
   const calc = calcularEnvioGeneral(peso);
 
-  return (
-    intro +
-    `\n\nCálculo de envío:\n${calc.texto}`
-  );
+  return intro + `\n\nCálculo de envío:\n${calc.texto}`;
 }
 
-// ================= HEALTH =================
 // ================= HEALTH =================
 app.get("/api/health", (req, res) => {
   try {
@@ -1075,7 +1137,7 @@ app.get("/api/buscar-carnet", (req, res) => {
 });
 
 // ================= BUSQUEDA GENERAL =================
-app.get("/api/buscar/:termino", (req, res) => {
+app.get("/api/buscar/:termino", async (req, res) => {
   try {
     const termino = limpiarNumero(req.params.termino || "");
 
@@ -1087,9 +1149,9 @@ app.get("/api/buscar/:termino", (req, res) => {
     }
 
     // 1. Buscar como CPK
-    const encontrado = RAW_TRACKING_SOURCE.split("\n").find(line =>
-      line.includes(`CPK-${termino}`)
-    );
+    const encontrado = RAW_TRACKING_SOURCE
+      .split("\n")
+      .find(line => line.includes(`CPK-${termino}`));
 
     if (encontrado) {
       const cols = encontrado.split("\t");
@@ -1131,47 +1193,59 @@ app.get("/api/buscar/:termino", (req, res) => {
       });
     }
 
-    // 🔥 3. Fallback a Kanguro
-try {
-  const response = await axios.post(
-    "https://www.solvedc.com/tracking/kanguro/",
-    new URLSearchParams({
-      ci: termino,
-      hbl: ""
-    }).toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "Mozilla/5.0"
+    // 3. Fallback a Kanguro
+    try {
+      const response = await axios.post(
+        "https://www.solvedc.com/tracking/kanguro/",
+        new URLSearchParams({
+          ci: termino,
+          hbl: ""
+        }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0"
+          }
+        }
+      );
+
+      const html = response.data;
+      const $ = cheerio.load(html);
+      const fila = $("table tr").eq(1);
+
+      if (fila && fila.find("td").length > 0) {
+        const resultado = {
+          cpk: fila.find("td").eq(1).text().trim(),
+          estado: fila.find("td").eq(2).text().trim(),
+          fecha: fila.find("td").eq(3).text().trim(),
+          cliente: fila.find("td").eq(5).text().trim(),
+          carnet: fila.find("td").eq(7).text().trim(),
+          descripcion: fila.find("td").eq(8).text().trim()
+        };
+
+        return res.json({
+          ok: true,
+          tipoBusqueda: "kanguro",
+          resultados: [resultado]
+        });
       }
+    } catch (error) {
+      console.error("Error consultando Kanguro en /api/buscar/:termino:", error);
     }
-  );
 
-  const html = response.data;
-  const $ = cheerio.load(html);
-
-  const fila = $("table tr").eq(1);
-
-  if (fila && fila.find("td").length > 0) {
-    const resultado = {
-      cpk: fila.find("td").eq(1).text().trim(),
-      estado: fila.find("td").eq(2).text().trim(),
-      fecha: fila.find("td").eq(3).text().trim(),
-      cliente: fila.find("td").eq(5).text().trim(),
-      carnet: fila.find("td").eq(7).text().trim(),
-      descripcion: fila.find("td").eq(8).text().trim()
-    };
-
-    return res.json({
-      ok: true,
-      tipoBusqueda: "kanguro",
-      resultados: [resultado]
+    return res.status(404).json({
+      ok: false,
+      mensaje: "No se encontró información en ningún sistema."
+    });
+  } catch (error) {
+    console.error("Error en /api/buscar/:termino:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
     });
   }
+});
 
-} catch (error) {
-  console.error("Error consultando Kanguro:", error);
-}
 // ================= KANGURO POR CARNET =================
 app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
   try {
@@ -1200,7 +1274,6 @@ app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
 
     const html = response.data;
     const $ = cheerio.load(html);
-
     const fila = $("table tr").eq(1);
 
     if (!fila || fila.find("td").length === 0) {
@@ -1365,7 +1438,11 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    if (!info.peso && mem.lastIntent === "calculo" && /(y con eso|cu[aá]nto ser[ií]a|el total|entonces)/i.test(mensaje)) {
+    if (
+      !info.peso &&
+      mem.lastIntent === "calculo" &&
+      /(y con eso|cu[aá]nto ser[ií]a|el total|entonces)/i.test(mensaje)
+    ) {
       const r = calcularEnvioGeneral(mem.lastWeight);
       return res.json({
         ok: true,
