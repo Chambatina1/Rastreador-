@@ -1131,19 +1131,47 @@ app.get("/api/buscar/:termino", (req, res) => {
       });
     }
 
-    return res.status(404).json({
-      ok: false,
-      mensaje: "No se encontró en Chambatina ni en base externa."
-    });
-  } catch (error) {
-    console.error("Error en /api/buscar/:termino:", error);
-    return res.status(500).json({
-      ok: false,
-      mensaje: "Error interno del servidor"
+    // 🔥 3. Fallback a Kanguro
+try {
+  const response = await axios.post(
+    "https://www.solvedc.com/tracking/kanguro/",
+    new URLSearchParams({
+      ci: termino,
+      hbl: ""
+    }).toString(),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Mozilla/5.0"
+      }
+    }
+  );
+
+  const html = response.data;
+  const $ = cheerio.load(html);
+
+  const fila = $("table tr").eq(1);
+
+  if (fila && fila.find("td").length > 0) {
+    const resultado = {
+      cpk: fila.find("td").eq(1).text().trim(),
+      estado: fila.find("td").eq(2).text().trim(),
+      fecha: fila.find("td").eq(3).text().trim(),
+      cliente: fila.find("td").eq(5).text().trim(),
+      carnet: fila.find("td").eq(7).text().trim(),
+      descripcion: fila.find("td").eq(8).text().trim()
+    };
+
+    return res.json({
+      ok: true,
+      tipoBusqueda: "kanguro",
+      resultados: [resultado]
     });
   }
-});
 
+} catch (error) {
+  console.error("Error consultando Kanguro:", error);
+}
 // ================= KANGURO POR CARNET =================
 app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
   try {
