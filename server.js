@@ -1085,6 +1085,7 @@ app.get("/api/rastreo/:cpk", (req, res) => {
 });
 
 // ================= BUSCAR POR CARNET =================
+// ================= BUSCAR POR CARNET =================
 app.get("/api/buscar-carnet", (req, res) => {
   const carnet = String(req.query.carnet || "").replace(/\D/g, "");
 
@@ -1148,7 +1149,7 @@ app.get("/api/buscar/:termino", async (req, res) => {
       });
     }
 
-    // 1. Buscar como CPK
+    // 1. Buscar como CPK local
     const encontrado = RAW_TRACKING_SOURCE
       .split("\n")
       .find(line => line.includes(`CPK-${termino}`));
@@ -1205,32 +1206,40 @@ app.get("/api/buscar/:termino", async (req, res) => {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": "Mozilla/5.0"
-          }
+          },
+          timeout: 15000
         }
       );
 
       const html = response.data;
       const $ = cheerio.load(html);
-      const fila = $("table tr").eq(1);
+      const filas = $("table tr");
 
-      if (fila && fila.find("td").length > 0) {
-        const resultado = {
-          cpk: fila.find("td").eq(1).text().trim(),
-          estado: fila.find("td").eq(2).text().trim(),
-          fecha: fila.find("td").eq(3).text().trim(),
-          cliente: fila.find("td").eq(5).text().trim(),
-          carnet: fila.find("td").eq(7).text().trim(),
-          descripcion: fila.find("td").eq(8).text().trim()
-        };
+      if (filas.length >= 2) {
+        const fila = filas.eq(1);
+        const tds = fila.find("td");
 
-        return res.json({
-          ok: true,
-          tipoBusqueda: "kanguro",
-          resultados: [resultado]
-        });
+        if (tds.length > 0) {
+          const resultado = {
+            cpk: tds.eq(1).text().trim(),
+            estado: tds.eq(2).text().trim(),
+            fecha: tds.eq(3).text().trim(),
+            cliente: tds.eq(5).text().trim(),
+            carnet: tds.eq(7).text().trim(),
+            descripcion: tds.eq(8).text().trim()
+          };
+
+          return res.json({
+            ok: true,
+            tipoBusqueda: "kanguro",
+            resultados: [resultado]
+          });
+        }
       }
     } catch (error) {
-      console.error("Error consultando Kanguro en /api/buscar/:termino:", error);
+      console.error("Error consultando Kanguro en /api/buscar/:termino");
+      console.error("message:", error?.message);
+      console.error("status:", error?.response?.status);
     }
 
     return res.status(404).json({
@@ -1268,15 +1277,26 @@ app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "User-Agent": "Mozilla/5.0"
-        }
+        },
+        timeout: 15000
       }
     );
 
     const html = response.data;
     const $ = cheerio.load(html);
-    const fila = $("table tr").eq(1);
+    const filas = $("table tr");
 
-    if (!fila || fila.find("td").length === 0) {
+    if (filas.length < 2) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "No se encontró información en Kanguro"
+      });
+    }
+
+    const fila = filas.eq(1);
+    const tds = fila.find("td");
+
+    if (!tds.length) {
       return res.status(404).json({
         ok: false,
         mensaje: "No se encontró información en Kanguro"
@@ -1284,14 +1304,14 @@ app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
     }
 
     const resultado = {
-      cpk: fila.find("td").eq(1).text().trim(),
-      estado: fila.find("td").eq(2).text().trim(),
-      fecha: fila.find("td").eq(3).text().trim(),
-      guia: fila.find("td").eq(4).text().trim(),
-      cliente: fila.find("td").eq(5).text().trim(),
-      consignatario: fila.find("td").eq(6).text().trim(),
-      carnet: fila.find("td").eq(7).text().trim(),
-      mercancia: fila.find("td").eq(8).text().trim()
+      cpk: tds.eq(1).text().trim(),
+      estado: tds.eq(2).text().trim(),
+      fecha: tds.eq(3).text().trim(),
+      guia: tds.eq(4).text().trim(),
+      cliente: tds.eq(5).text().trim(),
+      consignatario: tds.eq(6).text().trim(),
+      carnet: tds.eq(7).text().trim(),
+      mercancia: tds.eq(8).text().trim()
     };
 
     return res.json({
@@ -1300,7 +1320,10 @@ app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
       resultados: [resultado]
     });
   } catch (error) {
-    console.error("Error en /api/rastreo/carnet/:carnet:", error);
+    console.error("Error en /api/rastreo/carnet/:carnet");
+    console.error("message:", error?.message);
+    console.error("status:", error?.response?.status);
+
     return res.status(500).json({
       ok: false,
       mensaje: "Error consultando Kanguro"
