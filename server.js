@@ -1106,7 +1106,7 @@ app.get("/api/buscar/:termino", (req, res) => {
       });
     }
 
-    // 2. Buscar como carnet
+    // 2. Buscar como carnet local
     const resultadosCarnet = RAW_TRACKING_SOURCE
       .split("\n")
       .filter(line => line.includes("CPK-") && line.includes(termino))
@@ -1144,6 +1144,69 @@ app.get("/api/buscar/:termino", (req, res) => {
   }
 });
 
+// ================= KANGURO POR CARNET =================
+app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
+  try {
+    const carnet = limpiarNumero(req.params.carnet || "");
+
+    if (!carnet) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Carnet inválido"
+      });
+    }
+
+    const response = await axios.post(
+      "https://www.solvedc.com/tracking/kanguro/",
+      new URLSearchParams({
+        ci: carnet,
+        hbl: ""
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0"
+        }
+      }
+    );
+
+    const html = response.data;
+    const $ = cheerio.load(html);
+
+    const fila = $("table tr").eq(1);
+
+    if (!fila || fila.find("td").length === 0) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "No se encontró información en Kanguro"
+      });
+    }
+
+    const resultado = {
+      cpk: fila.find("td").eq(1).text().trim(),
+      estado: fila.find("td").eq(2).text().trim(),
+      fecha: fila.find("td").eq(3).text().trim(),
+      guia: fila.find("td").eq(4).text().trim(),
+      cliente: fila.find("td").eq(5).text().trim(),
+      consignatario: fila.find("td").eq(6).text().trim(),
+      carnet: fila.find("td").eq(7).text().trim(),
+      mercancia: fila.find("td").eq(8).text().trim()
+    };
+
+    return res.json({
+      ok: true,
+      tipoBusqueda: "kanguro",
+      resultados: [resultado]
+    });
+  } catch (error) {
+    console.error("Error en /api/rastreo/carnet/:carnet:", error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error consultando Kanguro"
+    });
+  }
+});
+
 // ================= CHAT =================
 app.post("/api/chat", async (req, res) => {
   try {
@@ -1160,7 +1223,6 @@ app.post("/api/chat", async (req, res) => {
     const mem = getMemory(sessionKey);
     const info = detectarIntencion(mensaje);
 
-    // 1) Rastreo directo
     if (info.intent === "rastreo" && info.cpk) {
       const item = getTrackingDb()[info.cpk];
 
@@ -1185,7 +1247,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 2) Cálculo general
     if (info.intent === "calculo" && info.peso) {
       const r = calcularEnvioGeneral(info.peso);
 
@@ -1200,7 +1261,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 3) EcoFlow con cálculo
     if (info.intent === "ecoflow_calculo" && info.peso) {
       const respuesta = responderEcoflow(info.ecoflow, info.peso);
 
@@ -1216,7 +1276,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 4) EcoFlow sin peso
     if (info.intent === "ecoflow") {
       const pesoMem = info.peso || mem.lastWeight || null;
 
@@ -1232,7 +1291,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 5) Bicicletas
     if (info.intent === "bicicleta") {
       const bici = calcularBicicleta(info.bicicleta);
 
@@ -1254,7 +1312,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 6) Dirección
     if (info.intent === "direccion") {
       return res.json({
         ok: true,
@@ -1262,7 +1319,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 7) Tiempos
     if (info.intent === "tiempo") {
       return res.json({
         ok: true,
@@ -1270,7 +1326,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 8) Cajas
     if (info.intent === "cajas") {
       return res.json({
         ok: true,
@@ -1282,7 +1337,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 9) Memoria corta para seguimiento de cálculo
     if (!info.peso && mem.lastIntent === "calculo" && /(y con eso|cu[aá]nto ser[ií]a|el total|entonces)/i.test(mensaje)) {
       const r = calcularEnvioGeneral(mem.lastWeight);
       return res.json({
@@ -1291,7 +1345,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // 10) Fallback a OpenAI
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         ok: false,
@@ -1347,6 +1400,7 @@ app.post("/api/chat", async (req, res) => {
     });
   }
 });
+
 // ================= 404 =================
 app.use((req, res) => {
   return res.status(404).json({
