@@ -99,6 +99,10 @@ FORMA DE RESPONDER
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS COMPLETAS DESDE TU SISTEMA
 const RAW_TRACKING_SOURCE = `
+function limpiarNumero(texto = "") {
+  return String(texto).replace(/\D/g, "");
+}
+
 PEGA_AQUI_TU_BLOQUE_COMPLETO_DE_CPK
 CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
 CHAMBATINA MIAMI	GEO MIA		CPK-0264373	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	GENERADOR ELECTRICO DELTA 3 MAX/2400 WATTS		2026-04-07	PABLO ENRIQUE CABRERA FIGUERAS		00012068886	CALLE 139 # 14802 A Rpto. REYNOLD GARCIA e/ 148 y 154, MATANZAS, MATANZAS	56469740	RAFA JIMENEZ			0	0	1	49.5	1.588	0	0	0		
@@ -1080,7 +1084,72 @@ app.post("/api/chat", async (req, res) => {
         respuesta
       });
     }
+app.get("/api/buscar/:termino", async (req, res) => {
+  const termino = limpiarNumero(req.params.termino || "");
 
+  if (!termino) {
+    return res.status(400).json({
+      ok: false,
+      mensaje: "Debe escribir un CPK o carnet válido."
+    });
+  }
+
+  // =============================
+  // 1. BUSCAR EN TU BASE LOCAL (CPK)
+  // =============================
+  const encontrado = RAW_TRACKING_SOURCE.split("\n").find(line =>
+    line.includes(`CPK-${termino}`)
+  );
+
+  if (encontrado) {
+    const cols = encontrado.split("\t");
+
+    return res.json({
+      ok: true,
+      tipoBusqueda: "cpk",
+      cpk: termino,
+      estado: cols[4] || "SIN ESTADO",
+      fecha: cols[11] || "No disponible",
+      descripcion: cols[9] || "Sin descripción",
+      nombre: cols[12] || "No disponible",
+      saludo: `Hola, tu mercancía se encuentra en: ${cols[4] || "SIN ESTADO"}`
+    });
+  }
+
+  // =============================
+  // 2. BUSCAR EN TU BASE LOCAL (CARNET)
+  // =============================
+  const resultadosCarnet = RAW_TRACKING_SOURCE
+    .split("\n")
+    .filter(line => line.includes(termino))
+    .map(line => {
+      const cols = line.split("\t");
+
+      return {
+        cpk: (cols[3] || "").replace("CPK-", ""),
+        estado: cols[4] || "",
+        fecha: cols[11] || "",
+        descripcion: cols[9] || "",
+        nombre: cols[12] || ""
+      };
+    });
+
+  if (resultadosCarnet.length > 0) {
+    return res.json({
+      ok: true,
+      tipoBusqueda: "carnet",
+      resultados: resultadosCarnet
+    });
+  }
+
+  // =============================
+  // 3. INTENTO EXTERNO (SIMULADO)
+  // =============================
+  return res.status(404).json({
+    ok: false,
+    mensaje: "No se encontró en Chambatina ni en base externa."
+  });
+});    
     // 4) EcoFlow sin peso
     if (info.intent === "ecoflow") {
       const pesoMem = info.peso || mem.lastWeight || null;
