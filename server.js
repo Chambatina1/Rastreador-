@@ -542,12 +542,6 @@ function soloDigitos(v) {
   return String(v || "").replace(/\D/g, "");
 }
 
-function normalizarCPK(v) {
-  const limpio = soloDigitos(v);
-  if (limpio.length < 6 || limpio.length > 10) return "";
-  return limpio;
-}
-
 function primerNombre(nombre) {
   return String(nombre || "").trim().split(/\s+/)[0] || "";
 }
