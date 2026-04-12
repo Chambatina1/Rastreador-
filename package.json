@@ -1,16 +1,35 @@
 {
   "name": "chambatina-backend",
   "version": "1.0.0",
+  "description": "Servidor de rastreo y chatbot para Chambatina con integración a CargoPack",
   "main": "server.js",
-  "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "npx playwright install chromium"
+    "dev": "nodemon server.js"
   },
+  "keywords": [
+    "chambatina",
+    "rastreo",
+    "cargopack",
+    "puppeteer",
+    "express"
+  ],
+  "author": "Geo Cabezas / Chambatina",
+  "license": "ISC",
   "dependencies": {
+    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "playwright": "^1.59.1"
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "puppeteer": "^22.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "optionalDependencies": {
+    "@sparticuz/chromium": "^121.0.0"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }
