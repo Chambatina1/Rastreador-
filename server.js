@@ -1086,57 +1086,160 @@ app.get("/api/rastreo/:cpk", (req, res) => {
 
 // ================= BUSCAR POR CARNET =================
 // ================= BUSCAR POR CARNET =================
-app.get("/api/buscar-carnet", (req, res) => {
-  const carnet = String(req.query.carnet || "").replace(/\D/g, "");
-
-  if (!carnet) {
-    return res.status(400).json({
-      ok: false,
-      mensaje: "Carnet requerido"
-    });
-  }
-
+app.get('/api/buscar-carnet', async (req, res) => {
   try {
-    const lineas = RAW_TRACKING_SOURCE
-      .split("\n")
-      .map(l => l.trim())
-      .filter(Boolean);
+    const carnetRaw = String(req.query.carnet || '').trim();
+    const carnet = carnetRaw.replace(/\D/g, '');
 
-    const resultados = [];
-
-    for (const linea of lineas) {
-      if (!linea.includes("CPK-")) continue;
-      if (!linea.includes(carnet)) continue;
-
-      const partes = linea.split("\t");
-
-      resultados.push({
-        cpk: (partes[3] || "").replace("CPK-", "").trim(),
-        estado: (partes[4] || "").trim(),
-        fecha: (partes[11] || "").trim(),
-        nombre: (partes[12] || "").trim(),
-        carnet: (partes[14] || "").trim(),
-        direccion: (partes[15] || "").trim(),
-        telefono: (partes[16] || "").trim(),
-        destinatario: (partes[17] || "").trim(),
-        descripcion: (partes[9] || "").trim(),
-        centro: (partes[0] || "").trim()
+    if (!carnet) {
+      return res.status(400).json({
+        ok: false,
+        source: 'local',
+        message: 'Carnet requerido',
+        results: []
       });
     }
 
-    return res.json({
-      ok: true,
-      resultados
+    // 1) Buscar en base local
+    const resultadosLocales = RAW_TRACKING_SOURCE
+      .filter(item => {
+        const itemCarnet = String(item?.carnet || '').replace(/\D/g, '');
+        return itemCarnet === carnet;
+      })
+      .map(item => ({
+        ...item,
+        carnet: String(item?.carnet || '').trim()
+      }));
+
+    if (resultadosLocales.length > 0) {
+      return res.status(200).json({
+        ok: true,
+        source: 'local',
+        total: resultadosLocales.length,
+        results: resultadosLocales
+      });
+    }
+
+    // 2) Si no encuentra localmente, intentar externo
+    const externalBaseUrl = 'https://www.solvedc.com/tracking/kanguro/';
+
+    let externalUrl;
+    try {
+      externalUrl = new URL(externalBaseUrl);
+      // Si en algún momento descubres el parámetro real, lo agregas aquí:
+      // externalUrl.searchParams.set('carnet', carnet);
+    } catch (urlError) {
+      console.error('URL externa inválida:', urlError);
+      return res.status(500).json({
+        ok: false,
+        source: 'external',
+        message: 'La URL del sistema externo no es válida',
+        results: []
+      });
+    }
+
+    let externalResponse;
+    try {
+      externalResponse = await fetch(externalUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 ChambatinaRastreador/1.0',
+          'Accept': 'application/json, text/plain, text/html;q=0.9, */*;q=0.8'
+        }
+      });
+    } catch (fetchError) {
+      console.error('Error conectando con sistema externo:', fetchError);
+      return res.status(502).json({
+        ok: false,
+        source: 'external',
+        message: 'No se pudo conectar con el sistema externo',
+        results: []
+      });
+    }
+
+    const contentType = externalResponse.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+
+    let externalPayload;
+    try {
+      externalPayload = isJson
+        ? await externalResponse.json()
+        : await externalResponse.text();
+    } catch (parseError) {
+      console.error('Error leyendo respuesta externa:', parseError);
+      return res.status(502).json({
+        ok: false,
+        source: 'external',
+        message: 'No se pudo interpretar la respuesta del sistema externo',
+        results: []
+      });
+    }
+
+    if (!externalResponse.ok) {
+      return res.status(502).json({
+        ok: false,
+        source: 'external',
+        status: externalResponse.status,
+        message: `El sistema externo respondió con error ${externalResponse.status}`,
+        rawType: isJson ? 'json' : 'text',
+        results: []
+      });
+    }
+
+    // 3) Si responde JSON real, aquí lo adaptas
+    if (isJson) {
+      const externalResults = Array.isArray(externalPayload?.results)
+        ? externalPayload.results
+        : Array.isArray(externalPayload)
+          ? externalPayload
+          : [];
+
+      if (externalResults.length > 0) {
+        return res.status(200).json({
+          ok: true,
+          source: 'external',
+          total: externalResults.length,
+          results: externalResults
+        });
+      }
+
+      return res.status(404).json({
+        ok: false,
+        source: 'external',
+        message: 'No se encontraron resultados en el sistema externo',
+        results: []
+      });
+    }
+
+    // 4) Si responde texto/HTML, no asumir que sirve como API
+    if (typeof externalPayload === 'string') {
+      return res.status(502).json({
+        ok: false,
+        source: 'external',
+        message: 'El sistema externo respondió HTML/texto, no una API JSON utilizable',
+        preview: externalPayload.slice(0, 300),
+        results: []
+      });
+    }
+
+    return res.status(404).json({
+      ok: false,
+      source: 'mixed',
+      message: 'No se encontraron resultados',
+      results: []
     });
+
   } catch (error) {
-    console.error("Error en /api/buscar-carnet:", error);
+    console.error('Error en /api/buscar-carnet:', error);
+
     return res.status(500).json({
       ok: false,
-      mensaje: "Error interno del servidor"
+      source: 'server',
+      message: 'Error interno del servidor',
+      results: []
     });
   }
 });
-
 // ================= BUSQUEDA GENERAL =================
 app.get("/api/buscar/:termino", async (req, res) => {
   try {
