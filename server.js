@@ -1094,16 +1094,23 @@ app.get('/api/buscar-carnet', async (req, res) => {
       });
     }
 
-    // 1) Buscar en base local
-    const resultadosLocales = RAW_TRACKING_SOURCE
-      .filter(item => {
-        const itemCarnet = String(item?.carnet || '').replace(/\D/g, '');
-        return itemCarnet === carnet;
-      })
-      .map(item => ({
-        ...item,
-        carnet: String(item?.carnet || '').trim()
-      }));
+    // 1) Buscar en base local (RAW_TRACKING_SOURCE es string, lo dividimos por líneas)
+    const lineas = RAW_TRACKING_SOURCE.split('\n');
+    const resultadosLocales = [];
+
+    for (const linea of lineas) {
+      if (linea.includes('CPK-') && linea.includes(carnet)) {
+        const cols = linea.split('\t');
+        resultadosLocales.push({
+          cpk: (cols[3] || '').replace('CPK-', '').trim(),
+          estado: cols[4] || '',
+          fecha: cols[11] || '',
+          descripcion: cols[9] || '',
+          nombre: cols[12] || '',
+          carnet: cols[14] || ''
+        });
+      }
+    }
 
     if (resultadosLocales.length > 0) {
       return res.status(200).json({
@@ -1114,106 +1121,46 @@ app.get('/api/buscar-carnet', async (req, res) => {
       });
     }
 
-    // 2) Si no encuentra localmente, intentar externo
-    const externalBaseUrl = 'https://www.solvedc.com/tracking/kanguro/';
-
-    let externalUrl;
+    // 2) Si no encuentra localmente, intentar externo (Kanguro)
     try {
-      externalUrl = new URL(externalBaseUrl);
-      // Si en algún momento descubres el parámetro real, lo agregas aquí:
-      // externalUrl.searchParams.set('carnet', carnet);
-    } catch (urlError) {
-      console.error('URL externa inválida:', urlError);
-      return res.status(500).json({
-        ok: false,
-        source: 'external',
-        message: 'La URL del sistema externo no es válida',
-        results: []
-      });
-    }
-
-    let externalResponse;
-    try {
-      externalResponse = await fetch(externalUrl.toString(), {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 ChambatinaRastreador/1.0',
-          'Accept': 'application/json, text/plain, text/html;q=0.9, */*;q=0.8'
+      const response = await axios.post(
+        'https://www.solvedc.com/tracking/kanguro/',
+        new URLSearchParams({ ci: carnet, hbl: '' }).toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 ChambatinaRastreador/1.0'
+          },
+          timeout: 15000
         }
-      });
-    } catch (fetchError) {
-      console.error('Error conectando con sistema externo:', fetchError);
-      return res.status(502).json({
-        ok: false,
-        source: 'external',
-        message: 'No se pudo conectar con el sistema externo',
-        results: []
-      });
-    }
+      );
 
-    const contentType = externalResponse.headers.get('content-type') || '';
-    const isJson = contentType.includes('application/json');
+      const html = response.data;
+      const $ = cheerio.load(html);
+      const filas = $('table tr');
 
-    let externalPayload;
-    try {
-      externalPayload = isJson
-        ? await externalResponse.json()
-        : await externalResponse.text();
-    } catch (parseError) {
-      console.error('Error leyendo respuesta externa:', parseError);
-      return res.status(502).json({
-        ok: false,
-        source: 'external',
-        message: 'No se pudo interpretar la respuesta del sistema externo',
-        results: []
-      });
-    }
-
-    if (!externalResponse.ok) {
-      return res.status(502).json({
-        ok: false,
-        source: 'external',
-        status: externalResponse.status,
-        message: `El sistema externo respondió con error ${externalResponse.status}`,
-        rawType: isJson ? 'json' : 'text',
-        results: []
-      });
-    }
-
-    // 3) Si responde JSON real, aquí lo adaptas
-    if (isJson) {
-      const externalResults = Array.isArray(externalPayload?.results)
-        ? externalPayload.results
-        : Array.isArray(externalPayload)
-          ? externalPayload
-          : [];
-
-      if (externalResults.length > 0) {
-        return res.status(200).json({
-          ok: true,
-          source: 'external',
-          total: externalResults.length,
-          results: externalResults
-        });
+      if (filas.length >= 2) {
+        const fila = filas.eq(1);
+        const tds = fila.find('td');
+        if (tds.length > 0) {
+          const resultado = {
+            cpk: tds.eq(1).text().trim(),
+            estado: tds.eq(2).text().trim(),
+            fecha: tds.eq(3).text().trim(),
+            cliente: tds.eq(5).text().trim(),
+            carnet: tds.eq(7).text().trim(),
+            mercancia: tds.eq(8).text().trim()
+          };
+          return res.status(200).json({
+            ok: true,
+            source: 'external',
+            total: 1,
+            results: [resultado]
+          });
+        }
       }
-
-      return res.status(404).json({
-        ok: false,
-        source: 'external',
-        message: 'No se encontraron resultados en el sistema externo',
-        results: []
-      });
-    }
-
-    // 4) Si responde texto/HTML, no asumir que sirve como API
-    if (typeof externalPayload === 'string') {
-      return res.status(502).json({
-        ok: false,
-        source: 'external',
-        message: 'El sistema externo respondió HTML/texto, no una API JSON utilizable',
-        preview: externalPayload.slice(0, 300),
-        results: []
-      });
+    } catch (err) {
+      console.error('Error consultando Kanguro en /api/buscar-carnet:', err.message);
     }
 
     return res.status(404).json({
@@ -1225,7 +1172,6 @@ app.get('/api/buscar-carnet', async (req, res) => {
 
   } catch (error) {
     console.error('Error en /api/buscar-carnet:', error);
-
     return res.status(500).json({
       ok: false,
       source: 'server',
