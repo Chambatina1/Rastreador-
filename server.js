@@ -1,8 +1,13 @@
 import express from "express";
 import cors from "cors";
+import axios from "axios";
 import * as cheerio from "cheerio";
 
 const app = express();
+const PORT = Number(process.env.PORT) || 3000;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+
+app.set("trust proxy", true);
 
 app.use(
   cors({
@@ -16,9 +21,7 @@ app.use(express.json({ limit: "2mb" }));
 
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
-========================================
 ASISTENTE OFICIAL CHAMBATINA
-========================================
 
 Responde siempre en español claro, directo y profesional.
 No inventes precios ni condiciones.
@@ -28,17 +31,9 @@ IDENTIDAD
 Chambatina es una empresa logística especializada en envíos a Cuba
 y en la orientación sobre equipos de energía renovable, especialmente sistemas solares.
 
-El nombre proviene de los abuelos del fundador Geo Cabezas:
-- Manuel Muñoz (Chamba)
-- Agustina (Tina)
-
-LIDERAZGO DIGITAL
-Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa
-el crecimiento y la orientación comercial de Chambatina.
-
 SERVICIOS
 - Envíos a Cuba
-- Orientación sobre compras (Amazon, TikTok, etc.)
+- Orientación sobre compras
 - Asesoría en sistemas solares
 - Seguimiento de paquetes (CPK)
 
@@ -52,8 +47,6 @@ IMPORTANTE:
 El cálculo general de equipo es:
 (Peso × 1.99) + 25
 
-CARGOS ESPECIALES
-
 BICICLETAS
 - Bicicleta de niño sin empacar: $25
 - Bicicleta de niño empacada: $15
@@ -61,22 +54,6 @@ BICICLETAS
 - Bicicleta de adulto empacada: $25
 - Bicicleta eléctrica en caja: $35
 - Bicicleta eléctrica sin caja: $50
-
-COLCHONES
-- Hasta 50 lb: $15
-- Más de 50 lb: $40
-
-ELECTRODOMÉSTICOS
-- Ollas pequeñas: $12
-- Olla arrocera o multifuncional: $22
-
-EQUIPOS GRANDES
-- Más de 200 lb: $45 adicionales
-
-RETRACTILADO
-- Empacado: $35
-- Sin empacar: $50
-- Externo: cargo variable
 
 CAJAS
 - 12x12x12 hasta 60 lb: $45
@@ -91,12 +68,6 @@ OFICINA
 - Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112
 - Teléfono Geo: 786-942-6904
 - Teléfono Adriana: 786-784-6421
-
-FORMA DE RESPONDER
-- Ser claro, breve y útil
-- No repetir información innecesaria
-- Si el sistema ya calculó por código, no recalcular diferente
-- Si preguntan por rastreo, orientar con el CPK
 `;
 
 // ================= BASE MANUAL =================
@@ -109,18 +80,29 @@ CHAMBATINA MIAMI	GEO MIA		CPK-0264373	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FAC
 // ================= MEMORIA =================
 const MEMORIA = new Map();
 
-// ================= UTILIDADES GENERALES =================
-function soloDigitos(v) {
-  return String(v || "").replace(/\D/g, "");
+// ================= HELPERS =================
+function soloDigitos(v = "") {
+  return String(v).replace(/\D/g, "");
 }
 
-function primerNombre(nombre) {
-  return String(nombre || "").trim().split(/\s+/)[0] || "";
+function primerNombre(nombre = "") {
+  return String(nombre).trim().split(/\s+/)[0] || "";
 }
 
-function parseFechaSegura(fechaTexto) {
-  const m = String(fechaTexto || "").match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
+function normalizarLinea(linea = "") {
+  return String(linea).replace(/\r/g, "").trim();
+}
+
+function normalizarCPK(texto = "") {
+  const match = String(texto).match(/CPK[-\s]?(\d{6,10})/i);
+  if (match) return match[1];
+  return "";
+}
+
+function parseFechaSegura(fechaTexto = "") {
+  const m = String(fechaTexto).match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
   if (!m) return null;
+
   const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -128,36 +110,38 @@ function parseFechaSegura(fechaTexto) {
 function diasNaturalesEntre(desdeTexto, hastaFecha = new Date()) {
   const desde = parseFechaSegura(desdeTexto);
   if (!desde) return 0;
+
   const hasta = new Date(hastaFecha);
   desde.setHours(0, 0, 0, 0);
   hasta.setHours(0, 0, 0, 0);
+
   return Math.max(0, Math.floor((hasta - desde) / 86400000));
 }
 
 function getSessionKey(req) {
   const byHeader = String(req.headers["x-session-id"] || "").trim();
   if (byHeader) return byHeader;
-  const byIp = String(req.ip || req.headers["x-forwarded-for"] || "anon").trim();
-  return byIp;
-}
 
-function normalizarLinea(linea) {
-  return String(linea || "").replace(/\r/g, "").trim();
-}
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0].trim();
+  }
 
-function normalizarCPK(texto = "") {
-  return soloDigitos(texto);
+  return String(req.ip || "anon").trim();
 }
 
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
   const nombreEmbarcador = primerNombre(embarcador);
   const nombreConsignatario = primerNombre(consignatario);
+
   if (nombreEmbarcador && nombreConsignatario) {
     return `Hola ${nombreEmbarcador}, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado || "EN PROCESO"}.`;
   }
+
   if (nombreEmbarcador) {
     return `Hola ${nombreEmbarcador}, tus paquetes se encuentran en: ${estado || "EN PROCESO"}.`;
   }
+
   return `Hola, tu mercancía se encuentra en: ${estado || "EN PROCESO"}.`;
 }
 
@@ -185,7 +169,8 @@ const ETAPAS = {
 };
 
 function mapearEstadoTexto(estadoTexto = "") {
-  const e = String(estadoTexto || "").toUpperCase();
+  const e = String(estadoTexto).toUpperCase();
+
   if (e.includes("ENTREGADO")) return ETAPAS.ENTREGADO;
   if (e.includes("REORGANIZ")) return ETAPAS.REORGANIZACION_DISTRIBUCION;
   if (e.includes("LISTO PARA DISTRIBUC")) return ETAPAS.LISTO_DISTRIBUCION;
@@ -203,14 +188,16 @@ function mapearEstadoTexto(estadoTexto = "") {
   if (e.includes("AGENCIA")) return ETAPAS.EN_AGENCIA;
   if (e.includes("COMBUSTIBLE")) return ETAPAS.ATRASO_COMBUSTIBLE;
   if (e.includes("DEMORA")) return ETAPAS.DEMORA_LOGISTICA;
+
   return "";
 }
 
 function estadoPorTiempo(fechaTexto = "") {
-  if (!fechaTexto) return ETAPAS.EN_PROCESO;
   const fecha = parseFechaSegura(fechaTexto);
   if (!fecha) return ETAPAS.EN_PROCESO;
+
   const dias = diasNaturalesEntre(fechaTexto);
+
   if (dias >= 39) return ETAPAS.ATRASO_COMBUSTIBLE;
   if (dias >= 35) return ETAPAS.DEMORA_LOGISTICA;
   if (dias >= 33) return ETAPAS.REORGANIZACION_DISTRIBUCION;
@@ -227,22 +214,23 @@ function estadoPorTiempo(fechaTexto = "") {
   if (dias >= 7) return ETAPAS.EN_CONTENEDOR;
   if (dias >= 5) return ETAPAS.PREPARACION_EMBARQUE;
   if (dias >= 3) return ETAPAS.EN_AGENCIA;
+
   return ETAPAS.EN_PROCESO;
 }
 
 // ================= PARSER TRACKING =================
-function extraerCPKDesdeLinea(linea) {
-  const m = String(linea || "").match(/CPK[-\s]?(\d{6,10})/i);
+function extraerCPKDesdeLinea(linea = "") {
+  const m = String(linea).match(/CPK[-\s]?(\d{6,10})/i);
   return m ? m[1] : "";
 }
 
-function extraerFechaDesdeLinea(linea) {
-  const m = String(linea || "").match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+function extraerFechaDesdeLinea(linea = "") {
+  const m = String(linea).match(/\b(20\d{2}-\d{2}-\d{2})\b/);
   return m ? m[1] : "";
 }
 
-function extraerEstadoDesdeLinea(linea) {
-  const bruto = String(linea || "");
+function extraerEstadoDesdeLinea(linea = "") {
+  const bruto = String(linea).toUpperCase();
   const posibles = [
     "ENTREGADO",
     "EN DISTRIBUCION",
@@ -259,46 +247,52 @@ function extraerEstadoDesdeLinea(linea) {
     "DESPACHADO",
     "EMBARCADO"
   ];
-  const up = bruto.toUpperCase();
-  const encontrado = posibles.find((p) => up.includes(p));
+
+  const encontrado = posibles.find((p) => bruto.includes(p));
   return encontrado || "";
 }
 
-function extraerNombreProbable(linea, fechaTexto) {
-  const s = String(linea || "");
+function extraerNombreProbable(linea = "", fechaTexto = "") {
   if (!fechaTexto) return "";
+
+  const s = String(linea);
   const idx = s.indexOf(fechaTexto);
   if (idx === -1) return "";
+
   const despues = s.slice(idx + fechaTexto.length).trim();
   const parts = despues.split(/\t+/).map((v) => v.trim()).filter(Boolean);
+
   for (const p of parts) {
-    if (/^[A-ZÁÉÍÓÚÑ ]{6,}$/i.test(p) && !/\d/.test(p)) {
-      return p;
-    }
+    if (/^[A-ZÁÉÍÓÚÑ ]{6,}$/i.test(p) && !/\d/.test(p)) return p;
   }
+
   return "";
 }
 
-function esTextoDescripcionUtil(p) {
-  const up = String(p || "").toUpperCase();
+function esTextoDescripcionUtil(texto = "") {
+  const up = String(texto).toUpperCase();
   if (!up) return false;
   if (up.startsWith("CPK-")) return false;
   if (/\b20\d{2}-\d{2}-\d{2}\b/.test(up)) return false;
-  if (["ENTREGADO", "EN AGENCIA", "EN DISTRIBUCION", "DISTRIBUCION", "SI", "SÍ", "NO", "ENVIO", "ENVÍO"].includes(up)) return false;
+  if (["ENTREGADO", "EN AGENCIA", "EN DISTRIBUCION", "DISTRIBUCION", "SI", "SÍ", "NO", "ENVIO", "ENVÍO"].includes(up)) {
+    return false;
+  }
   if (/^[0-9.\-]+$/.test(up)) return false;
   return /[A-ZÁÉÍÓÚÑ]/i.test(up) && up.length >= 4;
 }
 
-function extraerDescripcionProbable(linea) {
-  const parts = String(linea || "").split(/\t+/).map((v) => v.trim()).filter(Boolean);
+function extraerDescripcionProbable(linea = "") {
+  const parts = String(linea).split(/\t+/).map((v) => v.trim()).filter(Boolean);
+
   for (const p of parts) {
     if (esTextoDescripcionUtil(p)) return p;
   }
+
   return "Sin descripción disponible.";
 }
 
-function puntajeEstado(estado) {
-  const e = String(estado || "").toUpperCase();
+function puntajeEstado(estado = "") {
+  const e = String(estado).toUpperCase();
   if (e.includes("ENTREGADO")) return 100;
   if (e.includes("DISTRIBUC")) return 90;
   if (e.includes("CLASIFIC")) return 70;
@@ -309,50 +303,70 @@ function puntajeEstado(estado) {
   return 10;
 }
 
-function puntajeRegistro(r) {
+function puntajeRegistro(r = {}) {
   const fecha = parseFechaSegura(r.fecha)?.getTime() || 0;
   const descripcionScore = r.descripcion && r.descripcion !== "Sin descripción disponible." ? 500 : 0;
-  return puntajeEstado(r.estado) * 1e12 + fecha * 1e3 + descripcionScore + (r.raw?.length || 0);
+  return puntajeEstado(r.estado) * 1e12 + fecha * 1e3 + descripcionScore + String(r.raw || "").length;
 }
 
-function parseTrackingSource(raw) {
-  const lineas = String(raw || "").split("\n").map(normalizarLinea).filter(Boolean);
+function parseTrackingSource(raw = "") {
+  const lineas = String(raw).split("\n").map(normalizarLinea).filter(Boolean);
   const db = {};
+
   for (const linea of lineas) {
     const cpk = extraerCPKDesdeLinea(linea);
     if (!cpk) continue;
+
     const fecha = extraerFechaDesdeLinea(linea);
     const estadoDirecto = extraerEstadoDesdeLinea(linea);
     const estado = mapearEstadoTexto(estadoDirecto) || estadoPorTiempo(fecha);
     const embarcador = extraerNombreProbable(linea, fecha);
     const consignatario = "";
     const descripcion = extraerDescripcionProbable(linea);
-    const nuevo = { cpk, fecha, estado, descripcion, embarcador, consignatario, raw: linea };
+
+    const nuevo = {
+      cpk,
+      fecha,
+      estado,
+      descripcion,
+      embarcador,
+      consignatario,
+      raw: linea
+    };
+
     if (!db[cpk] || puntajeRegistro(nuevo) > puntajeRegistro(db[cpk])) {
       db[cpk] = nuevo;
     }
   }
+
   return db;
 }
 
-let TRACKING_DB_CACHE = parseTrackingSource(RAW_TRACKING_SOURCE);
+const TRACKING_DB_CACHE = parseTrackingSource(RAW_TRACKING_SOURCE);
 
 function getTrackingDb() {
   return TRACKING_DB_CACHE;
 }
 
-function extraerResultadosLocalesPorCarnet(carnet) {
-  const lineas = String(RAW_TRACKING_SOURCE || "").split("\n").map(normalizarLinea).filter(Boolean);
+function extraerResultadosLocalesPorCarnet(carnet = "") {
+  const lineas = String(RAW_TRACKING_SOURCE).split("\n").map(normalizarLinea).filter(Boolean);
   const resultados = [];
+
   for (const linea of lineas) {
     if (!linea.includes("CPK-")) continue;
     if (!linea.includes(carnet)) continue;
+
     const cols = linea.split("\t");
-    const estado = cols[4] || mapearEstadoTexto(extraerEstadoDesdeLinea(linea)) || estadoPorTiempo(cols[11] || "");
+    const estado =
+      mapearEstadoTexto(cols[4] || "") ||
+      mapearEstadoTexto(extraerEstadoDesdeLinea(linea)) ||
+      estadoPorTiempo(cols[11] || "");
+
     const embarcador = cols[12] || extraerNombreProbable(linea, cols[11] || "");
     const consignatario = cols[16] || "";
+
     resultados.push({
-      cpk: (cols[3] || "").replace("CPK-", "").trim(),
+      cpk: String(cols[3] || "").replace("CPK-", "").trim(),
       estado,
       fecha: cols[11] || "",
       descripcion: cols[9] || extraerDescripcionProbable(linea),
@@ -362,6 +376,7 @@ function extraerResultadosLocalesPorCarnet(carnet) {
       saludo: construirSaludo(embarcador, consignatario, estado)
     });
   }
+
   return resultados;
 }
 
@@ -369,47 +384,58 @@ function extraerResultadosLocalesPorCarnet(carnet) {
 function getMemory(key) {
   const item = MEMORIA.get(key);
   if (!item) return {};
+
   if (Date.now() - (item.ts || 0) > 10 * 60 * 1000) {
     MEMORIA.delete(key);
     return {};
   }
+
   return item;
 }
 
 function setMemory(key, patch) {
   const prev = getMemory(key);
-  MEMORIA.set(key, { ...prev, ...patch, ts: Date.now() });
+  MEMORIA.set(key, {
+    ...prev,
+    ...patch,
+    ts: Date.now()
+  });
 }
 
 // ================= DETECCIÓN DE INTENCIÓN =================
-function detectarPeso(texto) {
-  const t = String(texto || "").toLowerCase();
-  const m = t.match(/(\d+(?:\.\d+)?)\s*(lb|libras?)/i) || t.match(/peso\s*(\d+(?:\.\d+)?)/i);
+function detectarPeso(texto = "") {
+  const t = String(texto).toLowerCase();
+  const m =
+    t.match(/(\d+(?:\.\d+)?)\s*(lb|libras?)/i) ||
+    t.match(/peso\s*(\d+(?:\.\d+)?)/i);
+
   return m ? Number(m[1]) : null;
 }
 
-function detectarTipoBicicleta(texto) {
-  const t = String(texto || "").toLowerCase();
+function detectarTipoBicicleta(texto = "") {
+  const t = String(texto).toLowerCase();
   if (!t.includes("bicic")) return null;
+
   const esElectrica = /el[eé]ctrica/.test(t);
   const esNino = /niñ|nino/.test(t);
   const empacada = /empacad|en caja|caja/.test(t);
   const sinEmpacar = /sin empacar|sin caja/.test(t);
+
   if (esElectrica) {
-    if (sinEmpacar) return "bicicleta_electrica_sin_caja";
-    return "bicicleta_electrica_en_caja";
+    return sinEmpacar ? "bicicleta_electrica_sin_caja" : "bicicleta_electrica_en_caja";
   }
+
   if (esNino) {
-    if (empacada) return "bicicleta_nino_empacada";
-    return "bicicleta_nino_sin_empacar";
+    return empacada ? "bicicleta_nino_empacada" : "bicicleta_nino_sin_empacar";
   }
-  if (empacada) return "bicicleta_adulto_empacada";
-  return "bicicleta_adulto_sin_empacar";
+
+  return empacada ? "bicicleta_adulto_empacada" : "bicicleta_adulto_sin_empacar";
 }
 
-function detectarEcoflow(texto) {
-  const t = String(texto || "").toLowerCase();
+function detectarEcoflow(texto = "") {
+  const t = String(texto).toLowerCase();
   if (!/(eco ?flow|delta pro|delta 2|delta|river)/i.test(t)) return null;
+
   if (/delta pro ultra/i.test(t)) return "EcoFlow Delta Pro Ultra";
   if (/delta pro/i.test(t)) return "EcoFlow Delta Pro";
   if (/delta 2/i.test(t)) return "EcoFlow Delta 2";
@@ -418,18 +444,21 @@ function detectarEcoflow(texto) {
   return "EcoFlow";
 }
 
-function detectarIntencion(texto) {
-  const t = String(texto || "").toLowerCase();
+function detectarIntencion(texto = "") {
+  const t = String(texto).toLowerCase();
+
   const peso = detectarPeso(t);
-  const cpkNormalizado = normalizarCPK(t);
+  const cpkNormalizado = normalizarCPK(texto);
   const bicicleta = detectarTipoBicicleta(t);
   const ecoflow = detectarEcoflow(t);
+
   const esCPK = !!cpkNormalizado;
   const esSolar = /(inversor|bater[ií]a|panel|solar|kwh|kw|generador)/i.test(t);
   const esCaja = /(caja 12x12|caja 15x15|caja 16x16|cajas)/i.test(t);
   const esDireccion = /(direcci[oó]n|oficina|suite 112|aloma)/i.test(t);
   const esTiempo = /(tiempo|demora|cu[aá]nto tarda|entrega)/i.test(t);
-  const esCalculo = !!peso || /cu[aá]nto cuesta \d+/i.test(t) || /(\d+(?:\.\d+)?)\s*(lb|libras?)/i.test(t);
+  const esCalculo = !!peso || /cu[aá]nto cuesta \d+/i.test(t);
+
   if (esCPK) return { intent: "rastreo", peso, cpk: cpkNormalizado };
   if (bicicleta) return { intent: "bicicleta", bicicleta, peso };
   if (ecoflow && peso) return { intent: "ecoflow_calculo", ecoflow, peso };
@@ -440,6 +469,7 @@ function detectarIntencion(texto) {
   if (esCaja) return { intent: "cajas" };
   if (esDireccion) return { intent: "direccion" };
   if (esTiempo) return { intent: "tiempo" };
+
   return { intent: "chat", peso };
 }
 
@@ -448,13 +478,17 @@ function calcularEnvioGeneral(peso) {
   const base = Number((peso * 1.99).toFixed(2));
   const cargoEquipo = 25;
   const total = Number((base + cargoEquipo).toFixed(2));
+
   return {
     tipo: "equipo",
     peso,
     base,
     cargoEquipo,
     total,
-    texto: `${peso} × 1.99 = ${base.toFixed(2)}\n+ 25 = ${total.toFixed(2)}\n\nTotal: $${total.toFixed(2)}`
+    texto:
+      `${peso} × 1.99 = ${base.toFixed(2)}\n` +
+      `+ 25 = ${total.toFixed(2)}\n\n` +
+      `Total: $${total.toFixed(2)}`
   };
 }
 
@@ -467,24 +501,139 @@ function calcularBicicleta(tipo) {
     bicicleta_electrica_en_caja: { nombre: "Bicicleta eléctrica en caja", total: 35 },
     bicicleta_electrica_sin_caja: { nombre: "Bicicleta eléctrica sin caja", total: 50 }
   };
+
   return tabla[tipo] || null;
 }
 
 function responderEcoflow(nombreProducto, peso = null) {
-  const intro = `${nombreProducto || "EcoFlow"} es un sistema de energía portátil y solar que puede servir para respaldo eléctrico, refrigeradores, ventiladores, luces y otros equipos del hogar.`;
-  if (!peso) return `${intro}\n\nSi me dice el peso en libras, le calculo el envío exacto.`;
+  const intro =
+    `${nombreProducto || "EcoFlow"} es un sistema de energía portátil y solar ` +
+    `que puede servir para respaldo eléctrico, refrigeradores, ventiladores, luces y otros equipos del hogar.`;
+
+  if (!peso) {
+    return `${intro}\n\nSi me dice el peso en libras, le calculo el envío exacto.`;
+  }
+
   const calc = calcularEnvioGeneral(peso);
   return `${intro}\n\nCálculo de envío:\n${calc.texto}`;
+}
+
+// ================= OPENAI =================
+async function consultarOpenAI(mensaje, contextoExtra = []) {
+  const response = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: BUSINESS_CONTEXT },
+        ...(contextoExtra.length ? [{ role: "system", content: contextoExtra.join("\n") }] : []),
+        { role: "user", content: mensaje }
+      ],
+      temperature: 0.25
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 30000
+    }
+  );
+
+  return response.data?.choices?.[0]?.message?.content || "Sin respuesta";
 }
 
 // ================= HEALTH =================
 app.get("/api/health", (req, res) => {
   try {
     const db = getTrackingDb();
-    return res.json({ ok: true, mensaje: "Servidor activo", totalCPK: Object.keys(db).length, ejemplos: Object.keys(db).slice(0, 10) });
+    return res.json({
+      ok: true,
+      mensaje: "Servidor activo",
+      totalCPK: Object.keys(db).length,
+      ejemplos: Object.keys(db).slice(0, 10)
+    });
   } catch (error) {
     console.error("Error en /api/health:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno en health" });
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno en health"
+    });
+  }
+});
+
+// ================= RUTA ESPECÍFICA PRIMERO =================
+app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
+  try {
+    const carnet = soloDigitos(req.params.carnet || "");
+
+    if (!carnet) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Carnet inválido"
+      });
+    }
+
+    const response = await axios.post(
+      "https://www.solvedc.com/tracking/kanguro/",
+      new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0"
+        },
+        timeout: 15000
+      }
+    );
+
+    const html = response.data;
+    const $ = cheerio.load(html);
+    const filas = $("table tr");
+
+    if (filas.length < 2) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "No se encontró información en Kanguro"
+      });
+    }
+
+    const fila = filas.eq(1);
+    const tds = fila.find("td");
+
+    if (!tds.length) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "No se encontró información en Kanguro"
+      });
+    }
+
+    const estado = tds.eq(2).text().trim();
+    const embarcador = tds.eq(5).text().trim();
+    const consignatario = tds.eq(6).text().trim();
+
+    return res.json({
+      ok: true,
+      tipoBusqueda: "kanguro",
+      resultados: [
+        {
+          cpk: tds.eq(1).text().trim(),
+          estado,
+          fecha: tds.eq(3).text().trim(),
+          guia: tds.eq(4).text().trim(),
+          embarcador,
+          consignatario,
+          carnet: tds.eq(7).text().trim(),
+          mercancia: tds.eq(8).text().trim(),
+          saludo: construirSaludo(embarcador, consignatario, estado)
+        }
+      ]
+    });
+  } catch (error) {
+    console.error("Error en /api/rastreo/carnet/:carnet:", error?.message || error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error consultando Kanguro"
+    });
   }
 });
 
@@ -492,9 +641,23 @@ app.get("/api/health", (req, res) => {
 app.get("/api/rastreo/:cpk", (req, res) => {
   try {
     const cpk = normalizarCPK(req.params.cpk);
-    if (!cpk) return res.json({ ok: false, mensaje: "CPK inválido" });
+
+    if (!cpk) {
+      return res.json({
+        ok: false,
+        mensaje: "CPK inválido"
+      });
+    }
+
     const item = getTrackingDb()[cpk];
-    if (!item) return res.json({ ok: false, mensaje: "No encontramos información para ese CPK." });
+
+    if (!item) {
+      return res.json({
+        ok: false,
+        mensaje: "No encontramos información para ese CPK."
+      });
+    }
+
     return res.json({
       ok: true,
       cpk: item.cpk,
@@ -507,72 +670,119 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     });
   } catch (error) {
     console.error("Error en /api/rastreo/:cpk:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno del servidor" });
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
+    });
   }
 });
 
-// ================= BUSCAR POR CARNET (CON FETCH) =================
+// ================= BUSCAR POR CARNET =================
 app.get("/api/buscar-carnet", async (req, res) => {
   try {
-    const carnetRaw = String(req.query.carnet || "").trim();
-    const carnet = soloDigitos(carnetRaw);
+    const carnet = soloDigitos(req.query.carnet || "");
+
     if (!carnet) {
-      return res.status(400).json({ ok: false, source: "local", message: "Carnet requerido", results: [] });
-    }
-    const resultadosLocales = extraerResultadosLocalesPorCarnet(carnet);
-    if (resultadosLocales.length > 0) {
-      return res.status(200).json({ ok: true, source: "local", total: resultadosLocales.length, results: resultadosLocales });
-    }
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      const response = await fetch("https://www.solvedc.com/tracking/kanguro/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
-        signal: controller.signal
+      return res.status(400).json({
+        ok: false,
+        source: "local",
+        message: "Carnet requerido",
+        results: []
       });
-      clearTimeout(timeout);
-      const html = await response.text();
+    }
+
+    const resultadosLocales = extraerResultadosLocalesPorCarnet(carnet);
+
+    if (resultadosLocales.length > 0) {
+      return res.status(200).json({
+        ok: true,
+        source: "local",
+        total: resultadosLocales.length,
+        results: resultadosLocales
+      });
+    }
+
+    try {
+      const response = await axios.post(
+        "https://www.solvedc.com/tracking/kanguro/",
+        new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0 ChambatinaRastreador/1.0"
+          },
+          timeout: 15000
+        }
+      );
+
+      const html = response.data;
       const $ = cheerio.load(html);
       const filas = $("table tr");
+
       if (filas.length >= 2) {
         const fila = filas.eq(1);
         const tds = fila.find("td");
+
         if (tds.length > 0) {
           const estado = tds.eq(2).text().trim();
           const embarcador = tds.eq(5).text().trim();
           const consignatario = tds.eq(6).text().trim();
-          const resultado = {
-            cpk: tds.eq(1).text().trim(),
-            estado,
-            fecha: tds.eq(3).text().trim(),
-            embarcador,
-            consignatario,
-            carnet: tds.eq(7).text().trim(),
-            mercancia: tds.eq(8).text().trim(),
-            saludo: construirSaludo(embarcador, consignatario, estado)
-          };
-          return res.status(200).json({ ok: true, source: "external", total: 1, results: [resultado] });
+
+          return res.status(200).json({
+            ok: true,
+            source: "external",
+            total: 1,
+            results: [
+              {
+                cpk: tds.eq(1).text().trim(),
+                estado,
+                fecha: tds.eq(3).text().trim(),
+                embarcador,
+                consignatario,
+                carnet: tds.eq(7).text().trim(),
+                mercancia: tds.eq(8).text().trim(),
+                saludo: construirSaludo(embarcador, consignatario, estado)
+              }
+            ]
+          });
         }
       }
     } catch (err) {
-      console.error("Error consultando Kanguro en /api/buscar-carnet:", err.message);
+      console.error("Error consultando Kanguro en /api/buscar-carnet:", err?.message || err);
     }
-    return res.status(404).json({ ok: false, source: "mixed", message: "No se encontraron resultados", results: [] });
+
+    return res.status(404).json({
+      ok: false,
+      source: "mixed",
+      message: "No se encontraron resultados",
+      results: []
+    });
   } catch (error) {
     console.error("Error en /api/buscar-carnet:", error);
-    return res.status(500).json({ ok: false, source: "server", message: "Error interno del servidor", results: [] });
+    return res.status(500).json({
+      ok: false,
+      source: "server",
+      message: "Error interno del servidor",
+      results: []
+    });
   }
 });
 
 // ================= BÚSQUEDA GENERAL =================
 app.get("/api/buscar/:termino", async (req, res) => {
   try {
-    const termino = soloDigitos(req.params.termino || "");
-    if (!termino) return res.status(400).json({ ok: false, mensaje: "Debe escribir un CPK o carnet válido." });
-    const db = getTrackingDb();
-    const item = db[termino];
+    const terminoRaw = String(req.params.termino || "");
+    const termino = soloDigitos(terminoRaw);
+
+    if (!termino) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Debe escribir un CPK o carnet válido."
+      });
+    }
+
+    const item = getTrackingDb()[termino];
+
     if (item) {
       return res.json({
         ok: true,
@@ -586,92 +796,75 @@ app.get("/api/buscar/:termino", async (req, res) => {
         saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
       });
     }
+
     const resultadosCarnet = extraerResultadosLocalesPorCarnet(termino);
+
     if (resultadosCarnet.length > 0) {
-      return res.json({ ok: true, tipoBusqueda: "carnet", resultados: resultadosCarnet });
-    }
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      const response = await fetch("https://www.solvedc.com/tracking/kanguro/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ ci: termino, hbl: "" }).toString(),
-        signal: controller.signal
+      return res.json({
+        ok: true,
+        tipoBusqueda: "carnet",
+        resultados: resultadosCarnet
       });
-      clearTimeout(timeout);
-      const html = await response.text();
+    }
+
+    try {
+      const response = await axios.post(
+        "https://www.solvedc.com/tracking/kanguro/",
+        new URLSearchParams({ ci: termino, hbl: "" }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0"
+          },
+          timeout: 15000
+        }
+      );
+
+      const html = response.data;
       const $ = cheerio.load(html);
       const filas = $("table tr");
+
       if (filas.length >= 2) {
         const fila = filas.eq(1);
         const tds = fila.find("td");
+
         if (tds.length > 0) {
           const estado = tds.eq(2).text().trim();
           const embarcador = tds.eq(5).text().trim();
           const consignatario = tds.eq(6).text().trim();
-          const resultado = {
-            cpk: tds.eq(1).text().trim(),
-            estado,
-            fecha: tds.eq(3).text().trim(),
-            embarcador,
-            consignatario,
-            carnet: tds.eq(7).text().trim(),
-            descripcion: tds.eq(8).text().trim(),
-            saludo: construirSaludo(embarcador, consignatario, estado)
-          };
-          return res.json({ ok: true, tipoBusqueda: "kanguro", resultados: [resultado] });
+
+          return res.json({
+            ok: true,
+            tipoBusqueda: "kanguro",
+            resultados: [
+              {
+                cpk: tds.eq(1).text().trim(),
+                estado,
+                fecha: tds.eq(3).text().trim(),
+                embarcador,
+                consignatario,
+                carnet: tds.eq(7).text().trim(),
+                descripcion: tds.eq(8).text().trim(),
+                saludo: construirSaludo(embarcador, consignatario, estado)
+              }
+            ]
+          });
         }
       }
     } catch (error) {
-      console.error("Error consultando Kanguro en /api/buscar/:termino:", error?.message);
+      console.error("Error consultando Kanguro en /api/buscar/:termino:", error?.message || error);
     }
-    return res.status(404).json({ ok: false, mensaje: "No se encontró información en ningún sistema." });
+
+    return res.status(404).json({
+      ok: false,
+      mensaje: "No se encontró información en ningún sistema."
+    });
   } catch (error) {
     console.error("Error en /api/buscar/:termino:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno del servidor" });
-  }
-});
-
-// ================= KANGURO POR CARNET =================
-app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
-  try {
-    const carnet = soloDigitos(req.params.carnet || "");
-    if (!carnet) return res.status(400).json({ ok: false, mensaje: "Carnet inválido" });
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const response = await fetch("https://www.solvedc.com/tracking/kanguro/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
-      signal: controller.signal
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno del servidor"
     });
-    clearTimeout(timeout);
-    const html = await response.text();
-    const $ = cheerio.load(html);
-    const filas = $("table tr");
-    if (filas.length < 2) return res.status(404).json({ ok: false, mensaje: "No se encontró información en Kanguro" });
-    const fila = filas.eq(1);
-    const tds = fila.find("td");
-    if (!tds.length) return res.status(404).json({ ok: false, mensaje: "No se encontró información en Kanguro" });
-    const estado = tds.eq(2).text().trim();
-    const embarcador = tds.eq(5).text().trim();
-    const consignatario = tds.eq(6).text().trim();
-    const resultado = {
-      cpk: tds.eq(1).text().trim(),
-      estado,
-      fecha: tds.eq(3).text().trim(),
-      guia: tds.eq(4).text().trim(),
-      embarcador,
-      consignatario,
-      carnet: tds.eq(7).text().trim(),
-      mercancia: tds.eq(8).text().trim(),
-      saludo: construirSaludo(embarcador, consignatario, estado)
-    };
-    return res.json({ ok: true, tipoBusqueda: "kanguro", resultados: [resultado] });
-  } catch (error) {
-    console.error("Error en /api/rastreo/carnet/:carnet:", error?.message);
-    return res.status(500).json({ ok: false, mensaje: "Error consultando Kanguro" });
   }
 });
 
@@ -679,83 +872,184 @@ app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = String(req.body?.mensaje || "").trim();
-    if (!mensaje) return res.status(400).json({ ok: false, mensaje: "Falta mensaje" });
+
+    if (!mensaje) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Falta mensaje"
+      });
+    }
+
     const sessionKey = getSessionKey(req);
     const mem = getMemory(sessionKey);
     const info = detectarIntencion(mensaje);
+
     if (info.intent === "rastreo" && info.cpk) {
       const item = getTrackingDb()[info.cpk];
-      if (!item) return res.json({ ok: false, mensaje: "No encontramos información para ese CPK." });
-      setMemory(sessionKey, { lastIntent: "rastreo", lastCPK: info.cpk });
+
+      if (!item) {
+        return res.json({
+          ok: false,
+          mensaje: "No encontramos información para ese CPK."
+        });
+      }
+
+      setMemory(sessionKey, {
+        lastIntent: "rastreo",
+        lastCPK: info.cpk
+      });
+
       return res.json({
         ok: true,
-        respuesta: `${construirSaludo(item.embarcador, item.consignatario, item.estado)}\n\nFecha: ${item.fecha || "No disponible"}\n\nDescripción:\n${item.descripcion || "Sin descripción disponible."}`
+        respuesta:
+          `${construirSaludo(item.embarcador, item.consignatario, item.estado)}\n\n` +
+          `Fecha: ${item.fecha || "No disponible"}\n\n` +
+          `Descripción:\n${item.descripcion || "Sin descripción disponible."}`
       });
     }
+
     if (info.intent === "calculo" && info.peso) {
       const r = calcularEnvioGeneral(info.peso);
-      setMemory(sessionKey, { lastIntent: "calculo", lastWeight: info.peso });
-      return res.json({ ok: true, respuesta: r.texto });
+
+      setMemory(sessionKey, {
+        lastIntent: "calculo",
+        lastWeight: info.peso
+      });
+
+      return res.json({
+        ok: true,
+        respuesta: r.texto
+      });
     }
+
     if (info.intent === "ecoflow_calculo" && info.peso) {
       const respuesta = responderEcoflow(info.ecoflow, info.peso);
-      setMemory(sessionKey, { lastIntent: "ecoflow", lastWeight: info.peso, lastProduct: info.ecoflow });
-      return res.json({ ok: true, respuesta });
+
+      setMemory(sessionKey, {
+        lastIntent: "ecoflow",
+        lastWeight: info.peso,
+        lastProduct: info.ecoflow
+      });
+
+      return res.json({
+        ok: true,
+        respuesta
+      });
     }
+
     if (info.intent === "ecoflow") {
       const pesoMem = info.peso || mem.lastWeight || null;
-      setMemory(sessionKey, { lastIntent: "ecoflow", lastWeight: pesoMem, lastProduct: info.ecoflow });
-      return res.json({ ok: true, respuesta: responderEcoflow(info.ecoflow, pesoMem) });
+
+      setMemory(sessionKey, {
+        lastIntent: "ecoflow",
+        lastWeight: pesoMem,
+        lastProduct: info.ecoflow
+      });
+
+      return res.json({
+        ok: true,
+        respuesta: responderEcoflow(info.ecoflow, pesoMem)
+      });
     }
+
     if (info.intent === "bicicleta") {
       const bici = calcularBicicleta(info.bicicleta);
-      if (!bici) return res.json({ ok: false, mensaje: "No pude identificar el tipo de bicicleta." });
-      setMemory(sessionKey, { lastIntent: "bicicleta", lastProduct: bici.nombre });
-      return res.json({ ok: true, respuesta: `${bici.nombre}: $${bici.total.toFixed(2)}` });
+
+      if (!bici) {
+        return res.json({
+          ok: false,
+          mensaje: "No pude identificar el tipo de bicicleta."
+        });
+      }
+
+      setMemory(sessionKey, {
+        lastIntent: "bicicleta",
+        lastProduct: bici.nombre
+      });
+
+      return res.json({
+        ok: true,
+        respuesta: `${bici.nombre}: $${bici.total.toFixed(2)}`
+      });
     }
-    if (info.intent === "direccion") return res.json({ ok: true, respuesta: "La oficina está en 7523 Aloma Ave, Winter Park, FL 32792, Suite 112." });
-    if (info.intent === "tiempo") return res.json({ ok: true, respuesta: "El tiempo estimado es aproximadamente de 18 a 30 días una vez que toca puerto." });
-    if (info.intent === "cajas") return res.json({ ok: true, respuesta: "Tenemos estas cajas:\n- 12x12x12 hasta 60 lb: $45\n- 15x15x15 hasta 100 lb: $65\n- 16x16x16 hasta 100 lb: $85" });
-    if (!info.peso && mem.lastIntent === "calculo" && /(y con eso|cu[aá]nto ser[ií]a|el total|entonces)/i.test(mensaje)) {
+
+    if (info.intent === "direccion") {
+      return res.json({
+        ok: true,
+        respuesta: "La oficina está en 7523 Aloma Ave, Winter Park, FL 32792, Suite 112."
+      });
+    }
+
+    if (info.intent === "tiempo") {
+      return res.json({
+        ok: true,
+        respuesta: "El tiempo estimado es aproximadamente de 18 a 30 días una vez que toca puerto."
+      });
+    }
+
+    if (info.intent === "cajas") {
+      return res.json({
+        ok: true,
+        respuesta:
+          "Tenemos estas cajas:\n" +
+          "- 12x12x12 hasta 60 lb: $45\n" +
+          "- 15x15x15 hasta 100 lb: $65\n" +
+          "- 16x16x16 hasta 100 lb: $85"
+      });
+    }
+
+    if (
+      !info.peso &&
+      mem.lastIntent === "calculo" &&
+      /(y con eso|cu[aá]nto ser[ií]a|el total|entonces)/i.test(mensaje)
+    ) {
       const r = calcularEnvioGeneral(mem.lastWeight);
-      return res.json({ ok: true, respuesta: r.texto });
+      return res.json({
+        ok: true,
+        respuesta: r.texto
+      });
     }
-    if (!process.env.OPENAI_API_KEY) return res.status(500).json({ ok: false, mensaje: "Falta API KEY" });
+
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({
+        ok: false,
+        mensaje: "Falta OPENAI_API_KEY"
+      });
+    }
+
     const promptExtra = [];
     if (mem.lastProduct) promptExtra.push(`Último producto consultado: ${mem.lastProduct}`);
     if (mem.lastWeight) promptExtra.push(`Último peso consultado: ${mem.lastWeight} lb`);
     if (mem.lastCPK) promptExtra.push(`Último CPK consultado: ${mem.lastCPK}`);
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: BUSINESS_CONTEXT },
-          ...(promptExtra.length ? [{ role: "system", content: promptExtra.join("\n") }] : []),
-          { role: "user", content: mensaje }
-        ],
-        temperature: 0.25
-      })
+
+    const respuesta = await consultarOpenAI(mensaje, promptExtra);
+
+    setMemory(sessionKey, {
+      lastIntent: "chat"
     });
-    const data = await r.json();
-    if (!r.ok) {
-      console.error("Error OpenAI:", data);
-      return res.status(500).json({ ok: false, mensaje: data?.error?.message || "Error al consultar OpenAI" });
-    }
-    setMemory(sessionKey, { lastIntent: "chat" });
-    return res.json({ ok: true, respuesta: data?.choices?.[0]?.message?.content || "Sin respuesta" });
+
+    return res.json({
+      ok: true,
+      respuesta
+    });
   } catch (error) {
-    console.error("Error en /api/chat:", error);
-    return res.status(500).json({ ok: false, mensaje: "Error interno" });
+    console.error("Error en /api/chat:", error?.response?.data || error?.message || error);
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno"
+    });
   }
 });
 
 // ================= 404 =================
-app.use((req, res) => res.status(404).json({ ok: false, mensaje: "Ruta no encontrada" }));
+app.use((req, res) => {
+  return res.status(404).json({
+    ok: false,
+    mensaje: "Ruta no encontrada"
+  });
+});
 
 // ================= START =================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor corriendo en 0.0.0.0:${PORT}`);
 });
