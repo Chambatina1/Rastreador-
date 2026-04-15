@@ -118,7 +118,7 @@ function mapearEstadoTexto(estado = "") {
   const e = String(estado || "").toUpperCase();
 
   if (e.includes("ENTREGADO")) return "ENTREGADO";
-  if (e.includes("DISTRIBUC")) return "EN DISTRIBUCION";
+  if (e.includes("DISTRIBUC")) return "EN DISTRIBUCIÓN";
   if (e.includes("DESPACH")) return "DESPACHADO";
   if (e.includes("EMBARC")) return "EMBARCADO";
   if (e.includes("ARRIBO")) return "ARRIBO";
@@ -137,17 +137,36 @@ function estadoPorTiempo(fechaTexto = "") {
 
   const dias = Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (dias >= 30) return "ENTREGADO";
-  if (dias >= 20) return "EN DISTRIBUCION";
-  if (dias >= 14) return "DESPACHADO";
-  if (dias >= 7) return "EMBARCADO";
-  return "EN AGENCIA";
+  if (dias >= 39) return "ATRASO TEMPORAL POR LIMITACIONES DE COMBUSTIBLE";
+  if (dias >= 37) return "EN ESPERA DE REABASTECIMIENTO DE COMBUSTIBLE";
+  if (dias >= 35) return "DEMORA OPERATIVA POR AJUSTES LOGÍSTICOS";
+  if (dias >= 33) return "DISTRIBUCIÓN EN REORGANIZACIÓN OPERATIVA";
+  if (dias >= 31) return "ASIGNACIÓN DE RUTA DE ENTREGA";
+  if (dias >= 29) return "LISTO PARA SALIDA A DISTRIBUCIÓN";
+  if (dias >= 28) return "RECIBIDO EN ALMACÉN DE DESTINO";
+  if (dias >= 26) return "EN DESCARGA Y VERIFICACIÓN EN PROVINCIA";
+  if (dias >= 25) return "EN TRASLADO HACIA PROVINCIA";
+  if (dias >= 24) return "DESPACHADO DESDE CENTRO LOGÍSTICO";
+  if (dias >= 23) return "EN PROCESO DE CLASIFICACIÓN";
+  if (dias >= 21) return "EN ORGANIZACIÓN PARA DESPACHO INTERNO";
+  if (dias >= 19) return "EN REVISIÓN LOGÍSTICA INTERNA";
+  if (dias >= 17) return "EN VALIDACIÓN DE DOCUMENTOS";
+  if (dias >= 15) return "EN PROCESO ADUANAL";
+  if (dias >= 13) return "EN ADUANA (INSPECCIÓN EN CURSO)";
+  if (dias >= 11) return "EN ESPERA DE LIBERACIÓN PORTUARIA";
+  if (dias >= 9) return "RECIBIDO EN PUERTO";
+  if (dias >= 8) return "EN DESCARGA DE CONTENEDOR";
+  if (dias >= 7) return "UBICADO EN CONTENEDOR PARA DESPACHO";
+  if (dias >= 5) return "EN PROCESO DE EMBARQUE";
+  if (dias >= 3) return "EN AGENCIA, EN PROCESO DE CONSOLIDACIÓN";
+  if (dias >= 1) return "RECIBIDO Y REGISTRADO EN SISTEMA";
+
+  return "PROCESANDO INGRESO";
 }
 
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
   return `Hola, tu mercancía se encuentra en: ${estado || "SIN ESTADO"}`;
 }
-
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS REALES DEL TRACKING, NO CÓDIGO
 const RAW_TRACKING_SOURCE = `
