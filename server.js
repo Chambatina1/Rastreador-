@@ -941,18 +941,18 @@ function responderEcoflow(nombreProducto, peso = null) {
     `que puede servir para respaldo eléctrico, refrigeradores, ventiladores, luces y otros equipos del hogar.`;
 
   if (!peso) {
-    return intro + `\n\nSi me dice el peso en libras, le calculo el envío exacto.`;
+    return `${intro}\n\nSi me dice el peso en libras, le calculo el envío exacto.`;
   }
 
   const calc = calcularEnvioGeneral(peso);
-
-  return intro + `\n\nCálculo de envío:\n${calc.texto}`;
+  return `${intro}\n\nCálculo de envío:\n${calc.texto}`;
 }
 
 // ================= HEALTH =================
 app.get("/api/health", (req, res) => {
   try {
     const db = getTrackingDb();
+
     return res.json({
       ok: true,
       mensaje: "Servidor activo",
@@ -1010,35 +1010,33 @@ app.get("/api/rastreo/:cpk", (req, res) => {
 });
 
 // ================= BUSCAR POR CARNET =================
-// ================= BUSCAR POR CARNET =================
-app.get('/api/buscar-carnet', async (req, res) => {
+app.get("/api/buscar-carnet", async (req, res) => {
   try {
-    const carnetRaw = String(req.query.carnet || '').trim();
-    const carnet = carnetRaw.replace(/\D/g, '');
+    const carnetRaw = String(req.query.carnet || "").trim();
+    const carnet = soloDigitos(carnetRaw);
 
     if (!carnet) {
       return res.status(400).json({
         ok: false,
-        source: 'local',
-        message: 'Carnet requerido',
+        source: "local",
+        message: "Carnet requerido",
         results: []
       });
     }
 
-    // 1) Buscar en base local (RAW_TRACKING_SOURCE es string, lo dividimos por líneas)
-    const lineas = RAW_TRACKING_SOURCE.split('\n');
+    const lineas = String(RAW_TRACKING_SOURCE || "").split("\n");
     const resultadosLocales = [];
 
     for (const linea of lineas) {
-      if (linea.includes('CPK-') && linea.includes(carnet)) {
-        const cols = linea.split('\t');
+      if (linea.includes("CPK-") && linea.includes(carnet)) {
+        const cols = linea.split("\t");
         resultadosLocales.push({
-          cpk: (cols[3] || '').replace('CPK-', '').trim(),
-          estado: cols[4] || '',
-          fecha: cols[11] || '',
-          descripcion: cols[9] || '',
-          nombre: cols[12] || '',
-          carnet: cols[14] || ''
+          cpk: (cols[3] || "").replace("CPK-", "").trim(),
+          estado: cols[4] || "",
+          fecha: cols[11] || "",
+          descripcion: cols[9] || "",
+          nombre: cols[12] || "",
+          carnet: cols[14] || ""
         });
       }
     }
@@ -1046,21 +1044,20 @@ app.get('/api/buscar-carnet', async (req, res) => {
     if (resultadosLocales.length > 0) {
       return res.status(200).json({
         ok: true,
-        source: 'local',
+        source: "local",
         total: resultadosLocales.length,
         results: resultadosLocales
       });
     }
 
-    // 2) Si no encuentra localmente, intentar externo (Kanguro)
     try {
       const response = await axios.post(
-        'https://www.solvedc.com/tracking/kanguro/',
-        new URLSearchParams({ ci: carnet, hbl: '' }).toString(),
+        "https://www.solvedc.com/tracking/kanguro/",
+        new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 ChambatinaRastreador/1.0'
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0 ChambatinaRastreador/1.0"
           },
           timeout: 15000
         }
@@ -1068,11 +1065,12 @@ app.get('/api/buscar-carnet', async (req, res) => {
 
       const html = response.data;
       const $ = cheerio.load(html);
-      const filas = $('table tr');
+      const filas = $("table tr");
 
       if (filas.length >= 2) {
         const fila = filas.eq(1);
-        const tds = fila.find('td');
+        const tds = fila.find("td");
+
         if (tds.length > 0) {
           const resultado = {
             cpk: tds.eq(1).text().trim(),
@@ -1082,39 +1080,40 @@ app.get('/api/buscar-carnet', async (req, res) => {
             carnet: tds.eq(7).text().trim(),
             mercancia: tds.eq(8).text().trim()
           };
+
           return res.status(200).json({
             ok: true,
-            source: 'external',
+            source: "external",
             total: 1,
             results: [resultado]
           });
         }
       }
     } catch (err) {
-      console.error('Error consultando Kanguro en /api/buscar-carnet:', err.message);
+      console.error("Error consultando Kanguro en /api/buscar-carnet:", err.message);
     }
 
     return res.status(404).json({
       ok: false,
-      source: 'mixed',
-      message: 'No se encontraron resultados',
+      source: "mixed",
+      message: "No se encontraron resultados",
       results: []
     });
-
   } catch (error) {
-    console.error('Error en /api/buscar-carnet:', error);
+    console.error("Error en /api/buscar-carnet:", error);
     return res.status(500).json({
       ok: false,
-      source: 'server',
-      message: 'Error interno del servidor',
+      source: "server",
+      message: "Error interno del servidor",
       results: []
     });
   }
 });
-// ================= BUSQUEDA GENERAL =================
+
+// ================= BÚSQUEDA GENERAL =================
 app.get("/api/buscar/:termino", async (req, res) => {
   try {
-    const termino = limpiarNumero(req.params.termino || "");
+    const termino = soloDigitos(req.params.termino || "");
 
     if (!termino) {
       return res.status(400).json({
@@ -1123,8 +1122,7 @@ app.get("/api/buscar/:termino", async (req, res) => {
       });
     }
 
-    // 1. Buscar como CPK local
-    const encontrado = RAW_TRACKING_SOURCE
+    const encontrado = String(RAW_TRACKING_SOURCE || "")
       .split("\n")
       .find(line => line.includes(`CPK-${termino}`));
 
@@ -1143,8 +1141,7 @@ app.get("/api/buscar/:termino", async (req, res) => {
       });
     }
 
-    // 2. Buscar como carnet local
-    const resultadosCarnet = RAW_TRACKING_SOURCE
+    const resultadosCarnet = String(RAW_TRACKING_SOURCE || "")
       .split("\n")
       .filter(line => line.includes("CPK-") && line.includes(termino))
       .map(line => {
@@ -1168,7 +1165,6 @@ app.get("/api/buscar/:termino", async (req, res) => {
       });
     }
 
-    // 3. Fallback a Kanguro
     try {
       const response = await axios.post(
         "https://www.solvedc.com/tracking/kanguro/",
@@ -1232,7 +1228,7 @@ app.get("/api/buscar/:termino", async (req, res) => {
 // ================= KANGURO POR CARNET =================
 app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
   try {
-    const carnet = limpiarNumero(req.params.carnet || "");
+    const carnet = soloDigitos(req.params.carnet || "");
 
     if (!carnet) {
       return res.status(400).json({
@@ -1463,7 +1459,7 @@ app.post("/api/chat", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
