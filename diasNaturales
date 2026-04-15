@@ -441,6 +441,8 @@ CHAMBATINA MIAMI	GEO MIA		CPK-0264373	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FAC
 `;
 
 // ================= MEMORIA =================
+  
+// ================= MEMORIA =================
 const MEMORIA = new Map();
 
 // ================= HELPERS =================
@@ -481,104 +483,44 @@ function diasNaturalesEntre(desdeTexto, hastaFecha = new Date()) {
   return Math.max(0, Math.floor((hasta - desde) / 86400000));
 }
 
-function getSessionKey(req) {
-  const byHeader = String(req.headers["x-session-id"] || "").trim();
-  if (byHeader) return byHeader;
-
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.trim()) {
-    return forwarded.split(",")[0].trim();
-  }
-
-  return String(req.ip || "anon").trim();
-}
-
-function construirSaludo(embarcador = "", consignatario = "", estado = "") {
-  const nombreEmbarcador = primerNombre(embarcador);
-  const nombreConsignatario = primerNombre(consignatario);
-
-  if (nombreEmbarcador && nombreConsignatario) {
-    return `Hola ${nombreEmbarcador}, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado || "EN PROCESO"}.`;
-  }
-
-  if (nombreEmbarcador) {
-    return `Hola ${nombreEmbarcador}, tus paquetes se encuentran en: ${estado || "EN PROCESO"}.`;
-  }
-
-  return `Hola, tu mercancía se encuentra en: ${estado || "EN PROCESO"}.`;
-}
-
-// ================= ESTADOS =================
+// ================= ETAPAS =================
 const ETAPAS = {
-  ENTREGADO: "ENTREGADO",
   EN_AGENCIA: "EN AGENCIA",
-  PREPARACION_EMBARQUE: "EN PREPARACIÓN DE EMBARQUE",
+  TRASLADO_NAVIERA: "TRASLADO A NAVIERA",
   EN_CONTENEDOR: "EN CONTENEDOR",
-  EN_PUERTO: "EN PUERTO",
-  PROCESO_PORTUARIO: "EN PROCESO PORTUARIO",
-  EN_ADUANA: "EN ADUANA",
-  VALIDACION_DESPACHO: "EN VALIDACIÓN PARA DESPACHO",
-  REVISION_LOGISTICA: "EN REVISIÓN LOGÍSTICA",
-  PROCESO_INTERNO: "EN PROCESOS OPERATIVOS INTERNOS",
-  CLASIFICACION: "EN PROCESO DE CLASIFICACIÓN",
-  TRASLADO_PROVINCIA: "TRASLADO HACIA PROVINCIA",
-  ALMACEN_PROVINCIA: "EN ALMACÉN DE DESTINO",
-  LISTO_DISTRIBUCION: "LISTO PARA DISTRIBUCIÓN",
-  REORGANIZACION_DISTRIBUCION: "REORGANIZACIÓN DE DISTRIBUCIÓN",
-  DISTRIBUCION: "EN DISTRIBUCIÓN",
-  DEMORA_LOGISTICA: "DEMORA POR PROCESOS LOGÍSTICOS Y COMBUSTIBLE",
-  ATRASO_COMBUSTIBLE: "ATRASO TEMPORAL POR PROBLEMAS DE COMBUSTIBLE",
+  SALIDA_PUERTO: "SALIDA DE PUERTO",
+  ARRIBO: "ARRIBO",
+  DESAGRUPE_ADUANA: "DESAGRUPE / ADUANA",
+  CLASIFICACION: "CLASIFICACIÓN",
+  ALMACEN_PROVINCIA: "ALMACÉN DE PROVINCIA",
+  PREPARANDO_DISTRIBUCION: "PREPARANDO DISTRIBUCIÓN",
+  DISTRIBUCION: "DISTRIBUCIÓN",
+  ULTIMA_MILLA: "ÚLTIMA MILLA",
+  CONTINUACION_DISTRIBUCION: "EN CONTINUACIÓN DE DISTRIBUCIÓN",
+  ENTREGADO: "ENTREGADO",
   EN_PROCESO: "EN PROCESO"
 };
 
-function mapearEstadoTexto(estadoTexto = "") {
-  const e = String(estadoTexto).toUpperCase();
-
-  if (e.includes("ENTREGADO")) return ETAPAS.ENTREGADO;
-  if (e.includes("REORGANIZ")) return ETAPAS.REORGANIZACION_DISTRIBUCION;
-  if (e.includes("LISTO PARA DISTRIBUC")) return ETAPAS.LISTO_DISTRIBUCION;
-  if (e.includes("DISTRIBUC")) return ETAPAS.DISTRIBUCION;
-  if (e.includes("ALMACEN") || e.includes("ALMACÉN")) return ETAPAS.ALMACEN_PROVINCIA;
-  if (e.includes("TRASLADO") && e.includes("PROVINCIA")) return ETAPAS.TRASLADO_PROVINCIA;
-  if (e.includes("CLASIFIC")) return ETAPAS.CLASIFICACION;
-  if (e.includes("VALIDACI")) return ETAPAS.VALIDACION_DESPACHO;
-  if (e.includes("REVISI")) return ETAPAS.REVISION_LOGISTICA;
-  if (e.includes("ADUANA")) return ETAPAS.EN_ADUANA;
-  if (e.includes("PROCESO PORTUARIO")) return ETAPAS.PROCESO_PORTUARIO;
-  if (e.includes("PUERTO")) return ETAPAS.EN_PUERTO;
-  if (e.includes("CONTENEDOR")) return ETAPAS.EN_CONTENEDOR;
-  if (e.includes("EMBARQUE")) return ETAPAS.PREPARACION_EMBARQUE;
-  if (e.includes("AGENCIA")) return ETAPAS.EN_AGENCIA;
-  if (e.includes("COMBUSTIBLE")) return ETAPAS.ATRASO_COMBUSTIBLE;
-  if (e.includes("DEMORA")) return ETAPAS.DEMORA_LOGISTICA;
-
-  return "";
-}
-
+// ================= ESTADO POR TIEMPO =================
 function estadoPorTiempo(fechaTexto = "") {
-  const fecha = parseFechaSegura(fechaTexto);
-  if (!fecha) return ETAPAS.EN_PROCESO;
+  if (!fechaTexto) return ETAPAS.EN_PROCESO;
 
   const dias = diasNaturalesEntre(fechaTexto);
 
-  if (dias >= 39) return ETAPAS.ATRASO_COMBUSTIBLE;
-  if (dias >= 35) return ETAPAS.DEMORA_LOGISTICA;
-  if (dias >= 33) return ETAPAS.REORGANIZACION_DISTRIBUCION;
-  if (dias >= 29) return ETAPAS.LISTO_DISTRIBUCION;
-  if (dias >= 28) return ETAPAS.ALMACEN_PROVINCIA;
-  if (dias >= 25) return ETAPAS.TRASLADO_PROVINCIA;
-  if (dias >= 23) return ETAPAS.CLASIFICACION;
-  if (dias >= 19) return ETAPAS.PROCESO_INTERNO;
-  if (dias >= 17) return ETAPAS.REVISION_LOGISTICA;
-  if (dias >= 15) return ETAPAS.VALIDACION_DESPACHO;
-  if (dias >= 13) return ETAPAS.EN_ADUANA;
-  if (dias >= 11) return ETAPAS.PROCESO_PORTUARIO;
-  if (dias >= 9) return ETAPAS.EN_PUERTO;
-  if (dias >= 7) return ETAPAS.EN_CONTENEDOR;
-  if (dias >= 5) return ETAPAS.PREPARACION_EMBARQUE;
-  if (dias >= 3) return ETAPAS.EN_AGENCIA;
+  if (dias <= 3) return ETAPAS.EN_AGENCIA;
+  if (dias <= 5) return ETAPAS.TRASLADO_NAVIERA;
+  if (dias <= 7) return ETAPAS.EN_CONTENEDOR;
+  if (dias <= 9) return ETAPAS.SALIDA_PUERTO;
+  if (dias <= 12) return ETAPAS.ARRIBO;
+  if (dias <= 16) return ETAPAS.DESAGRUPE_ADUANA;
+  if (dias <= 21) return ETAPAS.CLASIFICACION;
+  if (dias <= 26) return ETAPAS.ALMACEN_PROVINCIA;
+  if (dias <= 29) return ETAPAS.PREPARANDO_DISTRIBUCION;
+  if (dias <= 32) return ETAPAS.DISTRIBUCION;
+  if (dias <= 35) return ETAPAS.ULTIMA_MILLA;
+  if (dias <= 40) return ETAPAS.CONTINUACION_DISTRIBUCION;
 
-  return ETAPAS.EN_PROCESO;
+  return ETAPAS.ENTREGADO;
 }
 
 // ================= PARSER TRACKING =================
@@ -590,29 +532,6 @@ function extraerCPKDesdeLinea(linea = "") {
 function extraerFechaDesdeLinea(linea = "") {
   const m = String(linea).match(/\b(20\d{2}-\d{2}-\d{2})\b/);
   return m ? m[1] : "";
-}
-
-function extraerEstadoDesdeLinea(linea = "") {
-  const bruto = String(linea).toUpperCase();
-  const posibles = [
-    "ENTREGADO",
-    "EN DISTRIBUCION",
-    "EN DISTRIBUCIÓN",
-    "DISTRIBUCION",
-    "DISTRIBUCIÓN",
-    "EN AGENCIA",
-    "EN CONTENEDOR",
-    "EN PUERTO",
-    "EN ADUANA",
-    "CLASIFICADO",
-    "CLASIFICACION",
-    "CLASIFICACIÓN",
-    "DESPACHADO",
-    "EMBARCADO"
-  ];
-
-  const encontrado = posibles.find((p) => bruto.includes(p));
-  return encontrado || "";
 }
 
 function extraerNombreProbable(linea = "", fechaTexto = "") {
@@ -632,44 +551,16 @@ function extraerNombreProbable(linea = "", fechaTexto = "") {
   return "";
 }
 
-function esTextoDescripcionUtil(texto = "") {
-  const up = String(texto).toUpperCase();
-  if (!up) return false;
-  if (up.startsWith("CPK-")) return false;
-  if (/\b20\d{2}-\d{2}-\d{2}\b/.test(up)) return false;
-  if (["ENTREGADO", "EN AGENCIA", "EN DISTRIBUCION", "DISTRIBUCION", "SI", "SÍ", "NO", "ENVIO", "ENVÍO"].includes(up)) {
-    return false;
-  }
-  if (/^[0-9.\-]+$/.test(up)) return false;
-  return /[A-ZÁÉÍÓÚÑ]/i.test(up) && up.length >= 4;
-}
-
 function extraerDescripcionProbable(linea = "") {
   const parts = String(linea).split(/\t+/).map((v) => v.trim()).filter(Boolean);
 
   for (const p of parts) {
-    if (esTextoDescripcionUtil(p)) return p;
+    if (/[A-ZÁÉÍÓÚÑ]/i.test(p) && p.length >= 4 && !/\d{4}-\d{2}-\d{2}/.test(p)) {
+      return p;
+    }
   }
 
   return "Sin descripción disponible.";
-}
-
-function puntajeEstado(estado = "") {
-  const e = String(estado).toUpperCase();
-  if (e.includes("ENTREGADO")) return 100;
-  if (e.includes("DISTRIBUC")) return 90;
-  if (e.includes("CLASIFIC")) return 70;
-  if (e.includes("ADUANA")) return 60;
-  if (e.includes("PUERTO")) return 50;
-  if (e.includes("CONTENEDOR")) return 40;
-  if (e.includes("AGENCIA")) return 30;
-  return 10;
-}
-
-function puntajeRegistro(r = {}) {
-  const fecha = parseFechaSegura(r.fecha)?.getTime() || 0;
-  const descripcionScore = r.descripcion && r.descripcion !== "Sin descripción disponible." ? 500 : 0;
-  return puntajeEstado(r.estado) * 1e12 + fecha * 1e3 + descripcionScore + String(r.raw || "").length;
 }
 
 function parseTrackingSource(raw = "") {
@@ -681,68 +572,22 @@ function parseTrackingSource(raw = "") {
     if (!cpk) continue;
 
     const fecha = extraerFechaDesdeLinea(linea);
-    const estadoDirecto = extraerEstadoDesdeLinea(linea);
-    const estado = mapearEstadoTexto(estadoDirecto) || estadoPorTiempo(fecha);
-    const embarcador = extraerNombreProbable(linea, fecha);
-    const consignatario = "";
-    const descripcion = extraerDescripcionProbable(linea);
 
     const nuevo = {
       cpk,
       fecha,
-      estado,
-      descripcion,
-      embarcador,
-      consignatario,
+      estado: estadoPorTiempo(fecha), // 🔥 SOLO FECHA
+      descripcion: extraerDescripcionProbable(linea),
+      embarcador: extraerNombreProbable(linea, fecha),
+      consignatario: "",
       raw: linea
     };
 
-    if (!db[cpk] || puntajeRegistro(nuevo) > puntajeRegistro(db[cpk])) {
-      db[cpk] = nuevo;
-    }
+    db[cpk] = nuevo;
   }
 
   return db;
 }
-
-const TRACKING_DB_CACHE = parseTrackingSource(RAW_TRACKING_SOURCE);
-
-function getTrackingDb() {
-  return TRACKING_DB_CACHE;
-}
-
-function extraerResultadosLocalesPorCarnet(carnet = "") {
-  const lineas = String(RAW_TRACKING_SOURCE).split("\n").map(normalizarLinea).filter(Boolean);
-  const resultados = [];
-
-  for (const linea of lineas) {
-    if (!linea.includes("CPK-")) continue;
-    if (!linea.includes(carnet)) continue;
-
-    const cols = linea.split("\t");
-    const estado =
-      mapearEstadoTexto(cols[4] || "") ||
-      mapearEstadoTexto(extraerEstadoDesdeLinea(linea)) ||
-      estadoPorTiempo(cols[11] || "");
-
-    const embarcador = cols[12] || extraerNombreProbable(linea, cols[11] || "");
-    const consignatario = cols[16] || "";
-
-    resultados.push({
-      cpk: String(cols[3] || "").replace("CPK-", "").trim(),
-      estado,
-      fecha: cols[11] || "",
-      descripcion: cols[9] || extraerDescripcionProbable(linea),
-      embarcador,
-      consignatario,
-      carnet: cols[14] || "",
-      saludo: construirSaludo(embarcador, consignatario, estado)
-    });
-  }
-
-  return resultados;
-}
-
 // ================= MEMORIA TEMPORAL =================
 function getMemory(key) {
   const item = MEMORIA.get(key);
