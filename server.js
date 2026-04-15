@@ -438,6 +438,7 @@ function fechaToYYYYMMDD(d) {
 function parseFechaSegura(fechaTexto) {
   const m = String(fechaTexto || "").match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
   if (!m) return null;
+
   const d = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -445,9 +446,11 @@ function parseFechaSegura(fechaTexto) {
 function diasNaturalesEntre(desdeTexto, hastaFecha = new Date()) {
   const desde = parseFechaSegura(desdeTexto);
   if (!desde) return 0;
+
   const hasta = new Date(hastaFecha);
   desde.setHours(0, 0, 0, 0);
   hasta.setHours(0, 0, 0, 0);
+
   return Math.max(0, Math.floor((hasta - desde) / 86400000));
 }
 
@@ -483,39 +486,92 @@ function diasHabilesEntre(desdeTexto, hastaFecha = new Date()) {
 const ETAPAS = {
   ENTREGADO: "ENTREGADO",
   EN_AGENCIA: "EN AGENCIA",
+  PREPARACION_EMBARQUE: "EN PREPARACIÓN DE EMBARQUE",
   TRASLADO_NAVIERA: "TRASLADO A NAVIERA",
   EN_CONTENEDOR: "EN CONTENEDOR",
   SALIDA_PUERTO: "SALIDA DE PUERTO",
+  EN_PUERTO: "EN PUERTO",
+  PROCESO_PORTUARIO: "EN PROCESO PORTUARIO",
   ARRIBO: "ARRIBO",
+  EN_ADUANA: "EN ADUANA",
   DESAGRUPE_ADUANA: "DESAGRUPE / ADUANA",
-  CLASIFICACION: "CLASIFICACIÓN",
-  ALMACEN_PROVINCIA: "ALMACÉN DE PROVINCIA",
+  VALIDACION_DESPACHO: "EN VALIDACIÓN PARA DESPACHO",
+  REVISION_LOGISTICA: "EN REVISIÓN LOGÍSTICA",
+  PROCESO_INTERNO: "EN PROCESOS OPERATIVOS INTERNOS",
+  CLASIFICACION: "EN PROCESO DE CLASIFICACIÓN",
+  TRASLADO_PROVINCIA: "TRASLADO HACIA PROVINCIA",
+  ALMACEN_PROVINCIA: "EN ALMACÉN DE DESTINO",
   PREPARANDO_DISTRIBUCION: "PREPARANDO DISTRIBUCIÓN",
-  DISTRIBUCION: "DISTRIBUCIÓN",
+  LISTO_DISTRIBUCION: "LISTO PARA DISTRIBUCIÓN",
+  REORGANIZACION_DISTRIBUCION: "REORGANIZACIÓN DE DISTRIBUCIÓN",
+  DISTRIBUCION: "EN DISTRIBUCIÓN",
   ULTIMA_MILLA: "ÚLTIMA MILLA",
+  DEMORA_LOGISTICA: "DEMORA POR PROCESOS LOGÍSTICOS Y COMBUSTIBLE",
+  ATRASO_COMBUSTIBLE: "ATRASO TEMPORAL POR PROBLEMAS DE COMBUSTIBLE",
   CONTINUACION_DISTRIBUCION: "EN CONTINUACIÓN DE DISTRIBUCIÓN",
   EN_PROCESO: "EN PROCESO"
 };
 
-function mapearEstadoTexto(estadoTexto) {
+function mapearEstadoTexto(estadoTexto = "") {
   const e = String(estadoTexto || "").toUpperCase();
 
   if (e.includes("ENTREGADO")) return ETAPAS.ENTREGADO;
-  if (e.includes("EN DISTRIBUCION") || e.includes("EN DISTRIBUCIÓN") || e === "DISTRIBUCION" || e === "DISTRIBUCIÓN") return ETAPAS.DISTRIBUCION;
+  if (e.includes("REORGANIZ")) return ETAPAS.REORGANIZACION_DISTRIBUCION;
+  if (e.includes("LISTO PARA DISTRIBUC")) return ETAPAS.LISTO_DISTRIBUCION;
+  if (e.includes("EN DISTRIBUCION") || e.includes("EN DISTRIBUCIÓN") || e === "DISTRIBUCION" || e === "DISTRIBUCIÓN") {
+    return ETAPAS.DISTRIBUCION;
+  }
+  if (e.includes("ÚLTIMA MILLA") || e.includes("ULTIMA MILLA")) return ETAPAS.ULTIMA_MILLA;
+  if (e.includes("ALMACEN") || e.includes("ALMACÉN")) return ETAPAS.ALMACEN_PROVINCIA;
+  if (e.includes("TRASLADO") && e.includes("PROVINCIA")) return ETAPAS.TRASLADO_PROVINCIA;
   if (e.includes("CLASIFIC")) return ETAPAS.CLASIFICACION;
-  if (e.includes("DESAGRUPE") || e.includes("ADUANA")) return ETAPAS.DESAGRUPE_ADUANA;
+  if (e.includes("VALIDACI")) return ETAPAS.VALIDACION_DESPACHO;
+  if (e.includes("REVISI")) return ETAPAS.REVISION_LOGISTICA;
+  if (e.includes("DESAGRUPE")) return ETAPAS.DESAGRUPE_ADUANA;
+  if (e.includes("ADUANA")) return ETAPAS.EN_ADUANA;
   if (e.includes("ARRIBO")) return ETAPAS.ARRIBO;
+  if (e.includes("PROCESO PORTUARIO")) return ETAPAS.PROCESO_PORTUARIO;
   if (e.includes("SALIDA") && e.includes("PUERTO")) return ETAPAS.SALIDA_PUERTO;
+  if (e.includes("PUERTO")) return ETAPAS.EN_PUERTO;
   if (e.includes("CONTENEDOR")) return ETAPAS.EN_CONTENEDOR;
   if (e.includes("NAVIERA")) return ETAPAS.TRASLADO_NAVIERA;
+  if (e.includes("EMBARQUE")) return ETAPAS.PREPARACION_EMBARQUE;
+  if (e.includes("EMBARCADO")) return ETAPAS.EN_CONTENEDOR;
   if (e.includes("AGENCIA")) return ETAPAS.EN_AGENCIA;
-  if (e.includes("DESPACH")) return "DESPACHO";
-  if (e.includes("EMBARC")) return "EMBARCADO";
+  if (e.includes("COMBUSTIBLE")) return ETAPAS.ATRASO_COMBUSTIBLE;
+  if (e.includes("DEMORA")) return ETAPAS.DEMORA_LOGISTICA;
 
   return "";
 }
 
-// ================= PARSER Y LIMPIEZA DE CPK =================
+function estadoPorTiempo(fechaTexto = "") {
+  if (!fechaTexto) return ETAPAS.EN_PROCESO;
+
+  const fecha = parseFechaSegura(fechaTexto);
+  if (!fecha) return ETAPAS.EN_PROCESO;
+
+  const dias = diasNaturalesEntre(fechaTexto);
+
+  if (dias >= 39) return ETAPAS.ATRASO_COMBUSTIBLE;
+  if (dias >= 35) return ETAPAS.DEMORA_LOGISTICA;
+  if (dias >= 33) return ETAPAS.REORGANIZACION_DISTRIBUCION;
+  if (dias >= 29) return ETAPAS.LISTO_DISTRIBUCION;
+  if (dias >= 28) return ETAPAS.ALMACEN_PROVINCIA;
+  if (dias >= 25) return ETAPAS.TRASLADO_PROVINCIA;
+  if (dias >= 23) return ETAPAS.CLASIFICACION;
+  if (dias >= 19) return ETAPAS.PROCESO_INTERNO;
+  if (dias >= 17) return ETAPAS.REVISION_LOGISTICA;
+  if (dias >= 15) return ETAPAS.VALIDACION_DESPACHO;
+  if (dias >= 13) return ETAPAS.EN_ADUANA;
+  if (dias >= 11) return ETAPAS.PROCESO_PORTUARIO;
+  if (dias >= 9) return ETAPAS.EN_PUERTO;
+  if (dias >= 7) return ETAPAS.EN_CONTENEDOR;
+  if (dias >= 5) return ETAPAS.PREPARACION_EMBARQUE;
+  if (dias >= 3) return ETAPAS.EN_AGENCIA;
+
+  return ETAPAS.EN_PROCESO;
+}
+
 // ================= PARSER Y LIMPIEZA DE CPK =================
 function normalizarLinea(linea) {
   return String(linea || "").replace(/\r/g, "").trim();
@@ -535,23 +591,42 @@ function extraerEstadoDesdeLinea(linea) {
   const bruto = String(linea || "");
   const posibles = [
     "ENTREGADO",
+    "LISTO PARA DISTRIBUCIÓN",
+    "LISTO PARA DISTRIBUCION",
+    "REORGANIZACIÓN DE DISTRIBUCIÓN",
+    "REORGANIZACION DE DISTRIBUCION",
     "EN DISTRIBUCION",
     "EN DISTRIBUCIÓN",
     "DISTRIBUCION",
     "DISTRIBUCIÓN",
-    "DESPACHADO",
-    "DESPACHO",
+    "EN ALMACÉN DE DESTINO",
+    "EN ALMACEN DE DESTINO",
+    "TRASLADO HACIA PROVINCIA",
+    "EN PROCESO DE CLASIFICACIÓN",
+    "EN PROCESO DE CLASIFICACION",
+    "EN VALIDACIÓN PARA DESPACHO",
+    "EN VALIDACION PARA DESPACHO",
+    "EN REVISIÓN LOGÍSTICA",
+    "EN REVISION LOGISTICA",
+    "EN ADUANA",
+    "DESAGRUPE",
+    "ARRIBO",
+    "EN PROCESO PORTUARIO",
+    "SALIDA DE PUERTO",
+    "EN PUERTO",
+    "EN CONTENEDOR",
+    "TRASLADO A NAVIERA",
+    "EN PREPARACIÓN DE EMBARQUE",
+    "EN PREPARACION DE EMBARQUE",
     "EN AGENCIA",
     "EMBARCADO",
-    "ARRIBO",
-    "CLASIFICADO",
-    "DESAGRUPE",
+    "DESPACHADO",
     "ADUANA"
   ];
 
   const up = bruto.toUpperCase();
   const encontrado = posibles.find(p => up.includes(p));
-  return encontrado ? encontrado.replace("EN DISTRIBUCIÓN", "EN DISTRIBUCION") : "";
+  return encontrado || "";
 }
 
 function extraerNombreProbable(linea, fechaTexto) {
@@ -578,19 +653,30 @@ function esTextoDescripcionUtil(p) {
   if (!up) return false;
   if (up.startsWith("CPK-")) return false;
   if (/\b20\d{2}-\d{2}-\d{2}\b/.test(up)) return false;
+
   if (
     [
       "ENTREGADO",
       "EN AGENCIA",
-      "EMBARCADO",
-      "DESPACHADO",
+      "EN CONTENEDOR",
+      "EN PUERTO",
+      "SALIDA DE PUERTO",
+      "ARRIBO",
+      "DESAGRUPE",
+      "ADUANA",
+      "EN ADUANA",
       "EN DISTRIBUCION",
+      "EN DISTRIBUCIÓN",
       "DISTRIBUCION",
+      "DISTRIBUCIÓN",
       "SI",
+      "SÍ",
       "NO",
-      "ENVIO"
+      "ENVIO",
+      "ENVÍO"
     ].includes(up)
   ) return false;
+
   if (/^[0-9.\-]+$/.test(up)) return false;
 
   return /[A-ZÁÉÍÓÚÑ]/i.test(up) && up.length >= 4;
@@ -624,7 +710,9 @@ function extraerDescripcionProbable(linea) {
         up.includes("PISCINA") ||
         up.includes("SECADORA") ||
         up.includes("COLCHON") ||
+        up.includes("COLCHÓN") ||
         up.includes("LAPTOP") ||
+        up.includes("BICICLETA") ||
         up.includes("MISCELANEA") ||
         up.includes("MISCELANEAS") ||
         up.includes("MISCELÁNEA")
@@ -647,19 +735,29 @@ function extraerDescripcionProbable(linea) {
 
 function puntajeEstado(estado) {
   const e = String(estado || "").toUpperCase();
+
   if (e.includes("ENTREGADO")) return 100;
-  if (e.includes("DISTRIBUC")) return 80;
-  if (e.includes("DESPACH")) return 70;
-  if (e.includes("EMBARC")) return 60;
-  if (e.includes("ARRIBO")) return 50;
-  if (e.includes("CLASIFIC")) return 40;
+  if (e.includes("ÚLTIMA MILLA") || e.includes("ULTIMA MILLA")) return 95;
+  if (e.includes("DISTRIBUC")) return 90;
+  if (e.includes("LISTO PARA DISTRIBUC")) return 85;
+  if (e.includes("ALMACÉN") || e.includes("ALMACEN")) return 80;
+  if (e.includes("TRASLADO") && e.includes("PROVINCIA")) return 75;
+  if (e.includes("CLASIFIC")) return 70;
+  if (e.includes("ADUANA")) return 60;
+  if (e.includes("PUERTO")) return 50;
+  if (e.includes("CONTENEDOR")) return 40;
+  if (e.includes("EMBARQUE") || e.includes("NAVIERA")) return 35;
   if (e.includes("AGENCIA")) return 30;
+  if (e.includes("PROCESO")) return 20;
+
   return 10;
 }
 
 function puntajeRegistro(r) {
   const fecha = parseFechaSegura(r.fecha)?.getTime() || 0;
-  const descripcionScore = r.descripcion && r.descripcion !== "Sin descripción disponible." ? 500 : 0;
+  const descripcionScore =
+    r.descripcion && r.descripcion !== "Sin descripción disponible." ? 500 : 0;
+
   return puntajeEstado(r.estado) * 1e12 + fecha * 1e3 + descripcionScore + (r.raw?.length || 0);
 }
 
@@ -700,19 +798,12 @@ function parseTrackingSource(raw) {
   return db;
 }
 
+// ================= MEMORIA TEMPORAL =================
 let TRACKING_DB_CACHE = parseTrackingSource(RAW_TRACKING_SOURCE);
 
 function getTrackingDb() {
   return TRACKING_DB_CACHE;
 }
-
-// ================= MEMORIA TEMPORAL =================
-const MEMORIA = new Map();
-
-function getSessionKey(req) {
-  return String(req.headers["x-session-id"] || req.ip || "anon");
-}
-
 function getMemory(key) {
   const item = MEMORIA.get(key);
   if (!item) return {};
