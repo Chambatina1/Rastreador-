@@ -7,29 +7,28 @@ function estadoPorTiempo(fechaTexto = "") {
   const dias = Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60 * 24));
 
   if (dias >= 39) return "ATRASO TEMPORAL POR PROBLEMAS DE COMBUSTIBLE";
-  if (dias >= 35) return "DEMORA POR PROCESOS LOGISTICOS Y COMBUSTIBLE";
-  if (dias >= 33) return "REORGANIZACION DE DISTRIBUCION";
-  if (dias >= 29) return "LISTO PARA DISTRIBUCION";
-  if (dias >= 28) return "EN ALMACEN DE DESTINO";
+  if (dias >= 35) return "DEMORA POR PROCESOS LOGÍSTICOS Y COMBUSTIBLE";
+  if (dias >= 33) return "REORGANIZACIÓN DE DISTRIBUCIÓN";
+  if (dias >= 29) return "LISTO PARA DISTRIBUCIÓN";
+  if (dias >= 28) return "EN ALMACÉN DE DESTINO";
   if (dias >= 25) return "TRASLADO HACIA PROVINCIA";
-  if (dias >= 23) return "EN PROCESO DE CLASIFICACION";
+  if (dias >= 23) return "EN PROCESO DE CLASIFICACIÓN";
   if (dias >= 19) return "EN PROCESOS OPERATIVOS INTERNOS";
-  if (dias >= 17) return "EN REVISION LOGISTICA";
-  if (dias >= 15) return "EN VALIDACION PARA DESPACHO";
+  if (dias >= 17) return "EN REVISIÓN LOGÍSTICA";
+  if (dias >= 15) return "EN VALIDACIÓN PARA DESPACHO";
   if (dias >= 13) return "EN ADUANA";
   if (dias >= 11) return "EN PROCESO PORTUARIO";
   if (dias >= 9) return "EN PUERTO";
   if (dias >= 7) return "EN CONTENEDOR";
-  if (dias >= 5) return "EN PREPARACION DE EMBARQUE";
+  if (dias >= 5) return "EN PREPARACIÓN DE EMBARQUE";
   if (dias >= 3) return "EN AGENCIA";
 
   return "REGISTRADO EN SISTEMA";
 }
 
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
-  return Hola, tu mercancia se encuentra en: ${estado || "SIN ESTADO"};
+  return `Hola, tu mercancía se encuentra en: ${estado || "SIN ESTADO"}`;
 }
-
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS REALES DEL TRACKING, NO CÓDIGO
 const RAW_TRACKING_SOURCE = `
