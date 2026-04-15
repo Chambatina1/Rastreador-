@@ -515,47 +515,6 @@ function mapearEstadoTexto(estadoTexto) {
   return "";
 }
 
-function estadoPorTiempo(fechaTexto) {
-  if (!fechaTexto) return ETAPAS.EN_PROCESO;
-
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-
-  const diasNaturales = diasNaturalesEntre(fechaTexto, hoy);
-
-  if (diasNaturales <= 3) return ETAPAS.EN_AGENCIA;
-  if (diasNaturales <= 5) return ETAPAS.TRASLADO_NAVIERA;
-  if (diasNaturales <= 7) return ETAPAS.EN_CONTENEDOR;
-  if (diasNaturales <= 9) return ETAPAS.SALIDA_PUERTO;
-
-  const fechaPuerto = sumarDiasNaturales(fechaTexto, 10);
-  const fechaPuertoTexto = fechaToYYYYMMDD(fechaPuerto);
-  const diasHabiles = diasHabilesEntre(fechaPuertoTexto, hoy);
-
-  if (diasHabiles <= 3) return ETAPAS.ARRIBO;
-  if (diasHabiles <= 6) return ETAPAS.DESAGRUPE_ADUANA;
-  if (diasHabiles <= 10) return ETAPAS.CLASIFICACION;
-  if (diasHabiles <= 14) return ETAPAS.ALMACEN_PROVINCIA;
-  if (diasHabiles < 28) return ETAPAS.PREPARANDO_DISTRIBUCION;
-  if (diasHabiles <= 30) return ETAPAS.DISTRIBUCION;
-  if (diasHabiles <= 34) return ETAPAS.ULTIMA_MILLA;
-
-  return ETAPAS.CONTINUACION_DISTRIBUCION;
-}
-
-function construirSaludo(embarcador, consignatario, estado) {
-  const nombreEmbarcador = primerNombre(embarcador);
-  const nombreConsignatario = primerNombre(consignatario);
-
-  if (nombreEmbarcador && nombreConsignatario) {
-    return `Hola ${nombreEmbarcador}, tus paquetes a ${nombreConsignatario} se encuentran en: ${estado}.`;
-  }
-  if (nombreEmbarcador) {
-    return `Hola ${nombreEmbarcador}, tus paquetes se encuentran en: ${estado}.`;
-  }
-  return `Hola, tu mercancía se encuentra en: ${estado}.`;
-}
-
 // ================= PARSER Y LIMPIEZA DE CPK =================
 // ================= PARSER Y LIMPIEZA DE CPK =================
 function normalizarLinea(linea) {
