@@ -22,11 +22,12 @@ function estadoPorTiempo(fechaTexto = "") {
   if (dias >= 7) return "EN CONTENEDOR";
   if (dias >= 5) return "EN PREPARACIÓN DE EMBARQUE";
   if (dias >= 3) return "EN AGENCIA";
-  
+
   return "REGISTRADO EN SISTEMA";
 }
+
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
-  return `Hola, tu mercancía se encuentra en: ${estado || "SIN ESTADO"}`;
+  return Hola, tu mercancía se encuentra en: ${estado || "SIN ESTADO"};
 }
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS REALES DEL TRACKING, NO CÓDIGO
