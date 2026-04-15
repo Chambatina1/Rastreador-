@@ -29,6 +29,7 @@ function estadoPorTiempo(fechaTexto = "") {
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
   return Hola, tu mercancia se encuentra en: ${estado || "SIN ESTADO"};
 }
+
 // ================= BASE MANUAL =================
 // PEGA AQUÍ TUS LÍNEAS REALES DEL TRACKING, NO CÓDIGO
 const RAW_TRACKING_SOURCE = `
