@@ -1,134 +1,3 @@
-import express from "express";
-import cors from "cors";
-import axios from "axios";
-import * as cheerio from "cheerio";
-
-const app = express();
-
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-session-id"]
-}));
-
-app.use(express.json({ limit: "2mb" }));
-
-// ================= CONTEXTO DEL CHAT =================
-const BUSINESS_CONTEXT = `
-========================================
-ASISTENTE OFICIAL CHAMBATINA
-========================================
-
-Responde siempre en español claro, directo y profesional.
-No inventes precios ni condiciones.
-Si no sabes algo con certeza, dilo claramente.
-
-IDENTIDAD
-Chambatina es una empresa logística especializada en envíos a Cuba
-y en la orientación sobre equipos de energía renovable, especialmente sistemas solares.
-
-El nombre proviene de los abuelos del fundador Geo Cabezas:
-- Manuel Muñoz (Chamba)
-- Agustina (Tina)
-
-LIDERAZGO DIGITAL
-Geo y Lili, conocidos en TikTok, forman parte del equipo que impulsa
-el crecimiento y la orientación comercial de Chambatina.
-
-SERVICIOS
-- Envíos a Cuba
-- Orientación sobre compras (Amazon, TikTok, etc.)
-- Asesoría en sistemas solares
-- Seguimiento de paquetes (CPK)
-
-PRECIOS BASE
-- Precio por libra: $1.99
-- Cargo por equipo: $25
-- Recogida en casa: $2.30 por libra
-- Compras por links de TikTok: $1.80 por libra
-
-IMPORTANTE:
-El cálculo general de equipo es:
-(Peso × 1.99) + 25
-
-CARGOS ESPECIALES
-
-BICICLETAS
-- Bicicleta de niño sin empacar: $25
-- Bicicleta de niño empacada: $15
-- Bicicleta de adulto sin empacar: $45
-- Bicicleta de adulto empacada: $25
-- Bicicleta eléctrica en caja: $35
-- Bicicleta eléctrica sin caja: $50
-
-COLCHONES
-- Hasta 50 lb: $15
-- Más de 50 lb: $40
-
-ELECTRODOMÉSTICOS
-- Ollas pequeñas: $12
-- Olla arrocera o multifuncional: $22
-
-EQUIPOS GRANDES
-- Más de 200 lb: $45 adicionales
-
-RETRACTILADO
-- Empacado: $35
-- Sin empacar: $50
-- Externo: cargo variable
-
-CAJAS
-- 12x12x12 hasta 60 lb: $45
-- 15x15x15 hasta 100 lb: $65
-- 16x16x16 hasta 100 lb: $85
-
-TIEMPOS
-- Aproximadamente 18 a 30 días una vez que toca puerto
-- Aproximadamente a los 7 días de la entrega toca puerto
-
-OFICINA
-- Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112
-- Teléfono Geo: 786-942-6904
-- Teléfono Adriana: 786-784-6421
-
-FORMA DE RESPONDER
-- Ser claro, breve y útil
-- No repetir información innecesaria
-- Si el sistema ya calculó por código, no recalcular diferente
-- Si preguntan por rastreo, orientar con el CPK
-`;
-
-// ================= UTILIDADES =================
-function limpiarNumero(texto = "") {
-  return String(texto).replace(/\D/g, "");
-}
-
-function normalizarCPK(texto = "") {
-  const limpio = limpiarNumero(texto);
-  return limpio || "";
-}
-
-function parseFechaSegura(fechaTexto = "") {
-  if (!fechaTexto) return null;
-  const d = new Date(fechaTexto);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function mapearEstadoTexto(estado = "") {
-  const e = String(estado || "").toUpperCase();
-
-  if (e.includes("ENTREGADO")) return "ENTREGADO";
-  if (e.includes("DISTRIBUC")) return "EN DISTRIBUCIÓN";
-  if (e.includes("DESPACH")) return "DESPACHADO";
-  if (e.includes("EMBARC")) return "EMBARCADO";
-  if (e.includes("ARRIBO")) return "ARRIBO";
-  if (e.includes("CLASIFIC")) return "CLASIFICADO";
-  if (e.includes("AGENCIA")) return "EN AGENCIA";
-  if (e.includes("ADUANA")) return "ADUANA";
-
-  return "";
-}
-
 function estadoPorTiempo(fechaTexto = "") {
   if (!fechaTexto) return "SIN ESTADO";
 
@@ -137,33 +6,25 @@ function estadoPorTiempo(fechaTexto = "") {
 
   const dias = Math.floor((Date.now() - fecha.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (dias >= 39) return "ATRASO TEMPORAL POR LIMITACIONES DE COMBUSTIBLE";
-  if (dias >= 37) return "EN ESPERA DE REABASTECIMIENTO DE COMBUSTIBLE";
-  if (dias >= 35) return "DEMORA OPERATIVA POR AJUSTES LOGÍSTICOS";
-  if (dias >= 33) return "DISTRIBUCIÓN EN REORGANIZACIÓN OPERATIVA";
-  if (dias >= 31) return "ASIGNACIÓN DE RUTA DE ENTREGA";
-  if (dias >= 29) return "LISTO PARA SALIDA A DISTRIBUCIÓN";
-  if (dias >= 28) return "RECIBIDO EN ALMACÉN DE DESTINO";
-  if (dias >= 26) return "EN DESCARGA Y VERIFICACIÓN EN PROVINCIA";
-  if (dias >= 25) return "EN TRASLADO HACIA PROVINCIA";
-  if (dias >= 24) return "DESPACHADO DESDE CENTRO LOGÍSTICO";
+  if (dias >= 39) return "ATRASO TEMPORAL POR PROBLEMAS DE COMBUSTIBLE";
+  if (dias >= 35) return "DEMORA POR PROCESOS LOGÍSTICOS Y COMBUSTIBLE";
+  if (dias >= 33) return "REORGANIZACIÓN DE DISTRIBUCIÓN";
+  if (dias >= 29) return "LISTO PARA DISTRIBUCIÓN";
+  if (dias >= 28) return "EN ALMACÉN DE DESTINO";
+  if (dias >= 25) return "TRASLADO HACIA PROVINCIA";
   if (dias >= 23) return "EN PROCESO DE CLASIFICACIÓN";
-  if (dias >= 21) return "EN ORGANIZACIÓN PARA DESPACHO INTERNO";
-  if (dias >= 19) return "EN REVISIÓN LOGÍSTICA INTERNA";
-  if (dias >= 17) return "EN VALIDACIÓN DE DOCUMENTOS";
-  if (dias >= 15) return "EN PROCESO ADUANAL";
-  if (dias >= 13) return "EN ADUANA (INSPECCIÓN EN CURSO)";
-  if (dias >= 11) return "EN ESPERA DE LIBERACIÓN PORTUARIA";
-  if (dias >= 9) return "RECIBIDO EN PUERTO";
-  if (dias >= 8) return "EN DESCARGA DE CONTENEDOR";
-  if (dias >= 7) return "UBICADO EN CONTENEDOR PARA DESPACHO";
-  if (dias >= 5) return "EN PROCESO DE EMBARQUE";
-  if (dias >= 3) return "EN AGENCIA, EN PROCESO DE CONSOLIDACIÓN";
-  if (dias >= 1) return "RECIBIDO Y REGISTRADO EN SISTEMA";
-
-  return "PROCESANDO INGRESO";
+  if (dias >= 19) return "EN PROCESOS OPERATIVOS INTERNOS";
+  if (dias >= 17) return "EN REVISIÓN LOGÍSTICA";
+  if (dias >= 15) return "EN VALIDACIÓN PARA DESPACHO";
+  if (dias >= 13) return "EN ADUANA";
+  if (dias >= 11) return "EN PROCESO PORTUARIO";
+  if (dias >= 9) return "EN PUERTO";
+  if (dias >= 7) return "EN CONTENEDOR";
+  if (dias >= 5) return "EN PREPARACIÓN DE EMBARQUE";
+  if (dias >= 3) return "EN AGENCIA";
+  
+  return "REGISTRADO EN SISTEMA";
 }
-
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
   return `Hola, tu mercancía se encuentra en: ${estado || "SIN ESTADO"}`;
 }
