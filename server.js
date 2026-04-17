@@ -1,7 +1,5 @@
 import express from "express";
 import cors from "cors";
-import axios from "axios";
-import * as cheerio from "cheerio";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -60,17 +58,16 @@ CAJAS
 - 15x15x15 hasta 100 lb: $65
 - 16x16x16 hasta 100 lb: $85
 
-TIEMPOS
-- Aproximadamente 18 a 30 días una vez que toca puerto
-- Aproximadamente a los 7 días de la entrega toca puerto
-
 OFICINA
 - Dirección: 7523 Aloma Ave, Winter Park, FL 32792, Suite 112
 - Teléfono Geo: 786-942-6904
 - Teléfono Adriana: 786-784-6421
 `;
 
-// ================= BASE MANUAL =================
+// ================= BASE LOCAL PEGADA =================
+// Pega aquí tu tabla cruda.
+// El estado escrito en esta tabla NO se usa para calcular el estado logístico.
+// Solo se usa la FECHA de registro.
 const RAW_TRACKING_SOURCE = `
 CHAMBATINA MIAMI	GEO MIA		CPK-0255139	ENTREGADO	Sí	140(CPK-309)	REGULA/(BSIU 9722526)/(CWPS26167603)	ENVIO	MISCELANEA	10916	2026-03-09	ELSA BARRIOS PEREZ		86012204812	AVE 25 # 3017 Rpto. LA SIERRA e/ 30 y 34, PLAYA, LA HABANA	53358593	ERISBEL FORNARIS			0	0	1	19.8	0.579	0	0	0
 CHAMBATINA MIAMI	GEO MIA		CPK-0266860	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	GENERADOR ELECTRICO 2400 W		2026-04-14	JULIO SÁNCHEZ HERNANDEZ		50092905351	CALLE PASEO DE LA PAZ # 362 Rpto. CHAMBERY e/ NUEVA GERONA y PRIMERA DEL OESTE, SANTA CLARA, VILLA CLARA	53382367	ISMAEL PÉREZ			0	0	1	59.1	1.588	0	0	0
@@ -102,8 +99,7 @@ function normalizarLinea(linea = "") {
 
 function normalizarCPK(texto = "") {
   const match = String(texto).match(/CPK[-\s]?(\d{6,10})/i);
-  if (match) return match[1];
-  return "";
+  return match ? match[1] : "";
 }
 
 function parseFechaSegura(fechaTexto = "") {
@@ -135,44 +131,8 @@ function getSessionKey(req) {
 }
 
 function construirSaludo(embarcador = "", consignatario = "", estado = "") {
-  const nombreBase = primerNombre(consignatario || embarcador || "cliente");
-  return `Hola ${nombreBase}, su envío se encuentra actualmente en: ${estado}.`;
-}
-
-function getTrackingDb() {
-  return parseTrackingSource(RAW_TRACKING_SOURCE);
-}
-
-function extraerResultadosLocalesPorCarnet(carnet = "") {
-  const carnetLimpio = soloDigitos(carnet);
-  if (!carnetLimpio) return [];
-
-  const lineas = String(RAW_TRACKING_SOURCE).split("\n").map(normalizarLinea).filter(Boolean);
-  const resultados = [];
-
-  for (const linea of lineas) {
-    const partes = linea.split(/\t+/).map((v) => String(v).trim());
-    const cpk = extraerCPKDesdeLinea(linea);
-    const fecha = extraerFechaDesdeLinea(linea);
-
-    const posibles = partes.map(soloDigitos).filter(Boolean);
-    const coincideCarnet = posibles.includes(carnetLimpio);
-
-    if (!coincideCarnet || !cpk) continue;
-
-    resultados.push({
-      cpk,
-      estado: estadoPorTiempo(fecha),
-      fecha: fecha || "",
-      embarcador: extraerNombreProbable(linea, fecha),
-      consignatario: "",
-      carnet: carnetLimpio,
-      mercancia: extraerDescripcionProbable(linea),
-      saludo: construirSaludo(extraerNombreProbable(linea, fecha), "", estadoPorTiempo(fecha))
-    });
-  }
-
-  return resultados;
+  const nombre = primerNombre(consignatario || embarcador || "cliente");
+  return `Hola ${nombre}, su envío se encuentra actualmente en: ${estado}.`;
 }
 
 // ================= ETAPAS =================
@@ -193,7 +153,7 @@ const ETAPAS = {
   EN_DISTRIBUCION: "EN DISTRIBUCIÓN"
 };
 
-// ================= ESTADO POR FECHA DE REGISTRO =================
+// ================= LÓGICA POR FECHA DE REGISTRO =================
 function estadoPorTiempo(fechaTexto = "") {
   if (!fechaTexto) return ETAPAS.EN_AGENCIA;
 
@@ -213,10 +173,10 @@ function estadoPorTiempo(fechaTexto = "") {
   if (dias === 27) return ETAPAS.PREPARACION_DISTRIBUCION; // día 28
   if (dias <= 29) return ETAPAS.CLASIFICACION_DISTRIBUCION; // días 29-30
 
-  return ETAPAS.EN_DISTRIBUCION; // día 31 en adelante infinito
+  return ETAPAS.EN_DISTRIBUCION; // día 31 en adelante
 }
 
-// ================= PARSER TRACKING =================
+// ================= PARSER DE LA BASE PEGADA =================
 function extraerCPKDesdeLinea(linea = "") {
   const m = String(linea).match(/CPK[-\s]?(\d{6,10})/i);
   return m ? m[1] : "";
@@ -244,11 +204,40 @@ function extraerNombreProbable(linea = "", fechaTexto = "") {
   return "";
 }
 
+function extraerCarnetsDeLinea(linea = "") {
+  const candidatos = String(linea)
+    .split(/\t+/)
+    .map((v) => soloDigitos(v))
+    .filter(Boolean);
+
+  const validos = candidatos.filter((v) => v.length >= 8 && v.length <= 12);
+  return [...new Set(validos)];
+}
+
 function extraerDescripcionProbable(linea = "") {
   const parts = String(linea).split(/\t+/).map((v) => v.trim()).filter(Boolean);
 
+  const blacklist = new Set([
+    "CHAMBATINA MIAMI",
+    "GEO MIA",
+    "ENVIO",
+    "ENTREGADO",
+    "EN AGENCIA",
+    "EN DISTRIBUCION",
+    "ENVIOS FACTURADOS",
+    "SI",
+    "NO"
+  ]);
+
   for (const p of parts) {
-    if (/[A-ZÁÉÍÓÚÑ]/i.test(p) && p.length >= 4 && !/\d{4}-\d{2}-\d{2}/.test(p)) {
+    const limpio = p.toUpperCase();
+    if (blacklist.has(limpio)) continue;
+    if (/^CPK[-\s]?\d+/i.test(p)) continue;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(p)) continue;
+    if (/^[0-9.]+$/.test(p)) continue;
+    if (p.length < 4) continue;
+
+    if (/[A-ZÁÉÍÓÚÑ]/i.test(p)) {
       return p;
     }
   }
@@ -265,19 +254,52 @@ function parseTrackingSource(raw = "") {
     if (!cpk) continue;
 
     const fecha = extraerFechaDesdeLinea(linea);
+    const embarcador = extraerNombreProbable(linea, fecha);
+    const carnets = extraerCarnetsDeLinea(linea);
 
     db[cpk] = {
       cpk,
       fecha,
       estado: estadoPorTiempo(fecha),
       descripcion: extraerDescripcionProbable(linea),
-      embarcador: extraerNombreProbable(linea, fecha),
+      embarcador,
       consignatario: "",
+      carnetPrincipal: carnets[0] || "",
+      carnets,
       raw: linea
     };
   }
 
   return db;
+}
+
+function getTrackingDb() {
+  return parseTrackingSource(RAW_TRACKING_SOURCE);
+}
+
+function extraerResultadosLocalesPorCarnet(carnet = "") {
+  const carnetLimpio = soloDigitos(carnet);
+  if (!carnetLimpio) return [];
+
+  const db = getTrackingDb();
+  const resultados = [];
+
+  for (const item of Object.values(db)) {
+    if (!item.carnets.includes(carnetLimpio)) continue;
+
+    resultados.push({
+      cpk: item.cpk,
+      estado: item.estado,
+      fecha: item.fecha || "",
+      embarcador: item.embarcador,
+      consignatario: item.consignatario,
+      carnet: carnetLimpio,
+      descripcion: item.descripcion,
+      saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
+    });
+  }
+
+  return resultados;
 }
 
 // ================= MEMORIA TEMPORAL =================
@@ -353,13 +375,18 @@ function detectarIntencion(texto = "") {
   const ecoflow = detectarEcoflow(t);
 
   const esCPK = !!cpkNormalizado;
+  const esCarnet = /\b\d{8,12}\b/.test(t) && !esCPK;
   const esSolar = /(inversor|bater[ií]a|panel|solar|kwh|kw|generador)/i.test(t);
   const esCaja = /(caja 12x12|caja 15x15|caja 16x16|cajas)/i.test(t);
   const esDireccion = /(direcci[oó]n|oficina|suite 112|aloma)/i.test(t);
   const esTiempo = /(tiempo|demora|cu[aá]nto tarda|entrega)/i.test(t);
   const esCalculo = !!peso || /cu[aá]nto cuesta \d+/i.test(t);
 
-  if (esCPK) return { intent: "rastreo", peso, cpk: cpkNormalizado };
+  if (esCPK) return { intent: "rastreo_cpk", cpk: cpkNormalizado };
+  if (esCarnet) {
+    const carnet = (t.match(/\b(\d{8,12})\b/) || [])[1] || "";
+    return { intent: "rastreo_carnet", carnet };
+  }
   if (bicicleta) return { intent: "bicicleta", bicicleta, peso };
   if (ecoflow && peso) return { intent: "ecoflow_calculo", ecoflow, peso };
   if (ecoflow) return { intent: "ecoflow", ecoflow, peso };
@@ -420,27 +447,36 @@ function responderEcoflow(nombreProducto, peso = null) {
 
 // ================= OPENAI =================
 async function consultarOpenAI(mensaje, contextoExtra = []) {
-  const response = await axios.post(
-    "https://api.openai.com/v1/chat/completions",
-    {
+  if (!OPENAI_API_KEY) {
+    return "El servidor no tiene configurada la variable OPENAI_API_KEY.";
+  }
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
       model: "gpt-4o-mini",
+      temperature: 0.25,
       messages: [
         { role: "system", content: BUSINESS_CONTEXT },
-        ...(contextoExtra.length ? [{ role: "system", content: contextoExtra.join("\n") }] : []),
+        ...(contextoExtra.length
+          ? [{ role: "system", content: contextoExtra.join("\n") }]
+          : []),
         { role: "user", content: mensaje }
-      ],
-      temperature: 0.25
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      timeout: 30000
-    }
-  );
+      ]
+    })
+  });
 
-  return response.data?.choices?.[0]?.message?.content || "Sin respuesta";
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data?.choices?.[0]?.message?.content || "Sin respuesta";
 }
 
 // ================= HEALTH =================
@@ -462,77 +498,24 @@ app.get("/api/health", (req, res) => {
   }
 });
 
-// ================= RUTA ESPECÍFICA PRIMERO =================
-app.get("/api/rastreo/carnet/:carnet", async (req, res) => {
+// ================= DEBUG OPCIONAL =================
+app.get("/api/debug/estado/:fecha", (req, res) => {
   try {
-    const carnet = soloDigitos(req.params.carnet || "");
-
-    if (!carnet) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: "Carnet inválido"
-      });
-    }
-
-    const response = await axios.post(
-      "https://www.solvedc.com/tracking/kanguro/",
-      new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "Mozilla/5.0"
-        },
-        timeout: 15000
-      }
-    );
-
-    const html = response.data;
-    const $ = cheerio.load(html);
-    const filas = $("table tr");
-
-    if (filas.length < 2) {
-      return res.status(404).json({
-        ok: false,
-        mensaje: "No se encontró información en Kanguro"
-      });
-    }
-
-    const fila = filas.eq(1);
-    const tds = fila.find("td");
-
-    if (!tds.length) {
-      return res.status(404).json({
-        ok: false,
-        mensaje: "No se encontró información en Kanguro"
-      });
-    }
-
-    const estado = tds.eq(2).text().trim();
-    const embarcador = tds.eq(5).text().trim();
-    const consignatario = tds.eq(6).text().trim();
+    const fecha = String(req.params.fecha || "").trim();
+    const estado = estadoPorTiempo(fecha);
+    const dias = diasNaturalesEntre(fecha);
 
     return res.json({
       ok: true,
-      tipoBusqueda: "kanguro",
-      resultados: [
-        {
-          cpk: tds.eq(1).text().trim(),
-          estado,
-          fecha: tds.eq(3).text().trim(),
-          guia: tds.eq(4).text().trim(),
-          embarcador,
-          consignatario,
-          carnet: tds.eq(7).text().trim(),
-          mercancia: tds.eq(8).text().trim(),
-          saludo: construirSaludo(embarcador, consignatario, estado)
-        }
-      ]
+      fecha,
+      dias,
+      estado
     });
   } catch (error) {
-    console.error("Error en /api/rastreo/carnet/:carnet:", error?.message || error);
+    console.error("Error en /api/debug/estado/:fecha:", error);
     return res.status(500).json({
       ok: false,
-      mensaje: "Error consultando Kanguro"
+      mensaje: "Error interno"
     });
   }
 });
@@ -543,7 +526,7 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     const cpk = normalizarCPK(req.params.cpk);
 
     if (!cpk) {
-      return res.json({
+      return res.status(400).json({
         ok: false,
         mensaje: "CPK inválido"
       });
@@ -552,7 +535,7 @@ app.get("/api/rastreo/:cpk", (req, res) => {
     const item = getTrackingDb()[cpk];
 
     if (!item) {
-      return res.json({
+      return res.status(404).json({
         ok: false,
         mensaje: "No encontramos información para ese CPK."
       });
@@ -560,12 +543,14 @@ app.get("/api/rastreo/:cpk", (req, res) => {
 
     return res.json({
       ok: true,
+      tipoBusqueda: "cpk",
       cpk: item.cpk,
       fecha: item.fecha || "",
       estado: item.estado,
       descripcion: item.descripcion,
       embarcador: item.embarcador,
       consignatario: item.consignatario,
+      carnet: item.carnetPrincipal,
       saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
     });
   } catch (error) {
@@ -578,186 +563,108 @@ app.get("/api/rastreo/:cpk", (req, res) => {
 });
 
 // ================= BUSCAR POR CARNET =================
-app.get("/api/buscar-carnet", async (req, res) => {
+app.get("/api/buscar-carnet", (req, res) => {
   try {
     const carnet = soloDigitos(req.query.carnet || "");
 
     if (!carnet) {
       return res.status(400).json({
         ok: false,
-        source: "local",
-        message: "Carnet requerido",
-        results: []
+        mensaje: "Carnet requerido",
+        resultados: []
       });
     }
 
-    const resultadosLocales = extraerResultadosLocalesPorCarnet(carnet);
+    const resultados = extraerResultadosLocalesPorCarnet(carnet);
 
-    if (resultadosLocales.length > 0) {
-      return res.status(200).json({
-        ok: true,
-        source: "local",
-        total: resultadosLocales.length,
-        results: resultadosLocales
+    if (!resultados.length) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "No se encontraron resultados para ese carnet.",
+        resultados: []
       });
     }
 
-    try {
-      const response = await axios.post(
-        "https://www.solvedc.com/tracking/kanguro/",
-        new URLSearchParams({ ci: carnet, hbl: "" }).toString(),
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "Mozilla/5.0 ChambatinaRastreador/1.0"
-          },
-          timeout: 15000
-        }
-      );
-
-      const html = response.data;
-      const $ = cheerio.load(html);
-      const filas = $("table tr");
-
-      if (filas.length >= 2) {
-        const fila = filas.eq(1);
-        const tds = fila.find("td");
-
-        if (tds.length > 0) {
-          const estado = tds.eq(2).text().trim();
-          const embarcador = tds.eq(5).text().trim();
-          const consignatario = tds.eq(6).text().trim();
-
-          return res.status(200).json({
-            ok: true,
-            source: "external",
-            total: 1,
-            results: [
-              {
-                cpk: tds.eq(1).text().trim(),
-                estado,
-                fecha: tds.eq(3).text().trim(),
-                embarcador,
-                consignatario,
-                carnet: tds.eq(7).text().trim(),
-                mercancia: tds.eq(8).text().trim(),
-                saludo: construirSaludo(embarcador, consignatario, estado)
-              }
-            ]
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Error consultando Kanguro en /api/buscar-carnet:", err?.message || err);
-    }
-
-    return res.status(404).json({
-      ok: false,
-      source: "mixed",
-      message: "No se encontraron resultados",
-      results: []
+    return res.status(200).json({
+      ok: true,
+      tipoBusqueda: "carnet",
+      total: resultados.length,
+      resultados
     });
   } catch (error) {
     console.error("Error en /api/buscar-carnet:", error);
     return res.status(500).json({
       ok: false,
-      source: "server",
-      message: "Error interno del servidor",
-      results: []
+      mensaje: "Error interno del servidor",
+      resultados: []
     });
   }
 });
 
 // ================= BÚSQUEDA GENERAL =================
-app.get("/api/buscar/:termino", async (req, res) => {
+app.get("/api/buscar/:termino", (req, res) => {
   try {
-    const terminoRaw = String(req.params.termino || "");
-    const termino = soloDigitos(terminoRaw);
+    const terminoRaw = String(req.params.termino || "").trim();
+    const terminoDigits = soloDigitos(terminoRaw);
 
-    if (!termino) {
+    if (!terminoDigits) {
       return res.status(400).json({
         ok: false,
         mensaje: "Debe escribir un CPK o carnet válido."
       });
     }
 
-    const item = getTrackingDb()[termino];
+    const db = getTrackingDb();
 
-    if (item) {
+    // 1) Intentar como CPK
+    const cpkNormalizado = normalizarCPK(terminoRaw);
+    if (cpkNormalizado && db[cpkNormalizado]) {
+      const item = db[cpkNormalizado];
       return res.json({
         ok: true,
         tipoBusqueda: "cpk",
-        cpk: termino,
+        cpk: item.cpk,
         estado: item.estado,
-        fecha: item.fecha || "No disponible",
+        fecha: item.fecha || "",
         descripcion: item.descripcion || "Sin descripción",
-        embarcador: item.embarcador || "No disponible",
+        embarcador: item.embarcador || "",
         consignatario: item.consignatario || "",
+        carnet: item.carnetPrincipal || "",
         saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
       });
     }
 
-    const resultadosCarnet = extraerResultadosLocalesPorCarnet(termino);
+    // 2) Intentar como CPK solo dígitos
+    if (db[terminoDigits]) {
+      const item = db[terminoDigits];
+      return res.json({
+        ok: true,
+        tipoBusqueda: "cpk",
+        cpk: item.cpk,
+        estado: item.estado,
+        fecha: item.fecha || "",
+        descripcion: item.descripcion || "Sin descripción",
+        embarcador: item.embarcador || "",
+        consignatario: item.consignatario || "",
+        carnet: item.carnetPrincipal || "",
+        saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
+      });
+    }
 
+    // 3) Intentar como carnet
+    const resultadosCarnet = extraerResultadosLocalesPorCarnet(terminoDigits);
     if (resultadosCarnet.length > 0) {
       return res.json({
         ok: true,
         tipoBusqueda: "carnet",
+        total: resultadosCarnet.length,
         resultados: resultadosCarnet
       });
     }
 
-    try {
-      const response = await axios.post(
-        "https://www.solvedc.com/tracking/kanguro/",
-        new URLSearchParams({ ci: termino, hbl: "" }).toString(),
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "Mozilla/5.0"
-          },
-          timeout: 15000
-        }
-      );
-
-      const html = response.data;
-      const $ = cheerio.load(html);
-      const filas = $("table tr");
-
-      if (filas.length >= 2) {
-        const fila = filas.eq(1);
-        const tds = fila.find("td");
-
-        if (tds.length > 0) {
-          const estado = tds.eq(2).text().trim();
-          const embarcador = tds.eq(5).text().trim();
-          const consignatario = tds.eq(6).text().trim();
-
-          return res.json({
-            ok: true,
-            tipoBusqueda: "kanguro",
-            resultados: [
-              {
-                cpk: tds.eq(1).text().trim(),
-                estado,
-                fecha: tds.eq(3).text().trim(),
-                embarcador,
-                consignatario,
-                carnet: tds.eq(7).text().trim(),
-                descripcion: tds.eq(8).text().trim(),
-                saludo: construirSaludo(embarcador, consignatario, estado)
-              }
-            ]
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error consultando Kanguro en /api/buscar/:termino:", error?.message || error);
-    }
-
     return res.status(404).json({
       ok: false,
-      mensaje: "No se encontró información en ningún sistema."
+      mensaje: "No se encontró información para ese CPK o carnet."
     });
   } catch (error) {
     console.error("Error en /api/buscar/:termino:", error);
@@ -784,7 +691,7 @@ app.post("/api/chat", async (req, res) => {
     const mem = getMemory(sessionKey);
     const info = detectarIntencion(mensaje);
 
-    if (info.intent === "rastreo" && info.cpk) {
+    if (info.intent === "rastreo_cpk" && info.cpk) {
       const item = getTrackingDb()[info.cpk];
 
       if (!item) {
@@ -795,7 +702,7 @@ app.post("/api/chat", async (req, res) => {
       }
 
       setMemory(sessionKey, {
-        lastIntent: "rastreo",
+        lastIntent: "rastreo_cpk",
         lastCPK: info.cpk
       });
 
@@ -803,8 +710,38 @@ app.post("/api/chat", async (req, res) => {
         ok: true,
         respuesta:
           `${construirSaludo(item.embarcador, item.consignatario, item.estado)}\n\n` +
-          `Fecha: ${item.fecha || "No disponible"}\n\n` +
+          `CPK: ${item.cpk}\n` +
+          `Fecha: ${item.fecha || "No disponible"}\n` +
+          `Carnet: ${item.carnetPrincipal || "No disponible"}\n\n` +
           `Descripción:\n${item.descripcion || "Sin descripción disponible."}`
+      });
+    }
+
+    if (info.intent === "rastreo_carnet" && info.carnet) {
+      const resultados = extraerResultadosLocalesPorCarnet(info.carnet);
+
+      if (!resultados.length) {
+        return res.json({
+          ok: false,
+          mensaje: "No encontramos envíos asociados a ese carnet."
+        });
+      }
+
+      setMemory(sessionKey, {
+        lastIntent: "rastreo_carnet",
+        lastCarnet: info.carnet
+      });
+
+      const texto = resultados
+        .map(
+          (r, i) =>
+            `${i + 1}. CPK: ${r.cpk}\nEstado: ${r.estado}\nFecha: ${r.fecha}\nDescripción: ${r.descripcion}`
+        )
+        .join("\n\n");
+
+      return res.json({
+        ok: true,
+        respuesta: `Encontré ${resultados.length} envío(s) para ese carnet:\n\n${texto}`
       });
     }
 
@@ -884,7 +821,7 @@ app.post("/api/chat", async (req, res) => {
       return res.json({
         ok: true,
         respuesta:
-          "El estado logístico se calcula automáticamente por días naturales desde la fecha de registro."
+          "El estado logístico se calcula automáticamente por días naturales desde la fecha de registro del envío."
       });
     }
 
@@ -911,17 +848,11 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({
-        ok: false,
-        mensaje: "Falta OPENAI_API_KEY"
-      });
-    }
-
     const promptExtra = [];
     if (mem.lastProduct) promptExtra.push(`Último producto consultado: ${mem.lastProduct}`);
     if (mem.lastWeight) promptExtra.push(`Último peso consultado: ${mem.lastWeight} lb`);
     if (mem.lastCPK) promptExtra.push(`Último CPK consultado: ${mem.lastCPK}`);
+    if (mem.lastCarnet) promptExtra.push(`Último carnet consultado: ${mem.lastCarnet}`);
 
     const respuesta = await consultarOpenAI(mensaje, promptExtra);
 
@@ -934,7 +865,7 @@ app.post("/api/chat", async (req, res) => {
       respuesta
     });
   } catch (error) {
-    console.error("Error en /api/chat:", error?.response?.data || error?.message || error);
+    console.error("Error en /api/chat:", error?.message || error);
     return res.status(500).json({
       ok: false,
       mensaje: "Error interno"
