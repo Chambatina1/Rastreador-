@@ -1041,7 +1041,17 @@ app.get("/api/buscar-carnet", (req, res) => {
   }
 });
 app.get("/", (req, res) => {
-  res.send("Rastreador funcionando");
+  res.send(`
+    <html>
+      <head>
+        <title>Rastreador</title>
+      </head>
+      <body>
+        <h1>Rastreador funcionando</h1>
+        <p>Tu sistema está activo</p>
+      </body>
+    </html>
+  `);
 });
 // ================= BÚSQUEDA GENERAL =================
 app.get("/api/buscar/:termino", (req, res) => {
