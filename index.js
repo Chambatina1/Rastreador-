@@ -1,42 +1,59 @@
 const express = require("express");
+const cors = require("cors");
+
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
-let orders = [];
-let nextId = 1;
+let registros = [
+  {
+    id: 1,
+    carnet: "CI-1001",
+    estado: "En revisión",
+    fecha: "18/04/26",
+    descripcion: "Documento recibido en oficina"
+  },
+  {
+    id: 2,
+    carnet: "CI-1002",
+    estado: "Listo",
+    fecha: "18/04/26",
+    descripcion: "Carnet disponible para entrega"
+  }
+];
 
-// Ruta base
+let nextId = 3;
+
 app.get("/", (req, res) => {
   res.send("Rastreador funcionando");
 });
+
 app.get("/orders", (req, res) => {
-  res.json(orders);
+  res.json(registros);
 });
-// Crear pedido
+
 app.post("/orders", (req, res) => {
-  const { nombre, telefono, direccion, link } = req.body;
+  const { carnet } = req.body;
 
-  const newOrder = {
-    id: nextId++,
-    nombre,
-    telefono,
-    direccion,
-    link,
-    estado: "pendiente"
-  };
+  if (!carnet) {
+    return res.status(400).json({ mensaje: "Falta el número de carnet" });
+  }
 
-  orders.push(newOrder);
+  const encontrado = registros.find(
+    item => item.carnet.toLowerCase() === String(carnet).toLowerCase()
+  );
 
-  res.json(newOrder);
-});
+  if (encontrado) {
+    return res.json(encontrado);
+  }
 
-// Ver pedidos
-app.get("/orders", (req, res) => {
-  res.json(orders);
+  return res.status(404).json({
+    mensaje: "No encontramos ese número de carnet"
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
+  console.log(Servidor corriendo en puerto ${PORT});
 });
