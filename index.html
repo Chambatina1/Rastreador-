@@ -663,7 +663,7 @@
       }
     }
 
-    async function enviarChat(texto) {
+   async function enviarChat(texto) {
   try {
     const res = await fetch(`${BACKEND_URL}/api/chat`, {
       method: "POST",
@@ -672,20 +672,19 @@
     });
 
     if (!res.ok) {
-      // Si el servidor responde con error HTTP, intentamos obtener el mensaje de error del cuerpo si es JSON
       let errorMsg = `Error del servidor: ${res.status} ${res.statusText}`;
       try {
         const errorData = await res.json();
         errorMsg = errorData.error || errorData.message || errorMsg;
       } catch {
-        // Si no es JSON, ignoramos
+        // No se pudo leer JSON, se usa el mensaje por defecto
       }
       throw new Error(errorMsg);
     }
 
     const data = await res.json();
-    // Buscar el campo de respuesta en varios formatos comunes
     const respuesta = data.respuesta || data.reply || data.answer || data.message || data.text || "";
+
     if (respuesta) {
       ponerRespuesta(respuesta);
     } else {
@@ -695,7 +694,7 @@
     console.error("Error en enviarChat:", error);
     ponerRespuesta(error.message || "No fue posible conectar con el servidor.");
   }
-}   
+}
     async function procesar() {
       if (procesando) return;
 
