@@ -375,8 +375,10 @@
 
         <div id="respuesta" class="answer-box">Escriba su número CPK, carnet o su pregunta y toque Enviar.</div>
 
-        <button id="btnEnviar" class="btn" type="button">Enviar</button>
-
+        <button id="btnEnviar" type="button" onclick="probarBoton()" style="width:100%; padding:18px; font-size:22px; border:none; border-radius:14px; background:#d97a2b; color:white; font-weight:700;">
+  Enviar
+</button>
+      
         <div class="helper-row">
           <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
           <button class="chip" type="button" onclick="usarEjemplo('86012204812')">Probar carnet</button>
@@ -409,8 +411,10 @@
     </button>
   </div>
 </div>
-
-<script>
+function probarBoton() {
+  alert("botón funcionando");
+}
+  <script>
     const BACKEND_URL = "https://rastreador-abc123.onrender.com";
     const mensaje = document.getElementById("mensaje");
     const respuesta = document.getElementById("respuesta");
