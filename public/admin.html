@@ -5,38 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Admin - Rastreador</title>
   <link rel="stylesheet" href="admin.css">
+  <style>
+    /* Estilos básicos para pestañas */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
+    .tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-size: 16px; }
+    .tab-btn.active { border-bottom: 3px solid #f59e0b; font-weight: bold; }
+    .tab-content.hidden { display: none; }
+    /* Reutiliza el resto de admin.css que ya tienes */
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📦 Panel de Administración</h1>
-    <div id="loginPanel" class="login-panel">
-      <h2>Acceso restringido</h2>
-      <input type="password" id="tokenInput" placeholder="Token de administrador">
-      <button id="loginBtn">Ingresar</button>
-      <div id="loginError" class="error"></div>
+<div class="container">
+  <h1>📦 Panel de Administración</h1>
+  <div id="loginPanel" class="login-panel">
+    <h2>Acceso restringido</h2>
+    <input type="password" id="tokenInput" placeholder="Token de administrador">
+    <button id="loginBtn">Ingresar</button>
+    <div id="loginError" class="error"></div>
+  </div>
+
+  <div id="adminPanel" style="display:none;">
+    <div class="toolbar">
+      <button id="nuevoBtn">➕ Nuevo registro</button>
+      <button id="refreshBtn">🔄 Refrescar</button>
+      <button id="logoutBtn">🚪 Cerrar sesión</button>
     </div>
 
-    <div id="adminPanel" style="display:none;">
-      <div class="toolbar">
-        <button id="nuevoBtn">➕ Nuevo registro</button>
-        <button id="refreshBtn">🔄 Refrescar</button>
-        <button id="logoutBtn">🚪 Cerrar sesión</button>
-      </div>
-      <div id="formulario" class="formulario hidden">
-        <h3 id="formTitle">Nuevo registro</h3>
-        <input type="text" id="carnet" placeholder="Carnet (ej: CI-1001)" required>
-        <input type="text" id="estado" placeholder="Estado" required>
-        <input type="text" id="fecha" placeholder="Fecha (dd/mm/aa)">
-        <textarea id="descripcion" placeholder="Descripción"></textarea>
-        <input type="hidden" id="editId">
-        <button id="guardarBtn">Guardar</button>
-        <button id="cancelarBtn">Cancelar</button>
-      </div>
-      <div id="listaRegistros" class="lista-registros">
-        <!-- Aquí se cargarán los registros -->
-      </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tabRegistros">📋 Registros (Carnets)</button>
+      <button class="tab-btn" data-tab="tabPedidos">🛒 Pedidos TikTok</button>
+    </div>
+
+    <!-- Formulario para Registros -->
+    <div id="formularioRegistro" class="formulario hidden">
+      <h3 id="formTitle">Nuevo registro</h3>
+      <input type="text" id="carnet" placeholder="Carnet (ej: CI-1001)" required>
+      <input type="text" id="estado" placeholder="Estado" required>
+      <input type="text" id="fecha" placeholder="Fecha (dd/mm/aa)">
+      <textarea id="descripcion" placeholder="Descripción"></textarea>
+      <input type="hidden" id="editId">
+      <button id="guardarBtn">Guardar</button>
+      <button id="cancelarBtn">Cancelar</button>
+    </div>
+
+    <!-- Contenido pestaña Registros -->
+    <div id="tabRegistros" class="tab-content">
+      <div id="listaRegistros" class="lista-registros">Cargando...</div>
+    </div>
+
+    <!-- Contenido pestaña Pedidos -->
+    <div id="tabPedidos" class="tab-content hidden">
+      <div id="listaPedidos" class="lista-registros">Cargando...</div>
     </div>
   </div>
-  <script src="admin.js"></script>
+</div>
+<script src="admin.js"></script>
 </body>
 </html>
