@@ -1,7 +1,7 @@
 {
   "name": "tu-app",
   "version": "1.0.0",
-  "type": "commonjs",   // ← así o elimina la línea
+  "type": "commonjs",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
