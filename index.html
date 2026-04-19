@@ -337,7 +337,12 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
+   <div style="display:flex; gap:10px; margin-bottom:15px;">
+  <button onclick="setMode('consulta')">Consulta</button>
+  <button onclick="setMode('compra')">Compra TikTok</button>
+</div>
+   <div id="consultaView">
+     <div class="top">
       <div class="logo-shell">
         <img src="public/chambita.png" alt="Chambatina" />
       </div>
@@ -385,8 +390,27 @@
       </div>
     </div>
   </div>
+</div>
+ </div>
 
-  <script>
+  <div id="compraView" style="display:none;">
+  <div class="card" style="padding:20px;">
+    <h3>Compra desde TikTok</h3>
+
+    <input
+      type="text"
+      id="tiktokUrl"
+      placeholder="Pegue aquí el link de TikTok"
+      style="width:100%; padding:10px; margin-top:10px;"
+    />
+
+    <button onclick="continuarCompra()" style="margin-top:10px;">
+      Continuar
+    </button>
+  </div>
+</div>
+
+<script>
     const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
     const mensaje = document.getElementById("mensaje");
@@ -689,7 +713,42 @@ async function procesar() {
     window.addEventListener("load", function() {
       mensaje.disabled = false;
       mensaje.focus();
-    });
-  </script>
+ <script>
+  const BACKEND_URL = "...";
+  const mensaje = document.getElementById("mensaje");
+  const respuesta = document.getElementById("respuesta");
+  const btnEnviar = document.getElementById("btnEnviar");
+  const iosTip = document.getElementById("iosTip");
+
+  // tus funciones que ya existen
+  function escaparHtml(texto) {
+    ...
+  }
+
+  function construirTarjetasCarnet(data) {
+    ...
+  }
+
+  // 👇 PÉGALAS AQUÍ
+  function setMode(mode) {
+    document.getElementById("consultaView").style.display =
+      mode === "consulta" ? "block" : "none";
+
+    document.getElementById("compraView").style.display =
+      mode === "compra" ? "block" : "none";
+  }
+
+  function continuarCompra() {
+    const url = document.getElementById("tiktokUrl").value;
+
+    if (!url) {
+      alert("Pega un link de TikTok");
+      return;
+    }
+
+    alert("Link recibido: " + url);
+  }
+</script>    
+  
 </body>
 </html>
