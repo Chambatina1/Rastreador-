@@ -646,7 +646,7 @@
 
     async function enviarChat(texto) {
       try {
-        const res = await fetch(${BACKEND_URL}/api/chat, {
+        const res = await etch(${BACKEND_URL}/api/chat, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -664,42 +664,40 @@
     }
 
     async function buscarCPK(codigo) {
-      try {
-        const res = await fetch(${BACKEND_URL}/api/rastreo/${codigo});
-        const data = await res.json();
+  try {
+    const res = await fetch(${BACKEND_URL}/api/rastreo/${codigo});
+    const data = await res.json();
 
-        if (!data.ok) {
-          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
-          return;
-        }
-
-        ponerRespuestaHTML(construirRespuestaRastreo(data));
-      } catch (error) {
-        ponerRespuesta("No fue posible conectar con el servidor.");
-      }
+    if (!data.ok) {
+      ponerRespuesta(data.mensaje || "No se encontró el CPK.");
+      return;
     }
 
-    async function buscarCarnet(codigo) {
-      try {
-        const res = await fetch(${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(codigo)});
-        const data = await res.json();
+    ponerRespuestaHTML(construirRespuestaRastreo(data));
 
-        if (!data.ok && !data.resultados) {
-          ponerRespuesta(data.mensaje || "No se encontraron resultados para ese carnet.");
-          return;
-        }
+  } catch (error) {
+    ponerRespuesta("No fue posible conectar con el servidor.");
+  }
+}
+    async function enviarChat(texto) {
+  try {
+    const res = await fetch(${BACKEND_URL}/api/chat, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ mensaje: texto })
+    });
 
-        if (data.tipoBusqueda === "cpk") {
-          ponerRespuestaHTML(construirRespuestaRastreo(data));
-          return;
-        }
+    const data = await res.json();
 
-        ponerRespuestaHTML(construirTarjetasCarnet(data.resultados || data));
-      } catch (error) {
-        ponerRespuesta("Error conectando con el servidor.");
-      }
-    }
-
+    ponerRespuesta(
+      data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
+    );
+  } catch (error) {
+    ponerRespuesta("No fue posible conectar con el servidor.");
+  }
+}
     async function procesar() {
       if (procesando) return;
 
