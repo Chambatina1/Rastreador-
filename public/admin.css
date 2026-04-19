@@ -1,1 +1,22 @@
-
+* { box-sizing: border-box; }
+body { font-family: system-ui, Arial, sans-serif; background: #f4f5f7; margin: 0; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 28px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+h1 { color: #f59e0b; margin-top: 0; }
+.login-panel { text-align: center; padding: 40px; }
+.login-panel input { padding: 12px; width: 250px; font-size: 16px; margin: 10px; border: 1px solid #ccc; border-radius: 20px; }
+.login-panel button { background: #f59e0b; color: white; border: none; padding: 12px 24px; border-radius: 28px; cursor: pointer; font-weight: bold; }
+.toolbar { margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+.toolbar button { background: #2c3e66; color: white; border: none; padding: 10px 18px; border-radius: 28px; cursor: pointer; }
+.formulario { background: #f9fafb; padding: 20px; border-radius: 24px; margin-bottom: 24px; border: 1px solid #e5e7eb; }
+.formulario input, .formulario textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 16px; border: 1px solid #ccc; }
+.formulario button { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 28px; margin-right: 12px; cursor: pointer; }
+.hidden { display: none; }
+.error { color: red; margin-top: 10px; }
+.lista-registros { display: grid; gap: 16px; }
+.card { background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.card h3 { margin: 0 0 8px; color: #1e293b; }
+.card p { margin: 6px 0; color: #334155; }
+.card-actions { margin-top: 12px; display: flex; gap: 12px; }
+.card-actions button { padding: 6px 12px; border-radius: 20px; border: none; cursor: pointer; }
+.editar { background: #f59e0b; color: white; }
+.eliminar { background: #ef4444; color: white; }
