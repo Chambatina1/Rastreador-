@@ -411,10 +411,10 @@
 
           <div id="respuesta" class="answer-box">Escriba su número CPK, carnet o su pregunta y toque Enviar.</div>
 
-          <button id="btnEnviar" type="button">
-  Enviar
-</button>
-          
+          <button id="btnEnviar" class="btn" type="button">
+            Enviar
+          </button>
+
           <div class="helper-row">
             <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
             <button class="chip" type="button" onclick="usarEjemplo('86012204812')">Probar carnet</button>
@@ -553,7 +553,9 @@
               : [];
 
       if (!registros.length) {
-        return <div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>;
+        return `
+          <div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>
+        `;
       }
 
       return `
@@ -609,7 +611,6 @@
         ponerRespuesta(
           data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
         );
-
       } catch (error) {
         ponerRespuesta("No fue posible conectar con el servidor.");
         console.error("Error chat:", error);
@@ -651,7 +652,6 @@
         }
 
         ponerRespuestaHTML(construirRespuestaRastreo(data));
-
       } catch (error) {
         ponerRespuesta("No fue posible conectar con el servidor.");
         console.error("Error rastreo:", error);
@@ -698,7 +698,6 @@
         }
 
         ponerRespuestaHTML(construirTarjetasCarnet(data.resultados || data));
-
       } catch (error) {
         ponerRespuesta("Error conectando con el servidor.");
         console.error("Error carnet:", error);
@@ -728,7 +727,6 @@
         }
 
         await enviarChat(texto);
-
       } finally {
         setProcesando(false);
         mensaje.focus();
@@ -761,9 +759,9 @@
     }
 
     window.addEventListener("load", function() {
-  mensaje.disabled = false;
-  mensaje.focus();
-});
+      mensaje.disabled = false;
+      mensaje.focus();
+    });
   </script>
 </body>
 </html>
