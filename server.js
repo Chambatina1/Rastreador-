@@ -1392,6 +1392,10 @@ app.use((req, res) => {
 });
 
 // ================= START =================
+const path = require("path");
+app.get("/admin.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor corriendo en 0.0.0.0:${PORT}`);
 });
