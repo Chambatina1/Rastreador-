@@ -662,8 +662,7 @@
         ponerRespuesta("No fue posible conectar con el servidor.");
       }
     }
-
-   async function enviarChat(texto) {
+async function enviarChat(texto) {
   try {
     const res = await fetch(`${BACKEND_URL}/api/chat`, {
       method: "POST",
@@ -676,7 +675,7 @@
       try {
         const errorData = await res.json();
         errorMsg = errorData.error || errorData.message || errorMsg;
-      } catch {
+      } catch (err) {
         // No se pudo leer JSON, se usa el mensaje por defecto
       }
       throw new Error(errorMsg);
@@ -695,35 +694,6 @@
     ponerRespuesta(error.message || "No fue posible conectar con el servidor.");
   }
 }
-    async function procesar() {
-      if (procesando) return;
-
-      const texto = mensaje.value.trim();
-      if (!texto) return;
-
-      setProcesando(true);
-      ponerRespuesta("Consultando...");
-
-      try {
-        const limpio = normalizarNumero(texto);
-
-        if (limpio.length === 11) {
-          await buscarCarnet(limpio);
-          return;
-        }
-
-        if (limpio.length >= 6 && limpio.length <= 10) {
-          await buscarCPK(limpio);
-          return;
-        }
-
-        await enviarChat(texto);
-      } finally {
-        setProcesando(false);
-        mensaje.focus();
-      }
-    }
-
     function continuarCompra() {
       const link = document.getElementById("tiktokUrl").value.trim();
       const nombre = document.getElementById("nombreCliente").value.trim();
