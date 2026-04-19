@@ -1040,7 +1040,9 @@ app.get("/api/buscar-carnet", (req, res) => {
     });
   }
 });
-
+app.get("/", (req, res) => {
+  res.send("Rastreador funcionando");
+});
 // ================= BÚSQUEDA GENERAL =================
 app.get("/api/buscar/:termino", (req, res) => {
   try {
