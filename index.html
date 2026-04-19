@@ -1,224 +1,789 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chambatina</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chambatina</title>
 
-<style>
-body {
-  font-family: Arial;
-  margin: 0;
-  background: #f4f5f7;
-}
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f59e0b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Chambatina" />
+  <link rel="apple-touch-icon" href="public/chambatinaapp.png" />
 
-.wrap {
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-}
+  <style>
+    * { box-sizing: border-box; }
 
-.mode {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f5f7;
+      color: #111827;
+    }
 
-.mode button {
-  flex: 1;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: #eee;
-  font-weight: bold;
-}
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px 14px 50px;
+    }
 
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-}
+    .mode-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
 
-input {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
+    .mode-btn {
+      border: none;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 10px rgba(0,0,0,.04);
+    }
 
-button.main {
-  width: 100%;
-  padding: 16px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: none;
-  background: #d97a2b;
-  color: white;
-  font-size: 18px;
-}
+    .mode-btn:hover {
+      border-color: #f59e0b;
+    }
 
-.answer {
-  margin-top: 15px;
-  padding: 15px;
-  background: #eee;
-  border-radius: 10px;
-  min-height: 80px;
-}
+    .top {
+      text-align: center;
+      margin-bottom: 22px;
+    }
 
-.hidden {
-  display: none;
-}
-</style>
+    .logo-shell {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 14px;
+      border-radius: 32px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 34px rgba(0,0,0,.08);
+      border: 1px solid #ececec;
+    }
+
+    .logo-shell img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      display: block;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 42px;
+      font-weight: 800;
+      color: #f59e0b;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #6b7280;
+      font-size: 18px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 28px;
+      border: 1px solid #e9eaec;
+      box-shadow: 0 16px 38px rgba(0,0,0,.07);
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 22px;
+      border-bottom: 1px solid #ececec;
+      background: #ffffff;
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: #f9fafb;
+      border: 1px solid #ececec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+    }
+
+    .header-text h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .header-text p {
+      margin: 5px 0 0;
+      font-size: 15px;
+      color: #6b7280;
+    }
+
+    .card-body {
+      padding: 22px;
+      background: #fcfcfd;
+    }
+
+    .question-box {
+      width: 100%;
+      height: 64px;
+      border: 1px solid #f3c26a;
+      background: #fff7e8;
+      color: #111827;
+      border-radius: 18px;
+      padding: 0 18px;
+      font-size: 18px;
+      outline: none;
+      display: block;
+      margin-bottom: 16px;
+      transition: .2s ease;
+    }
+
+    .question-box:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.12);
+      background: #ffffff;
+    }
+
+    .question-box::placeholder {
+      color: #7b7280;
+    }
+
+    .answer-box {
+      min-height: 260px;
+      background: #eef2f6;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 22px;
+      font-size: 18px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #111827;
+    }
+
+    .answer-box.is-loading {
+      color: #6b7280;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 16px;
+      min-height: 64px;
+      border: none;
+      border-radius: 18px;
+      background: #d97a2b;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .btn:hover {
+      opacity: .96;
+    }
+
+    .btn:disabled,
+    .question-box:disabled,
+    .compra-input:disabled,
+    .compra-textarea:disabled {
+      opacity: .7;
+      cursor: not-allowed;
+    }
+
+    .helper-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .chip {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #374151;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 46px;
+    }
+
+    .chip:hover {
+      border-color: #f59e0b;
+      color: #111827;
+    }
+
+    .status-badge {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #fff7e8;
+      color: #9a3412;
+      border: 1px solid #f3c26a;
+    }
+
+    .tarjetas-carnet {
+      display: grid;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .tarjeta-carnet {
+      background: #ffffff;
+      border: 1px solid #dbe3ec;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+
+    .tarjeta-carnet__fila {
+      margin-bottom: 8px;
+      color: #1f2937;
+      white-space: normal;
+    }
+
+    .tarjeta-carnet__fila:last-child {
+      margin-bottom: 0;
+    }
+
+    .respuesta-vacia {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fdba74;
+    }
+
+    .ios-tip {
+      display: none;
+      margin-top: 14px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .compra-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .compra-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .compra-input,
+    .compra-textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      outline: none;
+      background: #ffffff;
+      color: #111827;
+    }
+
+    .compra-input:focus,
+    .compra-textarea:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.10);
+    }
+
+    .compra-textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .compra-ayuda {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .compra-resultado {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #eef6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 700px) {
+      .wrap {
+        padding: 16px 10px 36px;
+      }
+
+      .logo-shell {
+        width: 110px;
+        height: 110px;
+        border-radius: 26px;
+      }
+
+      .logo-shell img {
+        width: 66px;
+        height: 66px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .card-header {
+        padding: 16px;
+      }
+
+      .avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+      }
+
+      .avatar img {
+        width: 34px;
+        height: 34px;
+      }
+
+      .header-text h2 {
+        font-size: 20px;
+      }
+
+      .header-text p {
+        font-size: 14px;
+      }
+
+      .card-body {
+        padding: 16px;
+      }
+
+      .question-box {
+        height: 58px;
+        font-size: 16px;
+        border-radius: 16px;
+      }
+
+      .answer-box {
+        min-height: 220px;
+        font-size: 16px;
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .btn {
+        min-height: 58px;
+        font-size: 19px;
+      }
+
+      .chip {
+        font-size: 15px;
+        padding: 11px 16px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="mode-row">
+      <button class="mode-btn" type="button" onclick="setMode('consulta')">Consulta</button>
+      <button class="mode-btn" type="button" onclick="setMode('compra')">Compra TikTok</button>
+    </div>
 
-<div class="wrap">
+    <div id="consultaView">
+      <div class="top">
+        <div class="logo-shell">
+          <img src="public/chambita.png" alt="Chambatina" />
+        </div>
+        <h1>Chambatina</h1>
+        <p class="subtitle">Consulte su paquete o haga su pregunta</p>
+      </div>
 
-  <!-- MODOS -->
-  <div class="mode">
-    <button onclick="setMode('consulta')">Consulta</button>
-    <button onclick="setMode('compra')">Compra TikTok</button>
-  </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar">
+            <img src="public/chambita.png" alt="Chambita" />
+          </div>
+          <div class="header-text">
+            <h2>Chambita</h2>
+            <p>Asistente virtual</p>
+          </div>
+        </div>
 
-  <!-- CONSULTA -->
-  <div id="consultaView">
-    <div class="card">
-      <input id="mensaje" placeholder="CPK, carnet o pregunta">
+        <div class="card-body">
+          <input
+            id="mensaje"
+            class="question-box"
+            type="text"
+            placeholder="Escriba su CPK, carnet o su pregunta"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          />
 
-      <button id="btnEnviar" class="main">Enviar</button>
+          <div id="respuesta" class="answer-box">Escriba su número CPK, carnet o su pregunta y toque Enviar.</div>
 
-      <div id="respuesta" class="answer">
-        Escriba su número CPK, carnet o su pregunta.
+          <button id="btnEnviar" class="btn" type="button">Enviar</button>
+
+          <div class="helper-row">
+            <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
+            <button class="chip" type="button" onclick="usarEjemplo('86012204812')">Probar carnet</button>
+            <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">Precio por libra</button>
+            <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">Tiempo de envío</button>
+          </div>
+
+          <div id="iosTip" class="ios-tip">
+            En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="compraView" class="hidden">
+      <div class="top">
+        <div class="logo-shell">
+          <img src="public/chambita.png" alt="Compra TikTok" />
+        </div>
+        <h1>Compra TikTok</h1>
+        <p class="subtitle">Pegue el link y guarde los datos del pedido</p>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="compra-grid">
+            <div>
+              <label class="compra-label" for="tiktokUrl">Link de TikTok</label>
+              <input id="tiktokUrl" class="compra-input" type="text" placeholder="Pegue aquí el link de TikTok">
+            </div>
+
+            <div>
+              <label class="compra-label" for="nombreCliente">Nombre del comprador</label>
+              <input id="nombreCliente" class="compra-input" type="text" placeholder="Nombre y apellidos">
+            </div>
+
+            <div>
+              <label class="compra-label" for="telefonoCliente">Teléfono</label>
+              <input id="telefonoCliente" class="compra-input" type="text" placeholder="Teléfono del comprador">
+            </div>
+
+            <div>
+              <label class="compra-label" for="correoCliente">Correo</label>
+              <input id="correoCliente" class="compra-input" type="email" placeholder="Correo electrónico">
+            </div>
+
+            <div>
+              <label class="compra-label" for="direccionEntrega">Dirección de entrega</label>
+              <textarea id="direccionEntrega" class="compra-textarea" placeholder="Dirección donde se entregará el pedido"></textarea>
+            </div>
+
+            <div>
+              <label class="compra-label" for="notaCompra">Notas</label>
+              <textarea id="notaCompra" class="compra-textarea" placeholder="Color, talla, variante, observaciones..."></textarea>
+            </div>
+          </div>
+
+          <div class="compra-ayuda">
+            Esta vista es para capturar el pedido de TikTok. Por ahora mostrará un resumen. Luego la conectamos al backend para guardarlo.
+          </div>
+
+          <button id="btnCompra" class="btn" type="button">Continuar</button>
+
+          <div id="compraResultado" class="compra-resultado hidden"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- COMPRA -->
-  <div id="compraView" class="hidden">
-    <div class="card">
-      <h3>Compra desde TikTok</h3>
+  <script>
+    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
-      <input id="tiktokUrl" placeholder="Pega el link de TikTok">
+    const mensaje = document.getElementById("mensaje");
+    const respuesta = document.getElementById("respuesta");
+    const btnEnviar = document.getElementById("btnEnviar");
+    const iosTip = document.getElementById("iosTip");
 
-      <button class="main" onclick="continuarCompra()">
-        Continuar
-      </button>
-    </div>
-  </div>
+    const btnCompra = document.getElementById("btnCompra");
+    const compraResultado = document.getElementById("compraResultado");
 
-</div>
+    let procesando = false;
 
-<script>
-const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
+    function setMode(mode) {
+      document.getElementById("consultaView").style.display =
+        mode === "consulta" ? "block" : "none";
 
-const mensaje = document.getElementById("mensaje");
-const respuesta = document.getElementById("respuesta");
-const btnEnviar = document.getElementById("btnEnviar");
+      document.getElementById("compraView").style.display =
+        mode === "compra" ? "block" : "none";
+    }
 
-let procesando = false;
+    function normalizarNumero(texto) {
+      return String(texto || "").replace(/\D/g, "");
+    }
 
-/* ===== MODOS ===== */
-function setMode(mode) {
-  document.getElementById("consultaView").style.display =
-    mode === "consulta" ? "block" : "none";
+    function ponerRespuesta(texto) {
+      respuesta.textContent = texto;
+      respuesta.classList.remove("is-loading");
+    }
 
-  document.getElementById("compraView").style.display =
-    mode === "compra" ? "block" : "none";
-}
+    function ponerRespuestaHTML(html) {
+      respuesta.innerHTML = html;
+      respuesta.classList.remove("is-loading");
+    }
 
-/* ===== TIKTOK ===== */
-function continuarCompra() {
-  const url = document.getElementById("tiktokUrl").value.trim();
+    function usarEjemplo(texto) {
+      if (procesando) return;
+      mensaje.value = texto;
+      mensaje.focus();
+    }
 
-  if (!url) {
-    alert("Pega un link de TikTok");
-    return;
-  }
+    function escapeHtml(texto) {
+      return String(texto || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-  alert("Link recibido: " + url);
-}
+    function construirRespuestaRastreo(data) {
+      const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
+      const fecha = data.fecha || "No disponible";
+      const descripcion = data.descripcion || "Sin descripción disponible.";
+      const estado = data.estado || "SIN ESTADO";
 
-/* ===== LÓGICA ===== */
-function normalizarNumero(texto) {
-  return String(texto || "").replace(/\D/g, "");
-}
+      return `
+        <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
+        <strong>${escapeHtml(saludo)}</strong>
+        <br><br>
+        <strong>Fecha:</strong> ${escapeHtml(fecha)}
+        <br><br>
+        <strong>Descripción:</strong><br>
+        ${escapeHtml(descripcion)}
+      `;
+    }
 
-function ponerRespuesta(texto) {
-  respuesta.textContent = texto;
-}
+    function construirTarjetasCarnet(data) {
+      const registros = Array.isArray(data)
+        ? data
+        : Array.isArray(data.resultados)
+          ? data.resultados
+          : [];
 
-async function enviarChat(texto) {
-  try {
-    const res = await fetch(${BACKEND_URL}/api/chat, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mensaje: texto })
+      if (!registros.length) {
+        return `
+          <div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>
+        `;
+      }
+
+      return `
+        <div class="tarjetas-carnet">
+          ${registros.map(item => `
+            <div class="tarjeta-carnet">
+              <div class="tarjeta-carnet__fila"><strong>Nombre:</strong> ${escapeHtml(item.nombre || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Carnet:</strong> ${escapeHtml(item.carnet || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>CPK:</strong> ${escapeHtml(item.cpk || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Estado:</strong> ${escapeHtml(item.estado || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Fecha:</strong> ${escapeHtml(item.fecha || "-")}</div>
+              <div class="tarjeta-carnet__fila"><strong>Descripción:</strong> ${escapeHtml(item.descripcion || "-")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function setProcesando(valor) {
+      procesando = valor;
+      mensaje.disabled = valor;
+      btnEnviar.disabled = valor;
+      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
+      respuesta.classList.toggle("is-loading", valor);
+    }
+
+    async function enviarChat(texto) {
+      try {
+        const res = await fetch(${BACKEND_URL}/api/chat, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ mensaje: texto })
+        });
+
+        const data = await res.json();
+        ponerRespuesta(
+          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
+        );
+      } catch (error) {
+        ponerRespuesta("No fue posible conectar con el servidor.");
+      }
+    }
+
+    async function buscarCPK(codigo) {
+      try {
+        const res = await fetch(${BACKEND_URL}/api/rastreo/${codigo});
+        const data = await res.json();
+
+        if (!data.ok) {
+          ponerRespuesta(data.mensaje || "No se encontró el CPK.");
+          return;
+        }
+
+        ponerRespuestaHTML(construirRespuestaRastreo(data));
+      } catch (error) {
+        ponerRespuesta("No fue posible conectar con el servidor.");
+      }
+    }
+
+    async function buscarCarnet(codigo) {
+      try {
+        const res = await fetch(${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(codigo)});
+        const data = await res.json();
+
+        if (!data.ok && !data.resultados) {
+          ponerRespuesta(data.mensaje || "No se encontraron resultados para ese carnet.");
+          return;
+        }
+
+        if (data.tipoBusqueda === "cpk") {
+          ponerRespuestaHTML(construirRespuestaRastreo(data));
+          return;
+        }
+
+        ponerRespuestaHTML(construirTarjetasCarnet(data.resultados || data));
+      } catch (error) {
+        ponerRespuesta("Error conectando con el servidor.");
+      }
+    }
+
+    async function procesar() {
+      if (procesando) return;
+
+      const texto = mensaje.value.trim();
+      if (!texto) return;
+
+      setProcesando(true);
+      ponerRespuesta("Consultando...");
+
+      try {
+        const limpio = normalizarNumero(texto);
+
+        if (limpio.length === 11) {
+          await buscarCarnet(limpio);
+          return;
+        }
+
+        if (limpio.length >= 6 && limpio.length <= 10) {
+          await buscarCPK(limpio);
+          return;
+        }
+
+        await enviarChat(texto);
+      } finally {
+        setProcesando(false);
+        mensaje.focus();
+      }
+    }
+
+    function continuarCompra() {
+      const link = document.getElementById("tiktokUrl").value.trim();
+      const nombre = document.getElementById("nombreCliente").value.trim();
+      const telefono = document.getElementById("telefonoCliente").value.trim();
+      const correo = document.getElementById("correoCliente").value.trim();
+      const direccion = document.getElementById("direccionEntrega").value.trim();
+      const nota = document.getElementById("notaCompra").value.trim();
+
+      if (!link) {
+        compraResultado.classList.remove("hidden");
+        compraResultado.textContent = "Pega primero un link de TikTok.";
+        return;
+      }
+
+      compraResultado.classList.remove("hidden");
+      compraResultado.textContent =
+        "Resumen del pedido:\n\n" +
+        "Link: " + link + "\n" +
+        "Comprador: " + (nombre || "-") + "\n" +
+        "Teléfono: " + (telefono || "-") + "\n" +
+        "Correo: " + (correo || "-") + "\n" +
+        "Dirección: " + (direccion || "-") + "\n" +
+        "Notas: " + (nota || "-");
+    }
+
+    btnEnviar.addEventListener("click", procesar);
+    btnCompra.addEventListener("click", continuarCompra);
+
+    mensaje.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        procesar();
+      }
     });
 
-    const data = await res.json();
-    ponerRespuesta(data.respuesta || "Sin respuesta");
+    function esIOS() {
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    }
 
-  } catch {
-    ponerRespuesta("Error conectando");
-  }
-}
+    function esSafari() {
+      return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+    }
 
-async function buscarCPK(cpk) {
-  try {
-    const res = await fetch(${BACKEND_URL}/api/rastreo/${cpk});
-    const data = await res.json();
+    function estaInstalada() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
 
-    ponerRespuesta(data.estado || "No encontrado");
+    if (esIOS() && esSafari() && !estaInstalada()) {
+      iosTip.style.display = "block";
+    }
 
-  } catch {
-    ponerRespuesta("Error servidor");
-  }
-}
-
-async function buscarCarnet(carnet) {
-  try {
-    const res = await fetch(${BACKEND_URL}/api/buscar-carnet?carnet=${carnet});
-    const data = await res.json();
-
-    ponerRespuesta(JSON.stringify(data));
-
-  } catch {
-    ponerRespuesta("Error servidor");
-  }
-}
-
-async function procesar() {
-  if (procesando) return;
-
-  const texto = mensaje.value.trim();
-  if (!texto) return;
-
-  const limpio = normalizarNumero(texto);
-
-  if (limpio.length === 11) {
-    await buscarCarnet(limpio);
-    return;
-  }
-
-  if (limpio.length >= 6 && limpio.length <= 10) {
-    await buscarCPK(limpio);
-    return;
-  }
-
-  await enviarChat(texto);
-}
-
-/* EVENTOS */
-btnEnviar.addEventListener("click", procesar);
-
-mensaje.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    procesar();
-  }
-});
-</script>
-
+    window.addEventListener("load", function() {
+      mensaje.disabled = false;
+      mensaje.focus();
+    });
+  </script>
 </body>
 </html>
