@@ -4,14 +4,213 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Admin - Rastreador</title>
-  <link rel="stylesheet" href="admin.css">
   <style>
-    /* Estilos básicos para pestañas */
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; }
-    .tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-size: 16px; }
-    .tab-btn.active { border-bottom: 3px solid #f59e0b; font-weight: bold; }
-    .tab-content.hidden { display: none; }
-    /* Reutiliza el resto de admin.css que ya tienes */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #f4f5f7;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 32px;
+      padding: 28px 32px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #f59e0b;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Login */
+    .login-panel {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .login-panel h2 {
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+    .login-panel input {
+      padding: 14px 18px;
+      width: 280px;
+      font-size: 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 40px;
+      margin-right: 12px;
+    }
+    .login-panel button {
+      background: #f59e0b;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .error {
+      color: #dc2626;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      background: #1e293b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .toolbar button:hover {
+      background: #0f172a;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+      border-bottom: 3px solid transparent;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      color: #f59e0b;
+      border-bottom-color: #f59e0b;
+    }
+
+    /* Formulario de registros */
+    .formulario {
+      background: #f8fafc;
+      padding: 24px;
+      border-radius: 28px;
+      margin-bottom: 28px;
+      border: 1px solid #e2e8f0;
+    }
+    .formulario h3 {
+      margin-bottom: 16px;
+      color: #0f172a;
+    }
+    .formulario input, .formulario textarea {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      font-size: 15px;
+    }
+    .formulario textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+    .formulario button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 40px;
+      margin-right: 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .formulario button:last-child {
+      background: #94a3b8;
+    }
+    .hidden {
+      display: none;
+    }
+
+    /* Tarjetas (registros y pedidos) */
+    .lista-registros {
+      display: grid;
+      gap: 18px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      transition: 0.1s;
+    }
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: #0f172a;
+    }
+    .card p {
+      margin: 8px 0;
+      color: #334155;
+      line-height: 1.4;
+    }
+    .card-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .editar, .eliminar, .actualizar-estado {
+      padding: 8px 18px;
+      border-radius: 40px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .editar { background: #f59e0b; color: white; }
+    .eliminar { background: #ef4444; color: white; }
+    .actualizar-estado { background: #3b82f6; color: white; }
+    .estado-select {
+      padding: 8px 12px;
+      border-radius: 40px;
+      border: 1px solid #cbd5e1;
+      background: white;
+    }
+    a {
+      color: #f59e0b;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .pedido-card p {
+      font-size: 14px;
+    }
+    @media (max-width: 700px) {
+      body { padding: 12px; }
+      .container { padding: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -33,7 +232,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="tabRegistros">📋 Registros (Carnets)</button>
-      <button class="tab-btn" data-tab="tabPedidos">🛒 Pedidos TikTok</button>
+      <button class="tab-btn" data-tab="tabPedidos">🛒 Pedidos / Compras TikTok</button>
     </div>
 
     <!-- Formulario para Registros -->
@@ -53,12 +252,276 @@
       <div id="listaRegistros" class="lista-registros">Cargando...</div>
     </div>
 
-    <!-- Contenido pestaña Pedidos -->
+    <!-- Contenido pestaña Pedidos (Compras) -->
     <div id="tabPedidos" class="tab-content hidden">
       <div id="listaPedidos" class="lista-registros">Cargando...</div>
     </div>
   </div>
 </div>
-<script src="admin.js"></script>
+
+<script>
+  // ======================= CONFIGURACIÓN =======================
+  // Cambia esta URL por la de tu backend en Render (o local)
+  const API_BASE = "https://rastreador-tj5b.onrender.com";  // ← AJUSTA A TU SERVIDOR
+  let token = null;
+
+  // ======================= LOGIN =======================
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const inputToken = document.getElementById("tokenInput").value;
+    if (!inputToken) return;
+    token = inputToken;
+    try {
+      const res = await fetch(`${API_BASE}/admin/registros`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        document.getElementById("loginPanel").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        cargarDatosActivos();
+      } else {
+        document.getElementById("loginError").innerText = "Token inválido";
+        token = null;
+      }
+    } catch {
+      document.getElementById("loginError").innerText = "Error de conexión con el servidor";
+      token = null;
+    }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    token = null;
+    document.getElementById("loginPanel").style.display = "block";
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("tokenInput").value = "";
+    document.getElementById("loginError").innerText = "";
+  });
+
+  // ======================= PESTAÑAS =======================
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tabId = btn.getAttribute("data-tab");
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.add("hidden"));
+      document.getElementById(tabId).classList.remove("hidden");
+      cargarDatosActivos();
+    });
+  });
+
+  function cargarDatosActivos() {
+    const visibleTab = document.querySelector(".tab-content:not(.hidden)").id;
+    if (visibleTab === "tabRegistros") cargarRegistros();
+    else if (visibleTab === "tabPedidos") cargarPedidos();
+  }
+
+  // ======================= REGISTROS (CRUD) =======================
+  async function cargarRegistros() {
+    const contenedor = document.getElementById("listaRegistros");
+    contenedor.innerHTML = "Cargando...";
+    try {
+      const res = await fetch(`${API_BASE}/admin/registros`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Error al cargar");
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        contenedor.innerHTML = "<p>No hay registros de carnets.</p>";
+        return;
+      }
+      contenedor.innerHTML = data.map(reg => `
+        <div class="card" data-id="${reg.id}">
+          <h3>${escapeHtml(reg.carnet)} - ${escapeHtml(reg.estado)}</h3>
+          <p><strong>📅 Fecha:</strong> ${escapeHtml(reg.fecha)}</p>
+          <p><strong>📝 Descripción:</strong> ${escapeHtml(reg.descripcion)}</p>
+          <div class="card-actions">
+            <button class="editar" onclick="editarRegistro(${reg.id})">✏️ Editar</button>
+            <button class="eliminar" onclick="eliminarRegistro(${reg.id})">🗑️ Eliminar</button>
+          </div>
+        </div>
+      `).join("");
+    } catch (error) {
+      contenedor.innerHTML = "<p>Error al cargar registros</p>";
+      console.error(error);
+    }
+  }
+
+  window.editarRegistro = async (id) => {
+    const res = await fetch(`${API_BASE}/admin/registros`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const registros = await res.json();
+    const reg = registros.find(r => r.id === id);
+    if (reg) {
+      document.getElementById("formTitle").innerText = "Editar registro";
+      document.getElementById("editId").value = reg.id;
+      document.getElementById("carnet").value = reg.carnet;
+      document.getElementById("estado").value = reg.estado;
+      document.getElementById("fecha").value = reg.fecha || "";
+      document.getElementById("descripcion").value = reg.descripcion || "";
+      document.getElementById("formularioRegistro").classList.remove("hidden");
+    }
+  };
+
+  window.eliminarRegistro = async (id) => {
+    if (!confirm("¿Eliminar este registro permanentemente?")) return;
+    const res = await fetch(`${API_BASE}/admin/registros/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) cargarRegistros();
+    else alert("Error al eliminar");
+  };
+
+  document.getElementById("nuevoBtn").addEventListener("click", () => {
+    document.getElementById("formTitle").innerText = "Nuevo registro";
+    document.getElementById("editId").value = "";
+    document.getElementById("carnet").value = "";
+    document.getElementById("estado").value = "";
+    document.getElementById("fecha").value = new Date().toLocaleDateString();
+    document.getElementById("descripcion").value = "";
+    document.getElementById("formularioRegistro").classList.remove("hidden");
+  });
+
+  document.getElementById("cancelarBtn").addEventListener("click", () => {
+    document.getElementById("formularioRegistro").classList.add("hidden");
+  });
+
+  document.getElementById("guardarBtn").addEventListener("click", async () => {
+    const id = document.getElementById("editId").value;
+    const carnet = document.getElementById("carnet").value.trim();
+    const estado = document.getElementById("estado").value.trim();
+    const fecha = document.getElementById("fecha").value.trim() || new Date().toLocaleDateString();
+    const descripcion = document.getElementById("descripcion").value.trim();
+
+    if (!carnet || !estado) {
+      alert("Carnet y estado son obligatorios");
+      return;
+    }
+
+    const method = id ? "PUT" : "POST";
+    const url = id ? `${API_BASE}/admin/registros/${id}` : `${API_BASE}/admin/registros`;
+    const body = JSON.stringify({ carnet, estado, fecha, descripcion });
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body
+    });
+    if (res.ok) {
+      document.getElementById("formularioRegistro").classList.add("hidden");
+      cargarRegistros();
+    } else {
+      const err = await res.json();
+      alert("Error: " + (err.error || "No se pudo guardar"));
+    }
+  });
+
+  // ======================= PEDIDOS / COMPRAS =======================
+  async function cargarPedidos() {
+    const contenedor = document.getElementById("listaPedidos");
+    contenedor.innerHTML = "Cargando pedidos...";
+    try {
+      const res = await fetch(`${API_BASE}/admin/pedidos`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error();
+      const pedidos = await res.json();
+      if (!Array.isArray(pedidos) || pedidos.length === 0) {
+        contenedor.innerHTML = "<p>No hay pedidos de compra aún.</p>";
+        return;
+      }
+      contenedor.innerHTML = pedidos.map(p => `
+        <div class="card pedido-card" data-id="${p.id}">
+          <h3>🛒 Pedido #${p.id} - <span style="color:${colorEstado(p.estado)}">${p.estado}</span></h3>
+          <p><strong>🔗 Link:</strong> <a href="${escapeHtml(p.link)}" target="_blank">${escapeHtml(p.link.substring(0, 70))}...</a></p>
+          <p><strong>👤 Comprador:</strong> ${escapeHtml(p.compradorNombre || "-")} (${escapeHtml(p.compradorTelefono || "-")}) - ${escapeHtml(p.compradorCorreo || "-")}</p>
+          <p><strong>📦 Recibe:</strong> ${escapeHtml(p.recibeNombre || "-")} | 📞 ${escapeHtml(p.recibeTelefono || "-")} | 🆔 ${escapeHtml(p.recibeCarnet || "-")}</p>
+          <p><strong>📍 Dirección:</strong> ${escapeHtml(p.direccion || "-")}</p>
+          <p><strong>📝 Notas:</strong> ${escapeHtml(p.notas || "-")}</p>
+          <p><strong>📅 Creado:</strong> ${new Date(p.createdAt).toLocaleString()}</p>
+          <div class="card-actions">
+            <select class="estado-select" data-id="${p.id}">
+              <option value="pendiente" ${p.estado === "pendiente" ? "selected" : ""}>Pendiente</option>
+              <option value="confirmado" ${p.estado === "confirmado" ? "selected" : ""}>Confirmado</option>
+              <option value="entregado" ${p.estado === "entregado" ? "selected" : ""}>Entregado</option>
+              <option value="cancelado" ${p.estado === "cancelado" ? "selected" : ""}>Cancelado</option>
+            </select>
+            <button class="actualizar-estado" data-id="${p.id}">Actualizar estado</button>
+            <button class="eliminar-pedido" data-id="${p.id}">🗑️ Eliminar pedido</button>
+          </div>
+        </div>
+      `).join("");
+
+      // Eventos dinámicos
+      document.querySelectorAll(".actualizar-estado").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const id = btn.getAttribute("data-id");
+          const select = document.querySelector(`.estado-select[data-id="${id}"]`);
+          const nuevoEstado = select.value;
+          await actualizarEstadoPedido(id, nuevoEstado);
+        });
+      });
+      document.querySelectorAll(".eliminar-pedido").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (confirm("¿Eliminar este pedido? Se perderán los datos.")) {
+            await eliminarPedido(id);
+          }
+        });
+      });
+    } catch (error) {
+      contenedor.innerHTML = "<p>Error al cargar pedidos. ¿El servidor está activo?</p>";
+      console.error(error);
+    }
+  }
+
+  async function actualizarEstadoPedido(id, nuevoEstado) {
+    const res = await fetch(`${API_BASE}/admin/pedidos/${id}/estado`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ estado: nuevoEstado })
+    });
+    if (res.ok) {
+      cargarPedidos();
+    } else {
+      alert("Error al actualizar estado");
+    }
+  }
+
+  async function eliminarPedido(id) {
+    const res = await fetch(`${API_BASE}/admin/pedidos/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) cargarPedidos();
+    else alert("Error al eliminar pedido");
+  }
+
+  function colorEstado(estado) {
+    if (estado === "pendiente") return "#f59e0b";
+    if (estado === "confirmado") return "#3b82f6";
+    if (estado === "entregado") return "#10b981";
+    return "#ef4444";
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === "&") return "&amp;";
+      if (m === "<") return "&lt;";
+      if (m === ">") return "&gt;";
+      return m;
+    });
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", () => cargarDatosActivos());
+</script>
 </body>
 </html>
