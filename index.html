@@ -553,12 +553,17 @@
 
     let procesando = false;
 
+    // Cambia entre vista Consulta y Compra
     function setMode(mode) {
-      document.getElementById("consultaView").style.display =
-        mode === "consulta" ? "block" : "none";
-
-      document.getElementById("compraView").style.display =
-        mode === "compra" ? "block" : "none";
+      const consultaView = document.getElementById("consultaView");
+      const compraView = document.getElementById("compraView");
+      if (mode === "consulta") {
+        consultaView.style.display = "block";
+        compraView.style.display = "none";
+      } else {
+        consultaView.style.display = "none";
+        compraView.style.display = "block";
+      }
     }
 
     function normalizarNumero(texto) {
@@ -590,12 +595,12 @@
         .replace(/'/g, "&#039;");
     }
 
+    // Funciones auxiliares para formatear respuestas (se mantienen por si el backend las usa)
     function construirRespuestaRastreo(data) {
       const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
       const fecha = data.fecha || "No disponible";
       const descripcion = data.descripcion || "Sin descripción disponible.";
       const estado = data.estado || "SIN ESTADO";
-
       return `
         <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
         <strong>${escapeHtml(saludo)}</strong>
@@ -608,18 +613,10 @@
     }
 
     function construirTarjetasCarnet(data) {
-      const registros = Array.isArray(data)
-        ? data
-        : Array.isArray(data.resultados)
-          ? data.resultados
-          : [];
-
+      const registros = Array.isArray(data) ? data : (Array.isArray(data.resultados) ? data.resultados : []);
       if (!registros.length) {
-        return `
-          <div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>
-        `;
+        return `<div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>`;
       }
-
       return `
         <div class="tarjetas-carnet">
           ${registros.map(item => `
@@ -644,56 +641,54 @@
       respuesta.classList.toggle("is-loading", valor);
     }
 
+    // Función principal que envía el mensaje al backend
     async function enviarChat(texto) {
       try {
-        const res = await etch(${BACKEND_URL}/api/chat, {
+        const res = await fetch(`${BACKEND_URL}/api/chat`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mensaje: texto })
         });
 
+        if (!res.ok) {
+          let errorMsg = `Error del servidor: ${res.status} ${res.statusText}`;
+          try {
+            const errorData = await res.json();
+            errorMsg = errorData.error || errorData.message || errorMsg;
+          } catch (err) {
+            // No se pudo leer JSON, se usa el mensaje por defecto
+          }
+          throw new Error(errorMsg);
+        }
+
         const data = await res.json();
-        ponerRespuesta(
-          data.respuesta || data.reply || data.answer || data.message || "Sin respuesta."
-        );
+        const respuestaTexto = data.respuesta || data.reply || data.answer || data.message || data.text || "";
+
+        if (respuestaTexto) {
+          ponerRespuesta(respuestaTexto);
+        } else {
+          ponerRespuesta("El servidor respondió sin un mensaje válido.");
+        }
       } catch (error) {
-        ponerRespuesta("No fue posible conectar con el servidor.");
+        console.error("Error en enviarChat:", error);
+        ponerRespuesta(error.message || "No fue posible conectar con el servidor.");
       }
     }
-async function enviarChat(texto) {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mensaje: texto })
-    });
 
-    if (!res.ok) {
-      let errorMsg = `Error del servidor: ${res.status} ${res.statusText}`;
-      try {
-        const errorData = await res.json();
-        errorMsg = errorData.error || errorData.message || errorMsg;
-      } catch (err) {
-        // No se pudo leer JSON, se usa el mensaje por defecto
+    // Procesa el envío del formulario
+    async function procesar() {
+      const texto = mensaje.value.trim();
+      if (!texto) {
+        ponerRespuesta("Por favor, escriba una consulta.");
+        return;
       }
-      throw new Error(errorMsg);
+      if (procesando) return;
+      setProcesando(true);
+      await enviarChat(texto);
+      setProcesando(false);
     }
 
-    const data = await res.json();
-    const respuesta = data.respuesta || data.reply || data.answer || data.message || data.text || "";
-
-    if (respuesta) {
-      ponerRespuesta(respuesta);
-    } else {
-      ponerRespuesta("El servidor respondió sin un mensaje válido.");
-    }
-  } catch (error) {
-    console.error("Error en enviarChat:", error);
-    ponerRespuesta(error.message || "No fue posible conectar con el servidor.");
-  }
-}
+    // Lógica de compra
     function continuarCompra() {
       const link = document.getElementById("tiktokUrl").value.trim();
       const nombre = document.getElementById("nombreCliente").value.trim();
@@ -719,6 +714,7 @@ async function enviarChat(texto) {
         "Notas: " + (nota || "-");
     }
 
+    // Eventos
     btnEnviar.addEventListener("click", procesar);
     btnCompra.addEventListener("click", continuarCompra);
 
@@ -729,6 +725,7 @@ async function enviarChat(texto) {
       }
     });
 
+    // Detectar iOS para mostrar el tip de instalación
     function esIOS() {
       return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
     }
