@@ -16,6 +16,8 @@ app.use(
 );
 
 app.use(express.json({ limit: "2mb" }));
+app.use(express.static("public"));  // <-- Esto sirve admin.html, admin.css, admin.js
+app.use(cors());
 
 // ================= CONTEXTO DEL CHAT =================
 const BUSINESS_CONTEXT = `
