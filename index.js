@@ -10,7 +10,9 @@ let nextId = 1;
 app.get("/", (req, res) => {
   res.send("Rastreador funcionando");
 });
-
+app.get("/orders", (req, res) => {
+  res.json(orders);
+});
 // Crear pedido
 app.post("/orders", (req, res) => {
   const { nombre, telefono, direccion, link } = req.body;
