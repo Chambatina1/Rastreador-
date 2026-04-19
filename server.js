@@ -1312,7 +1312,63 @@ app.post("/api/chat", async (req, res) => {
     });
   }
 });
+app.post("/api/orders", async (req, res) => {
+  try {
+    const {
+      nombre,
+      email,
+      telefono,
+      direccion,
+      producto
+    } = req.body;
 
+    // validación mínima
+    if (!nombre || !telefono || !producto) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Faltan datos obligatorios"
+      });
+    }
+
+    const query = `
+      INSERT INTO orders (
+        nombre,
+        email,
+        telefono,
+        direccion,
+        producto,
+        estado,
+        created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      RETURNING *;
+    `;
+
+    const values = [
+      nombre,
+      email || null,
+      telefono,
+      direccion || null,
+      producto,
+      "pendiente"
+    ];
+
+    const result = await pool.query(query, values);
+
+    res.json({
+      ok: true,
+      pedido: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Error creando pedido:", error);
+
+    res.status(500).json({
+      ok: false,
+      mensaje: "Error del servidor"
+    });
+  }
+});
 // ================= 404 =================
 app.use((req, res) => {
   return res.status(404).json({
