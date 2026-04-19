@@ -352,6 +352,15 @@
       white-space: pre-wrap;
     }
 
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 10px 0 6px;
+      color: #111827;
+      border-left: 4px solid #f59e0b;
+      padding-left: 12px;
+    }
+
     @media (max-width: 700px) {
       .wrap {
         padding: 16px 10px 36px;
@@ -435,6 +444,7 @@
       <button class="mode-btn" type="button" onclick="setMode('compra')">Compra TikTok</button>
     </div>
 
+    <!-- Vista Consulta -->
     <div id="consultaView">
       <div class="top">
         <div class="logo-shell">
@@ -485,51 +495,69 @@
       </div>
     </div>
 
+    <!-- Vista Compra TikTok (modificada con campos para quien recibe) -->
     <div id="compraView" class="hidden">
       <div class="top">
         <div class="logo-shell">
           <img src="public/chambita.png" alt="Compra TikTok" />
         </div>
         <h1>Compra TikTok</h1>
-        <p class="subtitle">Pegue el link y guarde los datos del pedido</p>
+        <p class="subtitle">Pegue el link y complete los datos del pedido</p>
       </div>
 
       <div class="card">
         <div class="card-body">
           <div class="compra-grid">
+            <!-- Datos del comprador (quien paga) -->
+            <div class="section-title">📦 Datos del comprador</div>
             <div>
-              <label class="compra-label" for="tiktokUrl">Link de TikTok</label>
-              <input id="tiktokUrl" class="compra-input" type="text" placeholder="Pegue aquí el link de TikTok">
-            </div>
-
-            <div>
-              <label class="compra-label" for="nombreCliente">Nombre del comprador</label>
+              <label class="compra-label" for="nombreCliente">Nombre completo (comprador)</label>
               <input id="nombreCliente" class="compra-input" type="text" placeholder="Nombre y apellidos">
             </div>
-
             <div>
-              <label class="compra-label" for="telefonoCliente">Teléfono</label>
+              <label class="compra-label" for="telefonoCliente">Teléfono (comprador)</label>
               <input id="telefonoCliente" class="compra-input" type="text" placeholder="Teléfono del comprador">
             </div>
-
             <div>
-              <label class="compra-label" for="correoCliente">Correo</label>
+              <label class="compra-label" for="correoCliente">Correo electrónico</label>
               <input id="correoCliente" class="compra-input" type="email" placeholder="Correo electrónico">
             </div>
 
+            <!-- Datos de envío (quien recibe) -->
+            <div class="section-title">🚚 Datos de entrega (quien recibe)</div>
             <div>
-              <label class="compra-label" for="direccionEntrega">Dirección de entrega</label>
-              <textarea id="direccionEntrega" class="compra-textarea" placeholder="Dirección donde se entregará el pedido"></textarea>
+              <label class="compra-label" for="recibeNombre">Nombre y apellidos de quien recibe</label>
+              <input id="recibeNombre" class="compra-input" type="text" placeholder="Nombre completo del destinatario">
+            </div>
+            <div>
+              <label class="compra-label" for="recibeTelefono">Teléfono de quien recibe</label>
+              <input id="recibeTelefono" class="compra-input" type="text" placeholder="Teléfono del destinatario">
+            </div>
+            <div>
+              <label class="compra-label" for="recibeCarnet">Carnet de identidad (quien recibe)</label>
+              <input id="recibeCarnet" class="compra-input" type="text" placeholder="Carnet de identidad">
+            </div>
+            <div>
+              <label class="compra-label" for="direccionEntrega">Dirección completa de entrega</label>
+              <textarea id="direccionEntrega" class="compra-textarea" placeholder="Dirección donde se entregará el pedido (calle, número, zona, referencia)"></textarea>
             </div>
 
+            <!-- Notas adicionales -->
+            <div class="section-title">📝 Notas del pedido</div>
             <div>
-              <label class="compra-label" for="notaCompra">Notas</label>
-              <textarea id="notaCompra" class="compra-textarea" placeholder="Color, talla, variante, observaciones..."></textarea>
+              <label class="compra-label" for="notaCompra">Color, talla, variante, observaciones</label>
+              <textarea id="notaCompra" class="compra-textarea" placeholder="Especificaciones del producto"></textarea>
+            </div>
+
+            <!-- Link de TikTok -->
+            <div>
+              <label class="compra-label" for="tiktokUrl">Link del video/producto en TikTok</label>
+              <input id="tiktokUrl" class="compra-input" type="text" placeholder="https://vm.tiktok.com/...">
             </div>
           </div>
 
           <div class="compra-ayuda">
-            Esta vista es para capturar el pedido de TikTok. Por ahora mostrará un resumen. Luego la conectamos al backend para guardarlo.
+            ✅ Asegúrese de que todos los datos estén correctos antes de continuar.
           </div>
 
           <button id="btnCompra" class="btn" type="button">Continuar</button>
@@ -543,17 +571,19 @@
   <script>
     const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
 
+    // Elementos de consulta
     const mensaje = document.getElementById("mensaje");
     const respuesta = document.getElementById("respuesta");
     const btnEnviar = document.getElementById("btnEnviar");
     const iosTip = document.getElementById("iosTip");
 
+    // Elementos de compra
     const btnCompra = document.getElementById("btnCompra");
     const compraResultado = document.getElementById("compraResultado");
 
     let procesando = false;
 
-    // Cambia entre vista Consulta y Compra
+    // Cambiar entre vista Consulta y Compra
     function setMode(mode) {
       const consultaView = document.getElementById("consultaView");
       const compraView = document.getElementById("compraView");
@@ -566,17 +596,9 @@
       }
     }
 
-    function normalizarNumero(texto) {
-      return String(texto || "").replace(/\D/g, "");
-    }
-
+    // Funciones de consulta
     function ponerRespuesta(texto) {
       respuesta.textContent = texto;
-      respuesta.classList.remove("is-loading");
-    }
-
-    function ponerRespuestaHTML(html) {
-      respuesta.innerHTML = html;
       respuesta.classList.remove("is-loading");
     }
 
@@ -586,96 +608,23 @@
       mensaje.focus();
     }
 
-    function escapeHtml(texto) {
-      return String(texto || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // Funciones auxiliares para formatear respuestas (se mantienen por si el backend las usa)
-    function construirRespuestaRastreo(data) {
-      const saludo = data.saludo || ("Hola, tu mercancía se encuentra en: " + (data.estado || "SIN ESTADO") + ".");
-      const fecha = data.fecha || "No disponible";
-      const descripcion = data.descripcion || "Sin descripción disponible.";
-      const estado = data.estado || "SIN ESTADO";
-      return `
-        <div class="status-badge">Estado actual: ${escapeHtml(estado)}</div>
-        <strong>${escapeHtml(saludo)}</strong>
-        <br><br>
-        <strong>Fecha:</strong> ${escapeHtml(fecha)}
-        <br><br>
-        <strong>Descripción:</strong><br>
-        ${escapeHtml(descripcion)}
-      `;
-    }
-
-    function construirTarjetasCarnet(data) {
-      const registros = Array.isArray(data) ? data : (Array.isArray(data.resultados) ? data.resultados : []);
-      if (!registros.length) {
-        return `<div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>`;
-      }
-      return `
-        <div class="tarjetas-carnet">
-          ${registros.map(item => `
-            <div class="tarjeta-carnet">
-              <div class="tarjeta-carnet__fila"><strong>Nombre:</strong> ${escapeHtml(item.nombre || "-")}</div>
-              <div class="tarjeta-carnet__fila"><strong>Carnet:</strong> ${escapeHtml(item.carnet || "-")}</div>
-              <div class="tarjeta-carnet__fila"><strong>CPK:</strong> ${escapeHtml(item.cpk || "-")}</div>
-              <div class="tarjeta-carnet__fila"><strong>Estado:</strong> ${escapeHtml(item.estado || "-")}</div>
-              <div class="tarjeta-carnet__fila"><strong>Fecha:</strong> ${escapeHtml(item.fecha || "-")}</div>
-              <div class="tarjeta-carnet__fila"><strong>Descripción:</strong> ${escapeHtml(item.descripcion || "-")}</div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    }
-
-    function setProcesando(valor) {
-      procesando = valor;
-      mensaje.disabled = valor;
-      btnEnviar.disabled = valor;
-      btnEnviar.textContent = valor ? "Consultando..." : "Enviar";
-      respuesta.classList.toggle("is-loading", valor);
-    }
-
-    // Función principal que envía el mensaje al backend
     async function enviarChat(texto) {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/chat`, {
+        const res = await fetch(BACKEND_URL + "/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mensaje: texto })
         });
-
-        if (!res.ok) {
-          let errorMsg = `Error del servidor: ${res.status} ${res.statusText}`;
-          try {
-            const errorData = await res.json();
-            errorMsg = errorData.error || errorData.message || errorMsg;
-          } catch (err) {
-            // No se pudo leer JSON, se usa el mensaje por defecto
-          }
-          throw new Error(errorMsg);
-        }
-
+        if (!res.ok) throw new Error("Error " + res.status + ": " + res.statusText);
         const data = await res.json();
         const respuestaTexto = data.respuesta || data.reply || data.answer || data.message || data.text || "";
-
-        if (respuestaTexto) {
-          ponerRespuesta(respuestaTexto);
-        } else {
-          ponerRespuesta("El servidor respondió sin un mensaje válido.");
-        }
+        ponerRespuesta(respuestaTexto || "El servidor respondió sin mensaje.");
       } catch (error) {
-        console.error("Error en enviarChat:", error);
-        ponerRespuesta(error.message || "No fue posible conectar con el servidor.");
+        console.error(error);
+        ponerRespuesta("No fue posible conectar con el servidor: " + error.message);
       }
     }
 
-    // Procesa el envío del formulario
     async function procesar() {
       const texto = mensaje.value.trim();
       if (!texto) {
@@ -683,41 +632,57 @@
         return;
       }
       if (procesando) return;
-      setProcesando(true);
+      procesando = true;
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = "Consultando...";
       await enviarChat(texto);
-      setProcesando(false);
+      btnEnviar.disabled = false;
+      btnEnviar.textContent = "Enviar";
+      procesando = false;
     }
 
-    // Lógica de compra
+    // Función para la compra (ahora incluye los nuevos campos)
     function continuarCompra() {
+      // Obtener valores
       const link = document.getElementById("tiktokUrl").value.trim();
-      const nombre = document.getElementById("nombreCliente").value.trim();
-      const telefono = document.getElementById("telefonoCliente").value.trim();
-      const correo = document.getElementById("correoCliente").value.trim();
+      const nombreComprador = document.getElementById("nombreCliente").value.trim();
+      const telefonoComprador = document.getElementById("telefonoCliente").value.trim();
+      const correoComprador = document.getElementById("correoCliente").value.trim();
+
+      const recibeNombre = document.getElementById("recibeNombre").value.trim();
+      const recibeTelefono = document.getElementById("recibeTelefono").value.trim();
+      const recibeCarnet = document.getElementById("recibeCarnet").value.trim();
       const direccion = document.getElementById("direccionEntrega").value.trim();
       const nota = document.getElementById("notaCompra").value.trim();
 
       if (!link) {
         compraResultado.classList.remove("hidden");
-        compraResultado.textContent = "Pega primero un link de TikTok.";
+        compraResultado.textContent = "❌ Debe pegar al menos el link de TikTok.";
         return;
       }
 
+      // Construir resumen
+      let resumen = "📦 **RESUMEN DEL PEDIDO**\n\n";
+      resumen += "🔗 Link: " + link + "\n\n";
+      resumen += "👤 **Datos del comprador:**\n";
+      resumen += "   Nombre: " + (nombreComprador || "—") + "\n";
+      resumen += "   Teléfono: " + (telefonoComprador || "—") + "\n";
+      resumen += "   Correo: " + (correoComprador || "—") + "\n\n";
+      resumen += "🚚 **Datos de quien recibe:**\n";
+      resumen += "   Nombre: " + (recibeNombre || "—") + "\n";
+      resumen += "   Teléfono: " + (recibeTelefono || "—") + "\n";
+      resumen += "   Carnet: " + (recibeCarnet || "—") + "\n";
+      resumen += "   Dirección: " + (direccion || "—") + "\n\n";
+      resumen += "📝 **Notas:**\n";
+      resumen += "   " + (nota || "Sin observaciones");
+
       compraResultado.classList.remove("hidden");
-      compraResultado.textContent =
-        "Resumen del pedido:\n\n" +
-        "Link: " + link + "\n" +
-        "Comprador: " + (nombre || "-") + "\n" +
-        "Teléfono: " + (telefono || "-") + "\n" +
-        "Correo: " + (correo || "-") + "\n" +
-        "Dirección: " + (direccion || "-") + "\n" +
-        "Notas: " + (nota || "-");
+      compraResultado.textContent = resumen;
     }
 
-    // Eventos
+    // Asignar eventos
     btnEnviar.addEventListener("click", procesar);
     btnCompra.addEventListener("click", continuarCompra);
-
     mensaje.addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -725,19 +690,16 @@
       }
     });
 
-    // Detectar iOS para mostrar el tip de instalación
+    // Detectar iOS para mostrar tip de instalación
     function esIOS() {
       return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
     }
-
     function esSafari() {
       return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
     }
-
     function estaInstalada() {
       return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
     }
-
     if (esIOS() && esSafari() && !estaInstalada()) {
       iosTip.style.display = "block";
     }
