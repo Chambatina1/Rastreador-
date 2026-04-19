@@ -28,6 +28,30 @@
       padding: 28px 14px 50px;
     }
 
+    .mode-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      border: none;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 10px rgba(0,0,0,.04);
+    }
+
+    .mode-btn:hover {
+      border-color: #f59e0b;
+    }
+
     .top {
       text-align: center;
       margin-bottom: 22px;
@@ -165,12 +189,12 @@
     .btn {
       width: 100%;
       margin-top: 16px;
-      height: 56px;
+      min-height: 64px;
       border: none;
       border-radius: 18px;
-      background: #f59e0b;
-      color: #111827;
-      font-size: 19px;
+      background: #d97a2b;
+      color: #ffffff;
+      font-size: 22px;
       font-weight: 800;
       cursor: pointer;
       transition: .2s ease;
@@ -188,9 +212,9 @@
 
     .helper-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
     .chip {
@@ -198,9 +222,11 @@
       background: #fff;
       color: #374151;
       border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 13px;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
+      min-height: 46px;
     }
 
     .chip:hover {
@@ -262,6 +288,10 @@
       padding: 14px 16px;
       font-size: 14px;
       line-height: 1.45;
+    }
+
+    .hidden {
+      display: none;
     }
 
     @media (max-width: 700px) {
@@ -329,99 +359,123 @@
       }
 
       .btn {
-        height: 52px;
-        font-size: 17px;
+        min-height: 58px;
+        font-size: 19px;
+      }
+
+      .chip {
+        font-size: 15px;
+        padding: 11px 16px;
       }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-   <div style="display:flex; gap:10px; margin-bottom:15px;">
-  <button onclick="setMode('consulta')">Consulta</button>
-  <button onclick="setMode('compra')">Compra TikTok</button>
-</div>
-   <div id="consultaView">
-     <div class="top">
-      <div class="logo-shell">
-        <img src="public/chambita.png" alt="Chambatina" />
-      </div>
-      <h1>Chambatina</h1>
-      <p class="subtitle">Consulte su paquete o haga su pregunta</p>
+    <div class="mode-row">
+      <button class="mode-btn" type="button" onclick="setMode('consulta')">Consulta</button>
+      <button class="mode-btn" type="button" onclick="setMode('compra')">Compra TikTok</button>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="avatar">
-          <img src="public/chambita.png" alt="Chambita" />
+    <div id="consultaView">
+      <div class="top">
+        <div class="logo-shell">
+          <img src="public/chambita.png" alt="Chambatina" />
         </div>
-        <div class="header-text">
-          <h2>Chambita</h2>
-          <p>Asistente virtual</p>
-        </div>
+        <h1>Chambatina</h1>
+        <p class="subtitle">Consulte su paquete o haga su pregunta</p>
       </div>
 
-      <div class="card-body">
-        <input
-          id="mensaje"
-          class="question-box"
-          type="text"
-          placeholder="Escriba su CPK, carnet o su pregunta"
-          autocomplete="off"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-        />
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar">
+            <img src="public/chambita.png" alt="Chambita" />
+          </div>
+          <div class="header-text">
+            <h2>Chambita</h2>
+            <p>Asistente virtual</p>
+          </div>
+        </div>
 
-        <div id="respuesta" class="answer-box">Escriba su número CPK, carnet o su pregunta y toque Enviar.</div>
+        <div class="card-body">
+          <input
+            id="mensaje"
+            class="question-box"
+            type="text"
+            placeholder="Escriba su CPK, carnet o su pregunta"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          />
 
-        <button id="btnEnviar" type="button" onclick="probarBoton()" style="width:100%; padding:18px; font-size:22px; border:none; border-radius:14px; background:#d97a2b; color:white; font-weight:700;">
+          <div id="respuesta" class="answer-box">Escriba su número CPK, carnet o su pregunta y toque Enviar.</div>
+
+          <button id="btnEnviar" type="button">
   Enviar
 </button>
-      
-        <div class="helper-row">
-          <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
-          <button class="chip" type="button" onclick="usarEjemplo('86012204812')">Probar carnet</button>
-          <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">Precio por libra</button>
-          <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">Tiempo de envío</button>
-        </div>
+          
+          <div class="helper-row">
+            <button class="chip" type="button" onclick="usarEjemplo('0255139')">Probar CPK</button>
+            <button class="chip" type="button" onclick="usarEjemplo('86012204812')">Probar carnet</button>
+            <button class="chip" type="button" onclick="usarEjemplo('¿Cuál es el precio por libra?')">Precio por libra</button>
+            <button class="chip" type="button" onclick="usarEjemplo('¿Qué tiempo demora un envío?')">Tiempo de envío</button>
+          </div>
 
-        <div id="iosTip" class="ios-tip">
-          En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
+          <div id="iosTip" class="ios-tip">
+            En iPhone, para instalar la app, abra esta página en Safari, toque Compartir y luego “Agregar a pantalla de inicio”.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="compraView" class="hidden">
+      <div class="card">
+        <div class="card-body">
+          <h3>Compra desde TikTok</h3>
+
+          <input
+            type="text"
+            id="tiktokUrl"
+            class="question-box"
+            placeholder="Pegue aquí el link de TikTok"
+          />
+
+          <button class="btn" type="button" onclick="continuarCompra()">
+            Continuar
+          </button>
         </div>
       </div>
     </div>
   </div>
-</div>
- </div>
 
-  <div id="compraView" style="display:none;">
-  <div class="card" style="padding:20px;">
-    <h3>Compra desde TikTok</h3>
-
-    <input
-      type="text"
-      id="tiktokUrl"
-      placeholder="Pegue aquí el link de TikTok"
-      style="width:100%; padding:10px; margin-top:10px;"
-    />
-
-    <button onclick="continuarCompra()" style="margin-top:10px;">
-      Continuar
-    </button>
-  </div>
-</div>
-function probarBoton() {
-  alert("botón funcionando");
-}
   <script>
-    const BACKEND_URL = "https://rastreador-abc123.onrender.com";
+    const BACKEND_URL = "https://rastreador-tj5b.onrender.com";
     const mensaje = document.getElementById("mensaje");
     const respuesta = document.getElementById("respuesta");
     const btnEnviar = document.getElementById("btnEnviar");
     const iosTip = document.getElementById("iosTip");
 
     let procesando = false;
+
+    function setMode(mode) {
+      document.getElementById("consultaView").style.display =
+        mode === "consulta" ? "block" : "none";
+
+      document.getElementById("compraView").style.display =
+        mode === "compra" ? "block" : "none";
+    }
+
+    function continuarCompra() {
+      const url = document.getElementById("tiktokUrl").value.trim();
+
+      if (!url) {
+        alert("Pega un link de TikTok");
+        return;
+      }
+
+      alert("Link recibido: " + url);
+    }
 
     function normalizarNumero(texto) {
       return String(texto || "").replace(/\D/g, "");
@@ -499,7 +553,7 @@ function probarBoton() {
               : [];
 
       if (!registros.length) {
-        return `<div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>`;
+        return <div class="respuesta-vacia">No se encontraron resultados para ese carnet.</div>;
       }
 
       return `
@@ -520,7 +574,7 @@ function probarBoton() {
 
     async function enviarChat(texto) {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/chat`, {
+        const res = await fetch(${BACKEND_URL}/api/chat, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -538,7 +592,7 @@ function probarBoton() {
         }
 
         if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          ponerRespuesta(data?.mensaje || Error del servidor (${res.status}));
           return;
         }
 
@@ -571,7 +625,7 @@ function probarBoton() {
       }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/api/rastreo/${cpk}`);
+        const res = await fetch(${BACKEND_URL}/api/rastreo/${cpk});
         const raw = await res.text();
         let data = null;
 
@@ -582,7 +636,7 @@ function probarBoton() {
         }
 
         if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          ponerRespuesta(data?.mensaje || Error del servidor (${res.status}));
           return;
         }
 
@@ -613,7 +667,7 @@ function probarBoton() {
       }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(carnet)}`);
+        const res = await fetch(${BACKEND_URL}/api/buscar-carnet?carnet=${encodeURIComponent(carnet)});
         const raw = await res.text();
         let data = null;
 
@@ -624,7 +678,7 @@ function probarBoton() {
         }
 
         if (!res.ok) {
-          ponerRespuesta(data?.mensaje || `Error del servidor (${res.status})`);
+          ponerRespuesta(data?.mensaje || Error del servidor (${res.status}));
           return;
         }
 
@@ -650,44 +704,37 @@ function probarBoton() {
         console.error("Error carnet:", error);
       }
     }
-async function procesar() {
-  if (procesando) return;
 
-  const texto = mensaje.value.trim();
-  if (!texto) return;
+    async function procesar() {
+      if (procesando) return;
 
-  setProcesando(true);
-  ponerRespuesta("Consultando...");
+      const texto = mensaje.value.trim();
+      if (!texto) return;
 
-  try {
-    const limpio = normalizarNumero(texto);
+      setProcesando(true);
+      ponerRespuesta("Consultando...");
 
-    console.log("Texto original:", texto);
-    console.log("Texto limpio:", limpio);
+      try {
+        const limpio = normalizarNumero(texto);
 
-    // 🔥 PRIORIDAD 1: CARNET (11 dígitos)
-    if (limpio.length === 11) {
-      console.log("➡️ Detectado como CARNET");
-      await buscarCarnet(limpio);
-      return;
+        if (limpio.length === 11) {
+          await buscarCarnet(limpio);
+          return;
+        }
+
+        if (limpio.length >= 6 && limpio.length <= 10) {
+          await buscarCPK(limpio);
+          return;
+        }
+
+        await enviarChat(texto);
+
+      } finally {
+        setProcesando(false);
+        mensaje.focus();
+      }
     }
 
-    // 🔥 PRIORIDAD 2: CPK (6 a 10 dígitos)
-    if (limpio.length >= 6 && limpio.length <= 10) {
-      console.log("➡️ Detectado como CPK");
-      await buscarCPK(limpio);
-      return;
-    }
-
-    // 🔥 SI NO → CHAT
-    console.log("➡️ Enviado al CHAT");
-    await enviarChat(texto);
-
-  } finally {
-    setProcesando(false);
-    mensaje.focus();
-  }
-}
     btnEnviar.addEventListener("click", procesar);
 
     mensaje.addEventListener("keydown", function(e) {
@@ -714,44 +761,9 @@ async function procesar() {
     }
 
     window.addEventListener("load", function() {
-      mensaje.disabled = false;
-      mensaje.focus();
- <script>
-  const BACKEND_URL = "...";
-  const mensaje = document.getElementById("mensaje");
-  const respuesta = document.getElementById("respuesta");
-  const btnEnviar = document.getElementById("btnEnviar");
-  const iosTip = document.getElementById("iosTip");
-
-  // tus funciones que ya existen
-  function escaparHtml(texto) {
-    ...
-  }
-
-  function construirTarjetasCarnet(data) {
-    ...
-  }
-
-  // 👇 PÉGALAS AQUÍ
-  function setMode(mode) {
-    document.getElementById("consultaView").style.display =
-      mode === "consulta" ? "block" : "none";
-
-    document.getElementById("compraView").style.display =
-      mode === "compra" ? "block" : "none";
-  }
-
-  function continuarCompra() {
-    const url = document.getElementById("tiktokUrl").value;
-
-    if (!url) {
-      alert("Pega un link de TikTok");
-      return;
-    }
-
-    alert("Link recibido: " + url);
-  }
-</script>    
-  
+  mensaje.disabled = false;
+  mensaje.focus();
+});
+  </script>
 </body>
 </html>
