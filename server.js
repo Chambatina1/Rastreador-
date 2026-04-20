@@ -1392,10 +1392,16 @@ app.use((req, res) => {
 });
 
 // ================= START =================
-const path = require("path");
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.get("/admin.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor corriendo en 0.0.0.0:${PORT}`);
 });
