@@ -1401,7 +1401,7 @@ const __dirname = path.dirname(__filename);
 app.get("/admin.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor corriendo en 0.0.0.0:${PORT}`);
+const port = process.env.PORT || 3000;
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
 });
