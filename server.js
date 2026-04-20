@@ -1392,34 +1392,3 @@ app.use((req, res) => {
 });
 
 // ================= START =================
-import express from "express";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Servir archivos estáticos desde public
-app.use(express.static(path.join(__dirname, "public")));
-
-// ========== TUS RUTAS API (agrégalas aquí) ==========
-// Ejemplo:
-// app.get('/orders', (req, res) => { ... });
-// app.post('/api/pedidos', (req, res) => { ... });
-
-// ========== Ruta por defecto ==========
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// ========== Inicio del servidor ==========
-const port = process.env.PORT || 3000;
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
-});
