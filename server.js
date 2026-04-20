@@ -1384,7 +1384,6 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 // ================= 404 =================
-cat > server.js << 'EOF'
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -1444,4 +1443,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
   console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
 });
-EOF
