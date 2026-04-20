@@ -181,7 +181,9 @@ async function consultarOpenAI(mensaje, contextoExtra = []) {
   const data = await response.json();
   return data?.choices?.[0]?.message?.content || "Sin respuesta";
 }
-
+app.get('/registros', (req, res) => {
+  res.redirect('/api/pedidos');
+});
 // ========== RUTAS DE RASTREO ==========
 app.get("/api/health", (req, res) => { try { const db = getTrackingDb(); res.json({ ok: true, mensaje: "Servidor activo", totalCPK: Object.keys(db).length }); } catch(e) { res.status(500).json({ ok: false, mensaje: "Error interno" }); } });
 app.get("/api/rastreo/:cpk", (req, res) => { try { const cpk = normalizarCPK(req.params.cpk); if (!cpk) return res.status(400).json({ ok: false, mensaje: "CPK inválido" }); const item = getTrackingDb()[cpk]; if (!item) return res.status(404).json({ ok: false, mensaje: "No encontramos información para ese CPK." }); res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, fecha: item.fecha, estado: item.estado, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); } catch(e) { res.status(500).json({ ok: false, mensaje: "Error interno" }); } });
