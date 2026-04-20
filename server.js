@@ -1392,15 +1392,21 @@ app.use((req, res) => {
 });
 
 // ================= START =================
+import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.get("/admin.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
+const app = express();
+
+// ✅ Sirve toda la carpeta public (admin.html, admin.css, admin.js, imágenes, etc.)
+app.use(express.static(path.join(__dirname, "public")));
+
+// (Opcional) Ya no necesitas app.get("/admin.html") porque static lo sirve solo.
+// Pero si quieres dejarlo por claridad, no está mal.
+
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
