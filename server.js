@@ -23,7 +23,8 @@ const verificarAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const adminToken = process.env.ADMIN_TOKEN;
-
+  console.log("ADMIN_TOKEN:", adminToken);  
+  
   // Si no está configurado el ADMIN_TOKEN, permitir acceso (solo para desarrollo, pero en producción deberías configurarlo)
   if (!adminToken) {
     console.warn("⚠️  ADMIN_TOKEN no configurado. Las rutas admin están desprotegidas.");
