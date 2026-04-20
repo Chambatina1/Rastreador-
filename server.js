@@ -264,13 +264,6 @@ app.post("/api/pedidos", async (req, res) => {
     res.json({ ok: true, pedido: result.rows[0] });
   } catch (error) { console.error(error); res.status(500).json({ ok: false, mensaje: "Error del servidor" }); }
 });
-
-app.get("/api/pedidos", async (req, res) => {
-  try {
-    const result = await pool.query(`SELECT * FROM pedidos ORDER BY created_at DESC`);
-    res.json({ ok: true, pedidos: result.rows });
-  } catch (error) { console.error(error); res.status(500).json({ ok: false, mensaje: "Error al obtener pedidos" }); }
-});
 app.get('/registros', async (req, res) => {
   try {
     const result = await pool.query(`SELECT * FROM pedidos ORDER BY created_at DESC`);
@@ -280,6 +273,13 @@ app.get('/registros', async (req, res) => {
     res.status(500).json({ ok: false, mensaje: "Error al obtener registros" });
   }
 });
+app.get("/api/pedidos", async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM pedidos ORDER BY created_at DESC`);
+    res.json({ ok: true, pedidos: result.rows });
+  } catch (error) { console.error(error); res.status(500).json({ ok: false, mensaje: "Error al obtener pedidos" }); }
+});
+
 app.get("/api/status", (req, res) => { res.json({ status: "ok", mensaje: "Servidor funcionando" }); });
 
 // ========== RUTA PRINCIPAL ==========
