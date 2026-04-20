@@ -11,12 +11,31 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 
-// ========== MIDDLEWARES ==========
+// ========== MIDDLEWARES GENERALES ==========
 app.set("trust proxy", true);
-app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "x-session-id"] }));
+app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "x-session-id", "Authorization"] }));
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public"))); // Ruta absoluta
+app.use(express.static(path.join(__dirname, "public")));
+
+// ========== MIDDLEWARE DE AUTENTICACIÓN PARA ADMIN ==========
+const verificarAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const adminToken = process.env.ADMIN_TOKEN;
+
+  // Si no está configurado el ADMIN_TOKEN, permitir acceso (solo para desarrollo, pero en producción deberías configurarlo)
+  if (!adminToken) {
+    console.warn("⚠️  ADMIN_TOKEN no configurado. Las rutas admin están desprotegidas.");
+    return next();
+  }
+
+  if (!token || token !== adminToken) {
+    return res.status(401).json({ ok: false, mensaje: "No autorizado. Token inválido." });
+  }
+
+  next();
+};
 
 // ========== POSTGRESQL PARA PEDIDOS ==========
 const pool = new Pool({
@@ -24,7 +43,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// ========== CONTEXTO DEL CHAT ==========
+// ========== CONTEXTO DEL CHAT (completo) ==========
 const BUSINESS_CONTEXT = `
 ASISTENTE OFICIAL CHAMBATINA
 
@@ -72,15 +91,14 @@ OFICINA
 `;
 
 // ========== BASE LOCAL PEGADA (TABLA DE RASTREO) ==========
-// IMPORTANTE: Reemplaza este contenido con tu tabla completa de envíos (con tabuladores)
+// ¡IMPORTANTE! Reemplaza estas líneas de ejemplo con tu tabla completa de envíos (con tabuladores)
 const RAW_TRACKING_SOURCE = `
 CHAMBATINA MIAMI	GEO MIA		CPK-0266228	EMBARCADO	Sí	CPK-323	REGULA/(SEGU 5278396)/(CWPS26188262)	ENVIO	ACEITE DE MOTOR 4 L	11481	2026-04-13	ARIANNA CORDERO MARTINEZ		94111138336	CALLE TOMAS PEREZ CASTRO # 113 INTERIOR e/ AGRAMONTE y AVENIDA LIBERTAD, CABAIGUAN, SANCTI SPIRITUS	54357818	ROLANDO AQUINO CANCIO			0	0	1	9.7	0.072	0	0	0		
 CHAMBATINA MIAMI	GEO MIA		CPK-0266227	EMBARCADO	Sí	CPK-323	REGULA/(SEGU 5278396)/(CWPS26188262)	ENVIO	ACEITE DE MOTOR 4 L	11481	2026-04-13	ARIANNA CORDERO MARTINEZ		94111138336	CALLE TOMAS PEREZ CASTRO # 113 INTERIOR e/ AGRAMONTE y AVENIDA LIBERTAD, CABAIGUAN, SANCTI SPIRITUS	54357818	ROLANDO AQUINO CANCIO			0	0	1	9.7	0.072	0	0	0		
 CHAMBATINA MIAMI	GEO MIA		CPK-0266205	EMBARCADO	Sí	CPK-323	REGULA/(SEGU 5278396)/(CWPS26188262)	ENVIO	BICICLETA ELECTRICA	11438	2026-04-13	YORDANIS POLL RAMIREZ		86053023005	AVENIDA 101 # 4429 Rpto. LOTERIA e/ 44 y 50, COTORRO, LA HABANA	52066529	MANUEL HERNANDEZ			0	0	1	37.6	2.37	0	0	0		
 `;
-// Reemplaza las líneas de ejemplo por todas las de tu base de datos (manteniendo el formato con tabuladores)
 
-// ========== HELPERS ==========
+// ========== HELPERS (rastreo) ==========
 function soloDigitos(v = "") { return String(v).replace(/\D/g, ""); }
 function primerNombre(nombre = "") { return String(nombre).trim().split(/\s+/)[0] || ""; }
 function normalizarLinea(linea = "") { return String(linea).replace(/\r/g, "").trim(); }
@@ -127,7 +145,7 @@ function estadoPorTiempo(fechaTexto = "") {
   return ETAPAS.EN_DISTRIBUCION;
 }
 
-// ========== PARSER DE LA BASE DE RASTREO ==========
+// ========== PARSER DE RASTREO ==========
 function extraerCPKDesdeLinea(linea) { const m = String(linea).match(/CPK[-\s]?(\d{6,10})/i); return m ? m[1] : ""; }
 function extraerFechaDesdeLinea(linea) { const m = String(linea).match(/\b(20\d{2}-\d{2}-\d{2})\b/); return m ? m[1] : ""; }
 function extraerNombreProbable(linea, fechaTexto) { if (!fechaTexto) return ""; const s = String(linea); const idx = s.indexOf(fechaTexto); if (idx === -1) return ""; const despues = s.slice(idx + fechaTexto.length).trim(); const parts = despues.split(/\t+/).map(v=>v.trim()).filter(Boolean); for (const p of parts) { if (/^[A-ZÁÉÍÓÚÑ ]{6,}$/i.test(p) && !/\d/.test(p)) return p; } return ""; }
@@ -160,7 +178,7 @@ function extraerResultadosLocalesPorCarnet(carnet) {
   return resultados;
 }
 
-// ========== MEMORIA TEMPORAL PARA CHAT ==========
+// ========== MEMORIA CHAT ==========
 const MEMORIA = new Map();
 function getMemory(key) { const item = MEMORIA.get(key); if (!item) return {}; if (Date.now() - (item.ts||0) > 10*60*1000) { MEMORIA.delete(key); return {}; } return item; }
 function setMemory(key, patch) { const prev = getMemory(key); MEMORIA.set(key, {...prev, ...patch, ts: Date.now()}); }
@@ -183,13 +201,13 @@ async function consultarOpenAI(mensaje, contextoExtra = []) {
   return data?.choices?.[0]?.message?.content || "Sin respuesta";
 }
 
-// ========== RUTAS DE RASTREO (CPK y CARNET) ==========
+// ========== RUTAS PÚBLICAS (no requieren token) ==========
 app.get("/api/health", (req, res) => { try { const db = getTrackingDb(); res.json({ ok: true, mensaje: "Servidor activo", totalCPK: Object.keys(db).length }); } catch(e) { res.status(500).json({ ok: false, mensaje: "Error interno" }); } });
 app.get("/api/rastreo/:cpk", (req, res) => { try { const cpk = normalizarCPK(req.params.cpk); if (!cpk) return res.status(400).json({ ok: false, mensaje: "CPK inválido" }); const item = getTrackingDb()[cpk]; if (!item) return res.status(404).json({ ok: false, mensaje: "No encontramos información para ese CPK." }); res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, fecha: item.fecha, estado: item.estado, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); } catch(e) { res.status(500).json({ ok: false, mensaje: "Error interno" }); } });
 app.get("/api/buscar-carnet", (req, res) => { try { const carnet = soloDigitos(req.query.carnet || ""); if (!carnet) return res.status(400).json({ ok: false, mensaje: "Carnet requerido", resultados: [] }); const resultados = extraerResultadosLocalesPorCarnet(carnet); if (!resultados.length) return res.status(404).json({ ok: false, mensaje: "No se encontraron resultados", resultados: [] }); res.json({ ok: true, tipoBusqueda: "carnet", total: resultados.length, resultados }); } catch(e) { res.status(500).json({ ok: false, mensaje: "Error interno" }); } });
 app.get("/api/buscar/:termino", (req, res) => { try { const terminoRaw = String(req.params.termino).trim(); const terminoDigits = soloDigitos(terminoRaw); if (!terminoDigits) return res.status(400).json({ ok: false, mensaje: "Debe escribir un CPK o carnet válido." }); const db = getTrackingDb(); const cpkNormalizado = normalizarCPK(terminoRaw); if (cpkNormalizado && db[cpkNormalizado]) { const item = db[cpkNormalizado]; return res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, estado: item.estado, fecha: item.fecha, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); } if (db[terminoDigits]) { const item = db[terminoDigits]; return res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, estado: item.estado, fecha: item.fecha, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); } const resultadosCarnet = extraerResultadosLocalesPorCarnet(terminoDigits); if (resultadosCarnet.length) return res.json({ ok: true, tipoBusqueda: "carnet", total: resultadosCarnet.length, resultados: resultadosCarnet }); res.status(404).json({ ok: false, mensaje: "No se encontró información para ese CPK o carnet." }); } catch(e) { res.status(500).json({ ok: false, mensaje: "Error interno" }); } });
 
-// ========== CHAT ==========
+// ========== CHAT (público) ==========
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = String(req.body?.mensaje || "").trim();
@@ -254,7 +272,8 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// ========== RUTAS DE PEDIDOS (POSTGRESQL) ==========
+// ========== RUTAS PROTEGIDAS (requieren token de administrador) ==========
+// POST /api/pedidos (público para que los clientes puedan crear pedidos)
 app.post("/api/pedidos", async (req, res) => {
   const { nombre, email, telefono, direccion, producto } = req.body;
   if (!nombre || !telefono || !producto) return res.status(400).json({ ok: false, mensaje: "Faltan datos" });
@@ -266,8 +285,16 @@ app.post("/api/pedidos", async (req, res) => {
   } catch (error) { console.error(error); res.status(500).json({ ok: false, mensaje: "Error del servidor" }); }
 });
 
-// Ruta /registros para compatibilidad con paneles antiguos (devuelve pedidos)
-app.get('/registros', async (req, res) => {
+// GET /api/pedidos (protegido, solo admin)
+app.get("/api/pedidos", verificarAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM pedidos ORDER BY created_at DESC`);
+    res.json({ ok: true, pedidos: result.rows });
+  } catch (error) { console.error(error); res.status(500).json({ ok: false, mensaje: "Error al obtener pedidos" }); }
+});
+
+// Ruta /registros (protegida, solo admin)
+app.get('/registros', verificarAdmin, async (req, res) => {
   try {
     const result = await pool.query(`SELECT * FROM pedidos ORDER BY created_at DESC`);
     res.json({ ok: true, pedidos: result.rows });
@@ -275,14 +302,6 @@ app.get('/registros', async (req, res) => {
     console.error(error);
     res.status(500).json({ ok: false, mensaje: "Error al obtener registros" });
   }
-});
-
-// Ruta principal para obtener pedidos (usada por admin.js)
-app.get("/api/pedidos", async (req, res) => {
-  try {
-    const result = await pool.query(`SELECT * FROM pedidos ORDER BY created_at DESC`);
-    res.json({ ok: true, pedidos: result.rows });
-  } catch (error) { console.error(error); res.status(500).json({ ok: false, mensaje: "Error al obtener pedidos" }); }
 });
 
 app.get("/api/status", (req, res) => { res.json({ status: "ok", mensaje: "Servidor funcionando" }); });
