@@ -1401,12 +1401,24 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// ✅ Sirve toda la carpeta public (admin.html, admin.css, admin.js, imágenes, etc.)
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos desde public
 app.use(express.static(path.join(__dirname, "public")));
 
-// (Opcional) Ya no necesitas app.get("/admin.html") porque static lo sirve solo.
-// Pero si quieres dejarlo por claridad, no está mal.
+// ========== TUS RUTAS API (agrégalas aquí) ==========
+// Ejemplo:
+// app.get('/orders', (req, res) => { ... });
+// app.post('/api/pedidos', (req, res) => { ... });
 
+// ========== Ruta por defecto ==========
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ========== Inicio del servidor ==========
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
