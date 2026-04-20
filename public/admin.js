@@ -1,18 +1,17 @@
-// admin.js - Panel de administración para Chambatina
-// Conexión directa con /api/pedidos
+// admin.js - Panel de administración con autenticación Bearer token
 
 const API_BASE = '/api';
 let token = localStorage.getItem('admin_token') || '';
 
-// Elementos del DOM (deben existir en admin.html)
-const loginSection = document.getElementById('login-section');
-const dashboardSection = document.getElementById('dashboard-section');
-const tokenInput = document.getElementById('token-input');
-const loginBtn = document.getElementById('login-btn');
-const pedidosBody = document.getElementById('pedidos-body');
-const logoutBtn = document.getElementById('logout-btn');
-const refreshBtn = document.getElementById('refresh-btn');
-const errorMsg = document.getElementById('error-msg');
+// Elementos del DOM (ajusta los IDs según tu HTML)
+const loginSection = document.getElementById('loginSection');
+const dashboardSection = document.getElementById('dashboardSection');
+const tokenInput = document.getElementById('tokenInput');
+const loginBtn = document.getElementById('loginBtn');
+const pedidosBody = document.getElementById('pedidosBody');
+const logoutBtn = document.getElementById('logoutBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const errorMsg = document.getElementById('errorMsg');
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,22 +23,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Login
-loginBtn.addEventListener('click', async () => {
+// Login: guarda el token en localStorage
+loginBtn.addEventListener('click', () => {
   const inputToken = tokenInput.value.trim();
   if (!inputToken) {
     mostrarError('Ingrese el token de administrador');
     return;
   }
-
-  // Guardar token (en un sistema real deberías validarlo contra el backend)
   localStorage.setItem('admin_token', inputToken);
   token = inputToken;
   mostrarDashboard(true);
   cargarPedidos();
 });
 
-// Cargar pedidos desde el servidor
+// Cargar pedidos desde el servidor (con token en header)
 async function cargarPedidos() {
   mostrarError('');
   pedidosBody.innerHTML = '<tr><td colspan="6">Cargando...<\/td><\/tr>';
@@ -47,16 +44,17 @@ async function cargarPedidos() {
   try {
     const response = await fetch(`${API_BASE}/pedidos`, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`   // <-- CLAVE: aquí se envía el token
       }
     });
 
+    if (response.status === 401) {
+      mostrarError('Token inválido o expirado. Inicie sesión nuevamente.');
+      logout();
+      return;
+    }
+
     if (!response.ok) {
-      if (response.status === 401) {
-        mostrarError('Token inválido o expirado. Inicie sesión nuevamente.');
-        logout();
-        return;
-      }
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
@@ -75,7 +73,7 @@ async function cargarPedidos() {
 
 function mostrarPedidos(pedidos) {
   if (!pedidos || pedidos.length === 0) {
-    pedidosBody.innerHTML = '<tr><td colspan="6">No hay pedidos registrados<\/td><\/tr>';
+    pedidosBody.innerHTML = '<td><td colspan="6">No hay pedidos registrados<\/td><\/tr>';
     return;
   }
 
@@ -95,17 +93,16 @@ function mostrarPedidos(pedidos) {
 }
 
 function mostrarError(msg) {
-  errorMsg.textContent = msg;
-  errorMsg.style.display = msg ? 'block' : 'none';
+  if (errorMsg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = msg ? 'block' : 'none';
+  }
 }
 
 function mostrarDashboard(show) {
-  if (show) {
-    loginSection.style.display = 'none';
-    dashboardSection.style.display = 'block';
-  } else {
-    loginSection.style.display = 'block';
-    dashboardSection.style.display = 'none';
+  if (loginSection && dashboardSection) {
+    loginSection.style.display = show ? 'none' : 'block';
+    dashboardSection.style.display = show ? 'block' : 'none';
   }
 }
 
@@ -116,11 +113,9 @@ function logout() {
   if (tokenInput) tokenInput.value = '';
 }
 
-// Eventos
 if (logoutBtn) logoutBtn.addEventListener('click', logout);
 if (refreshBtn) refreshBtn.addEventListener('click', cargarPedidos);
 
-// Utilidad para evitar XSS
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, function(m) {
