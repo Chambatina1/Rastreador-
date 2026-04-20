@@ -1,28 +1,243 @@
-<!-- Sección de login -->
-<div id="loginSection">
-  <input type="password" id="tokenInput" placeholder="Token de administrador">
-  <button id="loginBtn">Ingresar</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Panel de Administración - Chambatina</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f0f2f5;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Tarjetas */
+    .card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    /* Login */
+    .login-panel {
+      max-width: 400px;
+      margin: 3rem auto;
+      text-align: center;
+    }
+
+    .login-panel h2 {
+      margin-bottom: 1.5rem;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .login-panel input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: 0.2s;
+    }
+
+    .login-panel input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    }
+
+    .login-panel button {
+      width: 100%;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .login-panel button:hover {
+      background: #2563eb;
+    }
+
+    /* Dashboard header */
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.75rem;
+      color: #0f172a;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 2rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+      transform: scale(0.98);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      transform: none;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    /* Tabla */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 1rem;
+      border: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      padding: 0.875rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    tr:hover {
+      background: #fafcff;
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      .card {
+        padding: 1rem;
+      }
+      th, td {
+        padding: 0.5rem;
+      }
+      .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-group {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- SECCIÓN DE LOGIN -->
+  <div id="loginSection" class="card login-panel">
+    <h2>🔐 Acceso Administrador</h2>
+    <input type="password" id="tokenInput" placeholder="Ingrese el token de administrador" autocomplete="off">
+    <button id="loginBtn">Ingresar al panel</button>
+    <div id="errorMsg" class="error-message" style="margin-top: 1rem;"></div>
+  </div>
+
+  <!-- SECCIÓN DEL DASHBOARD (oculta al inicio) -->
+  <div id="dashboardSection" style="display: none;">
+    <div class="card">
+      <div class="dashboard-header">
+        <h1>📦 Pedidos registrados</h1>
+        <div class="btn-group">
+          <button id="refreshBtn">🔄 Actualizar</button>
+          <button id="logoutBtn" class="btn-danger">🚪 Cerrar sesión</button>
+        </div>
+      </div>
+      <div id="errorMsg" class="error-message"></div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Producto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="pedidosBody">
+            <tr><td colspan="6">Cargando pedidos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Dashboard -->
-<div id="dashboardSection" style="display:none;">
-  <div id="tablaPanel">
-    <button id="nuevoBtn">Nuevo pedido</button>
-    <button id="refreshBtn">Actualizar</button>
-    <button id="logoutBtn">Cerrar sesión</button>
-    <table>
-      <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Producto</th><th>Estado</th></tr></thead>
-      <tbody id="pedidosBody"></tbody>
-    </table>
-  </div>
-  <div id="formularioPanel" style="display:none;">
-    <input type="text" id="nombre" placeholder="Nombre *">
-    <input type="email" id="email" placeholder="Email">
-    <input type="tel" id="telefono" placeholder="Teléfono *">
-    <input type="text" id="direccion" placeholder="Dirección">
-    <input type="text" id="producto" placeholder="Producto *">
-    <button id="guardarBtn">Guardar</button>
-    <button id="cancelarBtn">Cancelar</button>
-  </div>
-  <div id="errorMsg"></div>
-</div>
+<!-- Incluir el archivo JavaScript -->
+<script src="/admin.js"></script>
+</body>
+</html>
