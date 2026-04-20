@@ -1384,11 +1384,85 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 // ================= 404 =================
-app.use((req, res) => {
-  return res.status(404).json({
-    ok: false,
-    mensaje: "Ruta no encontrada"
+import express from "express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import pkg from 'pg';
+const { Pool } = pkg;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Archivos estáticos (admin.html, admin.css, admin.js, imágenes)
+app.use(express.static(path.join(__dirname, "public")));
+
+// Configuración de PostgreSQL (usa variable de entorno de Render)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+// ========== RUTAS API ==========
+
+// Endpoint para crear un pedido (usado por tu formulario)
+app.post("/api/pedidos", async (req, res) => {
+  const { nombre, email, telefono, direccion, producto } = req.body;
+
+  // Validación básica
+  if (!nombre || !telefono || !producto) {
+    return res.status(400).json({ ok: false, mensaje: "Faltan datos obligatorios" });
+  }
+
+  try {
+    const query = `
+      INSERT INTO pedidos (
+        nombre, email, telefono, direccion, producto, estado, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      RETURNING *;
+    `;
+    const values = [
+      nombre,
+      email || null,
+      telefono,
+      direccion || null,
+      producto,
+      "pendiente"
+    ];
+    const result = await pool.query(query, values);
+    res.json({ ok: true, pedido: result.rows[0] });
+  } catch (error) {
+    console.error("Error creando pedido:", error);
+    res.status(500).json({ ok: false, mensaje: "Error del servidor" });
+  }
+});
+
+// Ruta de prueba (opcional)
+app.get("/api/status", (req, res) => {
+  res.json({ status: "ok", mensaje: "Servidor funcionando" });
+});
+
+// Ruta principal: sirve index.html si existe
+app.get("/", (req, res) => {
+  const indexPath = path.join(__dirname, "public", "index.html");
+  res.sendFile(indexPath, (err) => {
+    if (err) res.send("<h1>Bienvenido al Rastreador</h1><p>Servidor activo</p>");
   });
 });
 
-// ================= START =================
+// Manejo de rutas no encontradas (siempre al final)
+app.use((req, res) => {
+  res.status(404).json({ ok: false, mensaje: "Ruta no encontrada" });
+});
+
+// ========== INICIO DEL SERVIDOR ==========
+const port = process.env.PORT || 3000;
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
+});
