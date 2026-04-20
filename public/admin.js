@@ -1,9 +1,10 @@
-// admin.js - Panel de administración con autenticación Bearer token
+// admin.js - Panel de administración para Chambatina
+// Con autenticación mediante Bearer token
 
 const API_BASE = '/api';
 let token = localStorage.getItem('admin_token') || '';
 
-// Elementos del DOM (ajusta los IDs según tu HTML)
+// Elementos del DOM (verifica que estos IDs existan en tu admin.html)
 const loginSection = document.getElementById('loginSection');
 const dashboardSection = document.getElementById('dashboardSection');
 const tokenInput = document.getElementById('tokenInput');
@@ -13,7 +14,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const refreshBtn = document.getElementById('refreshBtn');
 const errorMsg = document.getElementById('errorMsg');
 
-// Inicialización
+// Inicialización: mostrar la sección correspondiente según si hay token guardado
 document.addEventListener('DOMContentLoaded', () => {
   if (token) {
     mostrarDashboard(true);
@@ -23,28 +24,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Login: guarda el token en localStorage
-loginBtn.addEventListener('click', () => {
-  const inputToken = tokenInput.value.trim();
-  if (!inputToken) {
-    mostrarError('Ingrese el token de administrador');
-    return;
-  }
-  localStorage.setItem('admin_token', inputToken);
-  token = inputToken;
-  mostrarDashboard(true);
-  cargarPedidos();
-});
+// Evento de login
+if (loginBtn) {
+  loginBtn.addEventListener('click', () => {
+    const inputToken = tokenInput.value.trim();
+    if (!inputToken) {
+      mostrarError('Ingrese el token de administrador');
+      return;
+    }
+    localStorage.setItem('admin_token', inputToken);
+    token = inputToken;
+    mostrarDashboard(true);
+    cargarPedidos();
+  });
+}
 
-// Cargar pedidos desde el servidor (con token en header)
+// Cargar lista de pedidos desde el servidor (ruta protegida)
 async function cargarPedidos() {
   mostrarError('');
-  pedidosBody.innerHTML = '<tr><td colspan="6">Cargando...<\/td><\/tr>';
+  if (pedidosBody) pedidosBody.innerHTML = '<tr><td colspan="6">Cargando...<\/td><\/tr>';
 
   try {
     const response = await fetch(`${API_BASE}/pedidos`, {
       headers: {
-        'Authorization': `Bearer ${token}`   // <-- CLAVE: aquí se envía el token
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -67,13 +70,15 @@ async function cargarPedidos() {
   } catch (error) {
     console.error('Error cargando pedidos:', error);
     mostrarError('No se pudieron cargar los pedidos: ' + error.message);
-    pedidosBody.innerHTML = '<tr><td colspan="6">Error al cargar<\/td><\/tr>';
+    if (pedidosBody) pedidosBody.innerHTML = '<tr><td colspan="6">Error al cargar<\/td><\/tr>';
   }
 }
 
+// Renderizar tabla de pedidos
 function mostrarPedidos(pedidos) {
+  if (!pedidosBody) return;
   if (!pedidos || pedidos.length === 0) {
-    pedidosBody.innerHTML = '<td><td colspan="6">No hay pedidos registrados<\/td><\/tr>';
+    pedidosBody.innerHTML = '<tr><td colspan="6">No hay pedidos registrados<\/td><\/tr>';
     return;
   }
 
@@ -92,6 +97,7 @@ function mostrarPedidos(pedidos) {
   });
 }
 
+// Mostrar mensaje de error
 function mostrarError(msg) {
   if (errorMsg) {
     errorMsg.textContent = msg;
@@ -99,6 +105,7 @@ function mostrarError(msg) {
   }
 }
 
+// Mostrar/ocultar secciones de login y dashboard
 function mostrarDashboard(show) {
   if (loginSection && dashboardSection) {
     loginSection.style.display = show ? 'none' : 'block';
@@ -106,6 +113,7 @@ function mostrarDashboard(show) {
   }
 }
 
+// Cerrar sesión
 function logout() {
   localStorage.removeItem('admin_token');
   token = '';
@@ -113,9 +121,11 @@ function logout() {
   if (tokenInput) tokenInput.value = '';
 }
 
+// Eventos de logout y refresh
 if (logoutBtn) logoutBtn.addEventListener('click', logout);
 if (refreshBtn) refreshBtn.addEventListener('click', cargarPedidos);
 
+// Utilidad para escapar HTML y evitar XSS
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>]/g, function(m) {
