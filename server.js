@@ -23,17 +23,13 @@ const verificarAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const adminToken = process.env.ADMIN_TOKEN;
-  console.log("ADMIN_TOKEN:", adminToken);  
-  
   if (!adminToken) {
     console.warn("⚠️  ADMIN_TOKEN no configurado. Las rutas admin están desprotegidas.");
     return next();
   }
-
   if (!token || token !== adminToken) {
     return res.status(401).json({ ok: false, mensaje: "No autorizado. Token inválido." });
   }
-
   next();
 };
 
@@ -107,7 +103,6 @@ const info_carnet = {
 };
 
 // ========== BASE DE DATOS DE RASTREO (TSV) - VERSIÓN DINÁMICA ==========
-// RAW_TRACKING_SOURCE original (estático) - se usará como inicial
 const RAW_TRACKING_SOURCE_INICIAL = `
 CHAMBATINA MIAMI	GEO MIA		CPK-0266228	EMBARCADO	Sí	CPK-323	REGULA/(SEGU 5278396)/(CWPS26188262)	ENVIO	ACEITE DE MOTOR 4 L	11481	2026-04-13	ARIANNA CORDERO MARTINEZ		94111138336	CALLE TOMAS PEREZ CASTRO # 113 INTERIOR e/ AGRAMONTE y AVENIDA LIBERTAD, CABAIGUAN, SANCTI SPIRITUS	54357818	ROLANDO AQUINO CANCIO			0	0	1	9.7	0.072	0	0	0		
 CHAMBATINA MIAMI	GEO MIA		CPK-0269283	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 12		2026-04-20	ALEXIS MARCOS DOLZ ZEQUEIRA		92011036022	CALLE RAFAEL TREJO # 68 A Rpto. LA POPA e/ PIRO GUINAL y CAMPOS, TRINIDAD, SANCTI SPIRITUS	53531245	IRELYS SUÁREZ			0	0	1	36.3	1	219.32	0	0		
@@ -121,7 +116,6 @@ function normalizarTracking(bloqueSucio) {
   for (let linea of lineas) {
     linea = linea.trim();
     if (!linea) continue;
-    // Reemplaza cualquier secuencia de espacios o tabuladores por un solo TAB
     linea = linea.replace(/[ \t]+/g, '\t');
     lineasLimpias.push(linea);
   }
@@ -132,11 +126,12 @@ function normalizarTracking(bloqueSucio) {
 let currentTrackingSource = normalizarTracking(RAW_TRACKING_SOURCE_INICIAL);
 let currentTrackingDb = {};
 
-// ========== HELPERS (rastreo) - originales ligeramente adaptados ==========
+// ========== HELPERS (rastreo) ==========
 function soloDigitos(v = "") { return String(v).replace(/\D/g, ""); }
 function primerNombre(nombre = "") { return String(nombre).trim().split(/\s+/)[0] || ""; }
 function normalizarLinea(linea = "") { return String(linea).replace(/\r/g, ""); }
 function normalizarCPK(texto = "") { 
+  // Acepta CPK-123456 o CPK123456
   const match = String(texto).match(/CPK[-\s]?(\d{6,10})/i); 
   return match ? match[1] : ""; 
 }
@@ -161,9 +156,11 @@ function getSessionKey(req) {
   const ip = forwarded || req.ip || "anon"; 
   return `sess:${ip}`; 
 }
-function construirSaludo(embarcador = "", consignatario = "", estado = "") { 
-  const nombre = primerNombre(consignatario || embarcador || "cliente"); 
-  return `Hola ${nombre}, su envío se encuentra actualmente en: ${estado}.`; 
+
+// NUEVO: construir saludo mostrando el CPK y el nombre
+function construirSaludoConCPK(cpk, embarcador = "", consignatario = "", estado = "") {
+  const nombre = primerNombre(consignatario || embarcador || "cliente");
+  return `Hola ${nombre}, su envío CPK: ${cpk} se encuentra actualmente en: ${estado}.`;
 }
 
 // ========== ETAPAS POR DÍAS ==========
@@ -203,7 +200,7 @@ function estadoPorTiempo(fechaTexto = "") {
   return ETAPAS.EN_DISTRIBUCION;
 }
 
-// ========== PARSER DE RASTREO (CORREGIDO) ==========
+// ========== PARSER DE RASTREO ==========
 function extraerCPKDesdeColumnas(columnas) {
   for (const col of columnas) {
     const cpk = normalizarCPK(col);
@@ -257,15 +254,15 @@ function parseTrackingSource(raw) {
   const db = {};
   for (const linea of lineas) {
     const columnas = linea.split(/\t+/);
-    const cpk = extraerCPKDesdeColumnas(columnas);
-    if (!cpk) continue;
+    const cpkNum = extraerCPKDesdeColumnas(columnas);
+    if (!cpkNum) continue;
     const fecha = extraerFechaDesdeColumnas(columnas);
     const fechaIndex = columnas.findIndex(col => col === fecha);
     const embarcador = fechaIndex !== -1 ? extraerNombreDesdeColumnas(columnas, fechaIndex) : "";
-    const carnets = extraerCarnetsDesdeColumnas(columnas, cpk);
-    const descripcion = extraerDescripcionDesdeColumnas(columnas, cpk, fecha);
-    db[cpk] = {
-      cpk,
+    const carnets = extraerCarnetsDesdeColumnas(columnas, cpkNum);
+    const descripcion = extraerDescripcionDesdeColumnas(columnas, cpkNum, fecha);
+    db[cpkNum] = {
+      cpk: cpkNum,
       fecha,
       estado: estadoPorTiempo(fecha),
       descripcion,
@@ -303,7 +300,6 @@ function extraerResultadosLocalesPorCarnet(carnet) {
       consignatario: item.consignatario,
       carnet: carnetLimpio,
       descripcion: item.descripcion,
-      saludo: construirSaludo(item.embarcador, item.consignatario, item.estado)
     });
   }
   return resultados;
@@ -347,7 +343,7 @@ function setMemory(key, patch) {
   MEMORIA.set(key, {...prev, ...patch, ts: Date.now()}); 
 }
 
-// ========== DETECCIÓN DE INTENCIÓN (original) ==========
+// ========== DETECCIÓN DE INTENCIÓN ==========
 function detectarPeso(texto) { 
   const t = String(texto).toLowerCase(); 
   const m = t.match(/(\d+(?:\.\d+)?)\s*(lb|libras?)/i) || t.match(/peso\s*(\d+(?:\.\d+)?)/i); 
@@ -453,11 +449,12 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/rastreo/:cpk", (req, res) => { 
   try { 
-    const cpk = normalizarCPK(req.params.cpk); 
-    if (!cpk) return res.status(400).json({ ok: false, mensaje: "CPK inválido" }); 
-    const item = getTrackingDb()[cpk]; 
+    const cpkNum = normalizarCPK(req.params.cpk); 
+    if (!cpkNum) return res.status(400).json({ ok: false, mensaje: "CPK inválido" }); 
+    const item = getTrackingDb()[cpkNum]; 
     if (!item) return res.status(404).json({ ok: false, mensaje: "No encontramos información para ese CPK." }); 
-    res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, fecha: item.fecha, estado: item.estado, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); 
+    const saludo = construirSaludoConCPK(item.cpk, item.embarcador, item.consignatario, item.estado);
+    res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, fecha: item.fecha, estado: item.estado, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo }); 
   } catch(e) { 
     res.status(500).json({ ok: false, mensaje: "Error interno" }); 
   } 
@@ -484,11 +481,13 @@ app.get("/api/buscar/:termino", (req, res) => {
     const cpkNormalizado = normalizarCPK(terminoRaw); 
     if (cpkNormalizado && db[cpkNormalizado]) { 
       const item = db[cpkNormalizado]; 
-      return res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, estado: item.estado, fecha: item.fecha, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); 
+      const saludo = construirSaludoConCPK(item.cpk, item.embarcador, item.consignatario, item.estado);
+      return res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, estado: item.estado, fecha: item.fecha, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo }); 
     } 
     if (db[terminoDigits]) { 
       const item = db[terminoDigits]; 
-      return res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, estado: item.estado, fecha: item.fecha, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo: construirSaludo(item.embarcador, item.consignatario, item.estado) }); 
+      const saludo = construirSaludoConCPK(item.cpk, item.embarcador, item.consignatario, item.estado);
+      return res.json({ ok: true, tipoBusqueda: "cpk", cpk: item.cpk, estado: item.estado, fecha: item.fecha, descripcion: item.descripcion, embarcador: item.embarcador, consignatario: item.consignatario, carnet: item.carnetPrincipal, saludo }); 
     } 
     const resultadosCarnet = extraerResultadosLocalesPorCarnet(terminoDigits); 
     if (resultadosCarnet.length) return res.json({ ok: true, tipoBusqueda: "carnet", total: resultadosCarnet.length, resultados: resultadosCarnet }); 
@@ -498,7 +497,7 @@ app.get("/api/buscar/:termino", (req, res) => {
   } 
 });
 
-// ========== NUEVO ENDPOINT PARA ACTUALIZAR TRACKING (PROTEGIDO) ==========
+// ========== ENDPOINT PARA ACTUALIZAR TRACKING (PROTEGIDO) ==========
 app.post("/api/tracking/actualizar", verificarAdmin, async (req, res) => {
   try {
     const { bloque } = req.body;
@@ -511,7 +510,7 @@ app.post("/api/tracking/actualizar", verificarAdmin, async (req, res) => {
   }
 });
 
-// ========== CHAT (modificado para incluir saludo Pedro, CPK producto y carnet) ==========
+// ========== CHAT (MODIFICADO) ==========
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = String(req.body?.mensaje || "").trim();
@@ -519,35 +518,43 @@ app.post("/api/chat", async (req, res) => {
     const sessionKey = getSessionKey(req);
     const mem = getMemory(sessionKey);
 
-    // 1. Saludo a Pedro (Embarcado)
+    // 1. Saludo a Pedro (Embarcado) explícito
     if (detectarSaludoPedro(mensaje)) {
       return res.json({ ok: true, respuesta: "Hola Pedro tu carga asi." });
     }
 
-    // 2. Búsqueda de CPK en las bases de producto (info_cpk)
-    const cpkProducto = extraerCPKProducto(mensaje);
-    if (cpkProducto) {
-      let respuesta = "";
-      // Información de producto
-      if (info_cpk[cpkProducto]) {
-        const prod = info_cpk[cpkProducto];
-        respuesta += `📦 ${cpkProducto}: ${prod.producto}, Destino: ${prod.destino}, Peso: ${prod.peso}. ${prod.descripcion}. `;
-      } else {
-        respuesta += `⚠️ El código ${cpkProducto} no tiene información de producto registrada. `;
-      }
-      // Información de tracking (usando el número sin prefijo)
-      const numCPK = cpkProducto.replace(/^CPK/, '');
-      const trackingItem = getTrackingDb()[numCPK];
+    // 2. Búsqueda de CPK en tracking (primero) y luego en producto
+    const cpkNum = normalizarCPK(mensaje);
+    if (cpkNum) {
+      const trackingItem = getTrackingDb()[cpkNum];
       if (trackingItem) {
-        respuesta += `🚚 Seguimiento: Estado = ${trackingItem.estado}, Fecha = ${trackingItem.fecha || "N/A"}, Descripción = ${trackingItem.descripcion}.`;
+        // Construir respuesta con saludo personalizado + CPK + estado + fecha + descripción
+        let respuesta = construirSaludoConCPK(trackingItem.cpk, trackingItem.embarcador, trackingItem.consignatario, trackingItem.estado);
+        respuesta += `\n\n📅 Fecha de registro: ${trackingItem.fecha || "No disponible"}`;
+        respuesta += `\n📦 Descripción: ${trackingItem.descripcion || "Sin descripción"}`;
+        // Si además hay información de producto en info_cpk (opcional)
+        const cpkConPrefijo = `CPK${cpkNum}`;
+        if (info_cpk[cpkConPrefijo]) {
+          const prod = info_cpk[cpkConPrefijo];
+          respuesta += `\n🛒 Producto asociado: ${prod.producto}, Destino: ${prod.destino}, Peso: ${prod.peso}. ${prod.descripcion}`;
+        }
+        setMemory(sessionKey, { lastIntent: "rastreo_cpk", lastCPK: cpkNum });
+        return res.json({ ok: true, respuesta });
       } else {
-        respuesta += `🔍 No se encontró seguimiento para ${cpkProducto}.`;
+        // Si no está en tracking, pero sí en info_cpk (producto sin seguimiento)
+        const cpkConPrefijo = `CPK${cpkNum}`;
+        if (info_cpk[cpkConPrefijo]) {
+          const prod = info_cpk[cpkConPrefijo];
+          const respuesta = `📦 ${cpkConPrefijo}: ${prod.producto}, Destino: ${prod.destino}, Peso: ${prod.peso}. ${prod.descripcion}\n\n⚠️ No hay seguimiento disponible para este CPK.`;
+          setMemory(sessionKey, { lastIntent: "producto", lastCPK: cpkNum });
+          return res.json({ ok: true, respuesta });
+        } else {
+          return res.json({ ok: false, mensaje: "No encontramos información para ese CPK." });
+        }
       }
-      setMemory(sessionKey, { lastIntent: "rastreo_cpk", lastCPK: numCPK });
-      return res.json({ ok: true, respuesta });
     }
 
-    // 3. Búsqueda de carnet en info_carnet
+    // 3. Búsqueda de carnet (solo información de persona, no tracking)
     const carnetTexto = extraerCarnetPorTexto(mensaje);
     if (carnetTexto && info_carnet[carnetTexto]) {
       const carn = info_carnet[carnetTexto];
@@ -556,14 +563,33 @@ app.post("/api/chat", async (req, res) => {
       return res.json({ ok: true, respuesta });
     }
 
-    // 4. Resto de la lógica original (intenciones, OpenAI, etc.)
+    // 4. Si el mensaje es un número suelto y podría ser carnet (sin la palabra "carnet")
+    const soloNum = soloDigitos(mensaje);
+    if (soloNum.length >= 8 && soloNum.length <= 12 && !cpkNum) {
+      const resultadosCarnet = extraerResultadosLocalesPorCarnet(soloNum);
+      if (resultadosCarnet.length) {
+        let respuesta = `Encontré ${resultadosCarnet.length} envío(s) para el carnet ${soloNum}:\n\n`;
+        for (let i = 0; i < resultadosCarnet.length; i++) {
+          const r = resultadosCarnet[i];
+          respuesta += `${i+1}. CPK: ${r.cpk}\n   Estado: ${r.estado}\n   Fecha: ${r.fecha}\n   Descripción: ${r.descripcion}\n\n`;
+        }
+        setMemory(sessionKey, { lastIntent: "rastreo_carnet", lastCarnet: soloNum });
+        return res.json({ ok: true, respuesta });
+      } else {
+        return res.json({ ok: false, mensaje: "No se encontraron envíos para ese carnet." });
+      }
+    }
+
+    // 5. Resto de la lógica original (intenciones, OpenAI, etc.)
     const info = detectarIntencion(mensaje);
 
     if (info.intent === "rastreo_cpk" && info.cpk) {
+      // Ya se cubrió arriba, pero por si acaso
       const item = getTrackingDb()[info.cpk];
       if (!item) return res.json({ ok: false, mensaje: "No encontramos información para ese CPK." });
+      const saludo = construirSaludoConCPK(item.cpk, item.embarcador, item.consignatario, item.estado);
       setMemory(sessionKey, { lastIntent: "rastreo_cpk", lastCPK: info.cpk });
-      return res.json({ ok: true, respuesta: `${construirSaludo(item.embarcador, item.consignatario, item.estado)}\n\nCPK: ${item.cpk}\nFecha: ${item.fecha || "No disponible"}\nCarnet: ${item.carnetPrincipal || "No disponible"}\n\nDescripción:\n${item.descripcion || "Sin descripción disponible."}` });
+      return res.json({ ok: true, respuesta: `${saludo}\n\nCPK: ${item.cpk}\nFecha: ${item.fecha || "No disponible"}\nCarnet: ${item.carnetPrincipal || "No disponible"}\n\nDescripción:\n${item.descripcion || "Sin descripción disponible."}` });
     }
     if (info.intent === "rastreo_carnet" && info.carnet) {
       const resultados = extraerResultadosLocalesPorCarnet(info.carnet);
