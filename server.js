@@ -90,20 +90,52 @@ OFICINA
 - Teléfono Adriana: 786-784-6421
 `;
 
-// ========== BASE DE DATOS DE RASTREO (solo 3 ejemplos) ==========
-// IMPORTANTE: Usa TABULADORES reales entre columnas. Copia exactamente como está.
-const RAW_TRACKING_SOURCE = `
+// ========== BASE DE DATOS DE CPK Y CARNET (productos y personas) ==========
+const info_cpk = {
+  "CPK100": { producto: "Laptop Gamer", destino: "Bodega Central", peso: "2.5 kg", descripcion: "Equipo de cómputo de alto rendimiento." },
+  "CPK200": { producto: "Monitor 24\"", destino: "Sucursal Norte", peso: "3.1 kg", descripcion: "Pantalla LED Full HD." },
+  "CPK300": { producto: "Teclado Mecánico", destino: "Oficina Sur", peso: "0.8 kg", descripcion: "Teclado con switches mecánicos." },
+  "CPK400": { producto: "Mouse Inalámbrico", destino: "Almacén Este", peso: "0.2 kg", descripcion: "Mouse ergonómico Bluetooth." },
+  "CPK999": { producto: "Carga de Pedro", destino: "Embarcado", peso: "15 kg", descripcion: "Paquete especial para envío urgente." },
+};
+
+const info_carnet = {
+  "CARN123456": { nombre: "Juan Pérez", tipo: "Estudiante", destino: "Biblioteca", descripcion: "Carnet de acceso a instalaciones." },
+  "CARN789012": { nombre: "María Gómez", tipo: "Docente", destino: "Aulas", descripcion: "Carnet con privilegios de profesor." },
+  "CARN555666": { nombre: "Pedro López", tipo: "Embarcado", destino: "Zona de carga", descripcion: "Carnet especial para operaciones de embarque." },
+  "CARN111222": { nombre: "Ana Torres", tipo: "Visitante", destino: "Recepción", descripcion: "Carnet temporal por 1 día." },
+};
+
+// ========== BASE DE DATOS DE RASTREO (TSV) - VERSIÓN DINÁMICA ==========
+// RAW_TRACKING_SOURCE original (estático) - se usará como inicial
+const RAW_TRACKING_SOURCE_INICIAL = `
 CHAMBATINA MIAMI	GEO MIA		CPK-0266228	EMBARCADO	Sí	CPK-323	REGULA/(SEGU 5278396)/(CWPS26188262)	ENVIO	ACEITE DE MOTOR 4 L	11481	2026-04-13	ARIANNA CORDERO MARTINEZ		94111138336	CALLE TOMAS PEREZ CASTRO # 113 INTERIOR e/ AGRAMONTE y AVENIDA LIBERTAD, CABAIGUAN, SANCTI SPIRITUS	54357818	ROLANDO AQUINO CANCIO			0	0	1	9.7	0.072	0	0	0		
 CHAMBATINA MIAMI	GEO MIA		CPK-0269283	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 12		2026-04-20	ALEXIS MARCOS DOLZ ZEQUEIRA		92011036022	CALLE RAFAEL TREJO # 68 A Rpto. LA POPA e/ PIRO GUINAL y CAMPOS, TRINIDAD, SANCTI SPIRITUS	53531245	IRELYS SUÁREZ			0	0	1	36.3	1	219.32	0	0		
 CHAMBATINA MIAMI	GEO MIA		CPK-0269278	EN AGENCIA	No	ENVIOS FACTURADOS	ENVIOS FACTURADOS/()/(ENVIOS FACTURADOS)	ENVIO	MISCELANEA 15		2026-04-20	JASSIEL SUAREZ HERNANDEZ		82071508065	CALLE 57 # 5408 e/ 54 y 56, CIENFUEGOS, CIENFUEGOS	52710454	IRELYS SUÁREZ			2.99	0	1	54.1	1.953	219.32	0	0		
 `;
 
-// ========== HELPERS (rastreo) ==========
+// ========== NORMALIZACIÓN DE BLOQUES DE TRACKING ==========
+function normalizarTracking(bloqueSucio) {
+  const lineas = bloqueSucio.split(/\r?\n/);
+  const lineasLimpias = [];
+  for (let linea of lineas) {
+    linea = linea.trim();
+    if (!linea) continue;
+    // Reemplaza cualquier secuencia de espacios o tabuladores por un solo TAB
+    linea = linea.replace(/[ \t]+/g, '\t');
+    lineasLimpias.push(linea);
+  }
+  return lineasLimpias.join('\n');
+}
+
+// Variables dinámicas de tracking
+let currentTrackingSource = normalizarTracking(RAW_TRACKING_SOURCE_INICIAL);
+let currentTrackingDb = {};
+
+// ========== HELPERS (rastreo) - originales ligeramente adaptados ==========
 function soloDigitos(v = "") { return String(v).replace(/\D/g, ""); }
 function primerNombre(nombre = "") { return String(nombre).trim().split(/\s+/)[0] || ""; }
-function normalizarLinea(linea = "") { 
-  return String(linea).replace(/\r/g, "");
-}
+function normalizarLinea(linea = "") { return String(linea).replace(/\r/g, ""); }
 function normalizarCPK(texto = "") { 
   const match = String(texto).match(/CPK[-\s]?(\d{6,10})/i); 
   return match ? match[1] : ""; 
@@ -247,7 +279,14 @@ function parseTrackingSource(raw) {
   return db;
 }
 
-function getTrackingDb() { return parseTrackingSource(RAW_TRACKING_SOURCE); }
+function recargarTrackingDesdeTexto(nuevoTexto) {
+  const normalizado = normalizarTracking(nuevoTexto);
+  currentTrackingSource = normalizado;
+  currentTrackingDb = parseTrackingSource(normalizado);
+  return currentTrackingDb;
+}
+
+function getTrackingDb() { return currentTrackingDb; }
 
 function extraerResultadosLocalesPorCarnet(carnet) {
   const carnetLimpio = soloDigitos(carnet);
@@ -270,6 +309,28 @@ function extraerResultadosLocalesPorCarnet(carnet) {
   return resultados;
 }
 
+// Inicializar la base de datos dinámica
+recargarTrackingDesdeTexto(RAW_TRACKING_SOURCE_INICIAL);
+
+// ========== NUEVAS FUNCIONES PARA CPK/CARNET Y SALUDO PEDRO ==========
+function extraerCPKProducto(texto) {
+  const match = String(texto).match(/CPK[-\s]?(\d{6,10})/i);
+  return match ? `CPK${match[1]}` : null;
+}
+
+function extraerCarnetPorTexto(texto) {
+  const match = String(texto).match(/\b(carnet)[-\s]?(\d{8,12})\b/i);
+  if (match) return `CARN${match[2]}`;
+  const soloNum = soloDigitos(texto);
+  if (soloNum.length >= 8 && soloNum.length <= 12 && !extraerCPKProducto(texto)) return `CARN${soloNum}`;
+  return null;
+}
+
+function detectarSaludoPedro(texto) {
+  const t = texto.toLowerCase();
+  return t.includes('hola pedro') || t.includes('embarcado');
+}
+
 // ========== MEMORIA CHAT ==========
 const MEMORIA = new Map();
 function getMemory(key) { 
@@ -286,7 +347,7 @@ function setMemory(key, patch) {
   MEMORIA.set(key, {...prev, ...patch, ts: Date.now()}); 
 }
 
-// ========== DETECCIÓN DE INTENCIÓN ==========
+// ========== DETECCIÓN DE INTENCIÓN (original) ==========
 function detectarPeso(texto) { 
   const t = String(texto).toLowerCase(); 
   const m = t.match(/(\d+(?:\.\d+)?)\s*(lb|libras?)/i) || t.match(/peso\s*(\d+(?:\.\d+)?)/i); 
@@ -437,13 +498,65 @@ app.get("/api/buscar/:termino", (req, res) => {
   } 
 });
 
-// ========== CHAT ==========
+// ========== NUEVO ENDPOINT PARA ACTUALIZAR TRACKING (PROTEGIDO) ==========
+app.post("/api/tracking/actualizar", verificarAdmin, async (req, res) => {
+  try {
+    const { bloque } = req.body;
+    if (!bloque) return res.status(400).json({ ok: false, mensaje: "Falta el campo 'bloque'" });
+    const nuevaDb = recargarTrackingDesdeTexto(bloque);
+    res.json({ ok: true, mensaje: `Tracking actualizado. ${Object.keys(nuevaDb).length} CPKs cargados.` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false, mensaje: "Error al actualizar tracking" });
+  }
+});
+
+// ========== CHAT (modificado para incluir saludo Pedro, CPK producto y carnet) ==========
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = String(req.body?.mensaje || "").trim();
     if (!mensaje) return res.status(400).json({ ok: false, mensaje: "Falta mensaje" });
     const sessionKey = getSessionKey(req);
     const mem = getMemory(sessionKey);
+
+    // 1. Saludo a Pedro (Embarcado)
+    if (detectarSaludoPedro(mensaje)) {
+      return res.json({ ok: true, respuesta: "Hola Pedro tu carga asi." });
+    }
+
+    // 2. Búsqueda de CPK en las bases de producto (info_cpk)
+    const cpkProducto = extraerCPKProducto(mensaje);
+    if (cpkProducto) {
+      let respuesta = "";
+      // Información de producto
+      if (info_cpk[cpkProducto]) {
+        const prod = info_cpk[cpkProducto];
+        respuesta += `📦 ${cpkProducto}: ${prod.producto}, Destino: ${prod.destino}, Peso: ${prod.peso}. ${prod.descripcion}. `;
+      } else {
+        respuesta += `⚠️ El código ${cpkProducto} no tiene información de producto registrada. `;
+      }
+      // Información de tracking (usando el número sin prefijo)
+      const numCPK = cpkProducto.replace(/^CPK/, '');
+      const trackingItem = getTrackingDb()[numCPK];
+      if (trackingItem) {
+        respuesta += `🚚 Seguimiento: Estado = ${trackingItem.estado}, Fecha = ${trackingItem.fecha || "N/A"}, Descripción = ${trackingItem.descripcion}.`;
+      } else {
+        respuesta += `🔍 No se encontró seguimiento para ${cpkProducto}.`;
+      }
+      setMemory(sessionKey, { lastIntent: "rastreo_cpk", lastCPK: numCPK });
+      return res.json({ ok: true, respuesta });
+    }
+
+    // 3. Búsqueda de carnet en info_carnet
+    const carnetTexto = extraerCarnetPorTexto(mensaje);
+    if (carnetTexto && info_carnet[carnetTexto]) {
+      const carn = info_carnet[carnetTexto];
+      const respuesta = `🪪 ${carnetTexto}: ${carn.nombre} (${carn.tipo}), Destino: ${carn.destino}. ${carn.descripcion}`;
+      setMemory(sessionKey, { lastIntent: "carnet", lastCarnet: carnetTexto });
+      return res.json({ ok: true, respuesta });
+    }
+
+    // 4. Resto de la lógica original (intenciones, OpenAI, etc.)
     const info = detectarIntencion(mensaje);
 
     if (info.intent === "rastreo_cpk" && info.cpk) {
@@ -502,7 +615,7 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// ========== RUTAS PROTEGIDAS ==========
+// ========== RUTAS PROTEGIDAS (pedidos) ==========
 app.post("/api/pedidos", async (req, res) => {
   const { nombre, email, telefono, direccion, producto } = req.body;
   if (!nombre || !telefono || !producto) return res.status(400).json({ ok: false, mensaje: "Faltan datos" });
